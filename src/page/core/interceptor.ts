@@ -1,7 +1,8 @@
 // Passive wrappers around fetch and XMLHttpRequest.
 // Rules (CLAUDE.md §2.6): the original Response/XHR is always handed back untouched,
 // bodies are read only from clones, and any internal error is swallowed.
-// Header VALUES are never read into captures: only header names.
+// Header VALUES are never read into captures: only header names. The only consumer of values
+// is onPathfinderRequest, which feeds the in-memory session (core/session).
 import { matchEndpoint, type EndpointKind } from '../adapters/endpoints';
 import { parsePathfinderRequest } from '../adapters/pathfinderRequest';
 
@@ -25,10 +26,19 @@ export interface CapturedRequest {
   durationMs: number;
 }
 
+export interface PathfinderRequestEvent {
+  operationName: string | null;
+  hash: string | null;
+  /** Request headers WITH values (token included): memory-only consumers. */
+  headers: Headers;
+}
+
 export interface InterceptorHooks {
   /** Asked once per matching request, before anything is cloned or parsed. */
   shouldCapture(kind: EndpointKind): boolean;
   onCapture(request: CapturedRequest): void;
+  /** Every Pathfinder fetch of the player, captured or not (session headers, hash registry). */
+  onPathfinderRequest?(event: PathfinderRequestEvent): void;
 }
 
 interface RequestPart {
@@ -119,11 +129,27 @@ function collectHeaderNames(target: Set<string>, init: HeadersInit | undefined):
   for (const name of new Headers(init).keys()) target.add(name);
 }
 
+function notifyPathfinder(args: FetchArgs, rawUrl: string, hooks: InterceptorHooks): void {
+  if (!hooks.onPathfinderRequest || matchEndpoint(rawUrl, baseUrl())?.kind !== 'pathfinder') return;
+  const [input, init] = args;
+  const headers = new Headers(typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined);
+  if (init?.headers) new Headers(init.headers).forEach((value, name) => headers.set(name, value));
+  const body = typeof init?.body === 'string' ? init.body : null;
+  const query = parsePathfinderRequest(new URL(rawUrl, baseUrl()), body);
+  hooks.onPathfinderRequest({ operationName: query.operationName, hash: query.hash, headers });
+}
+
 function startFetchObservation(args: FetchArgs, hooks: InterceptorHooks) {
   const [input, init] = args;
   const isRequest = typeof Request !== 'undefined' && input instanceof Request;
   const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : isRequest ? input.url : null;
   if (rawUrl === null) return null;
+
+  try {
+    notifyPathfinder(args, rawUrl, hooks);
+  } catch {
+    // Consumers must never affect the player.
+  }
 
   const method = init?.method ?? (isRequest ? input.method : 'GET');
   const req = beginRequest('fetch', method, rawUrl, hooks);
@@ -170,9 +196,10 @@ function startFetchObservation(args: FetchArgs, hooks: InterceptorHooks) {
   };
 }
 
-export function installFetchInterceptor(target: { fetch: typeof fetch }, hooks: InterceptorHooks): void {
+/** Wraps target.fetch and returns the original, for our own requests (not observed). */
+export function installFetchInterceptor(target: { fetch: typeof fetch }, hooks: InterceptorHooks): typeof fetch | null {
   const original = target.fetch;
-  if (typeof original !== 'function') return;
+  if (typeof original !== 'function') return null;
 
   target.fetch = function fetch(this: unknown, ...args: FetchArgs): Promise<Response> {
     let observation: ReturnType<typeof startFetchObservation> = null;
@@ -191,6 +218,7 @@ export function installFetchInterceptor(target: { fetch: typeof fetch }, hooks: 
     }
     return promise;
   };
+  return original.bind(target);
 }
 
 // ---------------------------------------------------------------- XHR

@@ -115,3 +115,33 @@ describe('fetch interceptor', () => {
     expect(captures[0]).toMatchObject({ kind: 'spclient', json: undefined, contentType: 'application/protobuf' });
   });
 });
+
+describe('onPathfinderRequest', () => {
+  it('reports every Pathfinder request with its headers, even when not captured', async () => {
+    const events: { operationName: string | null; hash: string | null; auth: string | null }[] = [];
+    const original = vi.fn(async () => jsonResponse({}));
+    const target = { fetch: original as unknown as typeof fetch };
+    installFetchInterceptor(target, {
+      shouldCapture: () => false,
+      onCapture: () => {},
+      onPathfinderRequest: ({ operationName, hash, headers }) =>
+        events.push({ operationName, hash, auth: headers.get('authorization') }),
+    });
+    await target.fetch(PATHFINDER, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer abc' },
+      body: JSON.stringify({ operationName: 'op', extensions: { persistedQuery: { sha256Hash: 'h' } } }),
+    });
+    await target.fetch('https://gew4-spclient.spotify.com/x/v1/y');
+    expect(events).toEqual([{ operationName: 'op', hash: 'h', auth: 'Bearer abc' }]);
+  });
+
+  it('returns the original fetch for our own requests', () => {
+    const original = vi.fn(async () => jsonResponse({}));
+    const target = { fetch: original as unknown as typeof fetch };
+    const native = installFetchInterceptor(target, { shouldCapture: () => true, onCapture: () => {} });
+    expect(native).not.toBe(target.fetch);
+    void native!('https://example.com');
+    expect(original).toHaveBeenCalledTimes(1);
+  });
+});
