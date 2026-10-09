@@ -57,3 +57,14 @@ describe('describeEndpoint', () => {
     expect(describeEndpoint('https://spclient.wg.spotify.com/a')).toBe('spclient.wg.spotify.com/a');
   });
 });
+
+describe('highlighting', () => {
+  it('matches whole keys only', () => {
+    const { entries } = buildPathMap(
+      { featuringV2: { name: 'x' }, _uri: 'u', entrypointUri: 'e', playcount: '1' },
+      { highlightKeys: ['uri', 'playcount'] },
+    );
+    const highlighted = entries.filter((e) => e.highlighted).map((e) => e.path);
+    expect(highlighted.sort()).toEqual(['$._uri', '$.playcount']);
+  });
+});

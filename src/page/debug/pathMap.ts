@@ -82,9 +82,10 @@ export function buildPathMap(value: unknown, options: PathMapOptions = {}): Path
 
   walk(value, '$', 0);
 
+  // Whole keys only (ignoring leading underscores): substrings are too noisy ("featuring" contains "uri").
   const isHighlighted = (path: string) => {
     const keys = path.toLowerCase().split(/[.[\]]+/);
-    return keys.some((key) => highlightKeys.some((wanted) => key.includes(wanted)));
+    return keys.some((key) => highlightKeys.includes(key.replace(/^_+/, '')));
   };
 
   const entries = [...types.entries()]

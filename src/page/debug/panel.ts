@@ -97,6 +97,9 @@ export function mountPanel(): void {
   const host = el('div');
   host.setAttribute('data-sfe-debug-panel', '');
   const root = host.attachShadow({ mode: 'closed' });
+  // Outside the shadow root, key events are retargeted to the host, so the player cannot tell
+  // they come from a text field and treats them as shortcuts (space = play/pause). Keep them here.
+  for (const type of ['keydown', 'keyup', 'keypress']) host.addEventListener(type, (event) => event.stopPropagation());
 
   const toggle = el('button', { className: 'toggle', textContent: 'SFE' });
   const box = el('div', { className: 'box', hidden: true });
