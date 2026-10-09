@@ -14,6 +14,8 @@ const OWN = 'data-sfe-liked-view';
 const PADDING = 24;
 const COLUMNS =
   'display: grid; grid-template-columns: 24px minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr) minmax(48px, 1fr) 32px; column-gap: 16px; align-items: center; padding: 0 8px 0 16px';
+const SELECTED = 'data-sfe-selected';
+const SELECTED_BACKGROUND = 'rgba(255, 255, 255, 0.2)';
 const MORE = 'M3 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm6.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM16 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z';
 
 export interface ViewModel {
@@ -263,13 +265,34 @@ export class LikedSongsView {
     more.addEventListener('focus', () => (more.style.opacity = '1'));
     more.addEventListener('blur', () => (more.style.opacity = row.matches(':hover') ? '1' : '0'));
 
+    const paint = () => {
+      const selected = row.hasAttribute(SELECTED);
+      row.style.background = selected ? SELECTED_BACKGROUND : row.matches(':hover') ? HOVER : 'transparent';
+    };
     row.addEventListener('mouseenter', () => {
-      row.style.background = HOVER;
+      paint();
       more.style.opacity = '1';
     });
     row.addEventListener('mouseleave', () => {
-      row.style.background = 'transparent';
+      paint();
       if (document.activeElement !== more) more.style.opacity = '0';
+    });
+    // Like the player's rows: a click selects, a double click plays. Opening a track page plays
+    // it in the web player (it adds autoplay_ok, as its own title links do), so a double click
+    // opens the track page and the player starts it with its own code.
+    const onRowControl = (event: Event) => (event.target as Element).closest('a, button') !== null;
+    row.addEventListener('click', (event) => {
+      if (onRowControl(event)) return;
+      for (const other of this.list.querySelectorAll<HTMLElement>(`[${SELECTED}]`)) {
+        other.removeAttribute(SELECTED);
+        other.style.background = 'transparent';
+      }
+      row.setAttribute(SELECTED, '');
+      paint();
+    });
+    row.addEventListener('dblclick', (event) => {
+      if (onRowControl(event)) return;
+      navigateTo(trackPath(track.t));
     });
     row.addEventListener('contextmenu', (event) => {
       event.preventDefault();

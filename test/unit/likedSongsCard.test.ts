@@ -168,4 +168,20 @@ describe('LikedSongsView', () => {
     expect(menu()).toBeNull();
     view.close();
   });
+
+  it('selects a row on click and opens (plays) the track on double click', () => {
+    const main = buildArtistPage();
+    const card = new LikedSongsCard(popularBlockOf(main)!, () => {});
+    const view = new LikedSongsView(main, card.typography, () => {});
+    view.open({ artistId: 'B'.repeat(22), artistName: 'X', imageUrl: null, tracks, now });
+    const [first, second] = [...view.root.querySelectorAll('li')];
+    first!.click();
+    expect(first!.hasAttribute('data-sfe-selected')).toBe(true);
+    second!.click();
+    expect(first!.hasAttribute('data-sfe-selected')).toBe(false);
+    expect(second!.hasAttribute('data-sfe-selected')).toBe(true);
+    second!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(location.pathname).toBe(`/track/${'C'.repeat(22)}`);
+    view.close();
+  });
 });
