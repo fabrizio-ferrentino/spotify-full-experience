@@ -58,3 +58,20 @@ describe('HashRegistry', () => {
     expect(registry.describe()).toEqual({ op: `bundle ${'2'.repeat(8)}…` });
   });
 });
+
+describe('HashRegistry bundle scans', () => {
+  it('retries a scan that found no bundle and scans new operations later', async () => {
+    let bundles: string[] = [];
+    const load = vi.fn(async () => bundles);
+    const registry = new HashRegistry({}, load);
+    await registry.scanBundles(['op']);
+    expect(registry.get('op')).toBeNull();
+    bundles = [`"op","${H('2')}" "other","${H('3')}"`];
+    await registry.scanBundles(['op']);
+    expect(registry.get('op')?.source).toBe('bundle');
+    await registry.scanBundles(['op']);
+    expect(load).toHaveBeenCalledTimes(2);
+    await registry.scanBundles(['other']);
+    expect(registry.get('other')?.hash).toBe(H('3'));
+  });
+});

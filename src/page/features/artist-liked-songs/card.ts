@@ -1,16 +1,18 @@
-// "You've liked N songs · By <artist>" card under the artist's Popular block, with an
-// expandable list of those songs. Each title opens the track page in the app, where playback
+// "Cosa ti è piaciuto" section under the artist's Popular block, like the desktop app: the
+// artist's round picture with a heart badge, "17 brani" and "Di <artist>", with an expandable
+// list of those songs. Each title opens the track page in the app, where playback
 // uses the player's own controls (works with free accounts too).
 import type { LikedTrack } from '../../../shared/likedIndex';
 import { SELECTORS } from '../../adapters/spotifyDom';
 import { navigateTo, trackPath } from '../../adapters/spotifyNav';
 import { setText } from '../../core/dom';
-import { byArtistText, likedCountText, relativeTime } from '../../ui/format';
+import { byArtistText, likedCountText, likedSectionTitle, relativeTime } from '../../ui/format';
 
 const OWN = 'data-sfe-liked';
 const DURATION_TEXT = /^\d+:\d{2}$/;
 const HOVER = 'rgba(255, 255, 255, 0.07)';
 const ACCENT = 'var(--essential-bright-accent, #1ed760)';
+const PICTURE_SIZE = 88;
 
 export interface CardModel {
   artistName: string;
@@ -19,20 +21,22 @@ export interface CardModel {
   now: number;
 }
 
-/** Text classes borrowed from the Popular rows, so the card follows the player's typography. */
+/** Classes borrowed from the Popular block, so the section follows the player's typography. */
 interface BorrowedClasses {
+  heading: string;
   title: string;
   subdued: string;
 }
 
 function borrowClasses(block: HTMLElement): BorrowedClasses {
+  const heading = [...block.children].find((child) => child.tagName === 'H2')?.className ?? '';
   const row = block.querySelector(SELECTORS.trackRow);
   const title = row?.querySelector(`${SELECTORS.trackLink} div`)?.className ?? '';
   const subdued =
     [...(row?.querySelectorAll('*') ?? [])].find(
       (el) => el.children.length === 0 && DURATION_TEXT.test(el.textContent?.trim() ?? ''),
     )?.className ?? '';
-  return { title, subdued };
+  return { heading, title, subdued };
 }
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, style = '', className = ''): HTMLElementTagNameMap[K] {
@@ -67,6 +71,7 @@ function hoverable(node: HTMLElement): void {
 export class LikedSongsCard {
   readonly root: HTMLElement;
   private readonly classes: BorrowedClasses;
+  private readonly heading: HTMLHeadingElement;
   private readonly header: HTMLButtonElement;
   private readonly image: HTMLElement;
   private readonly title: HTMLElement;
@@ -78,18 +83,19 @@ export class LikedSongsCard {
 
   constructor(private readonly block: HTMLElement) {
     this.classes = borrowClasses(block);
-    this.root = el('div', 'margin-top: 24px');
+    this.root = el('section', 'margin-top: 32px');
     this.root.setAttribute(OWN, '');
+    this.heading = el('h2', 'margin: 0 0 16px', this.classes.heading);
 
-    this.header = el('button', 'display: flex; align-items: center; gap: 16px; width: 100%; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: inherit; text-align: start; cursor: pointer; font: inherit');
+    this.header = el('button', 'display: flex; align-items: center; gap: 16px; width: 100%; padding: 8px; margin-inline-start: -8px; border: 0; border-radius: 6px; background: transparent; color: inherit; text-align: start; cursor: pointer; font: inherit');
     this.header.type = 'button';
     this.header.setAttribute('aria-expanded', 'false');
     hoverable(this.header);
     this.header.addEventListener('click', () => this.toggle());
 
-    this.image = el('div', 'position: relative; flex: 0 0 56px; width: 56px; height: 56px');
+    this.image = el('div', `position: relative; flex: 0 0 ${PICTURE_SIZE}px; width: ${PICTURE_SIZE}px; height: ${PICTURE_SIZE}px`);
     const text = el('div', 'display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto');
-    this.title = el('span', 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis', this.classes.title);
+    this.title = el('span', 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700', this.classes.title);
     this.subtitle = el('span', 'white-space: nowrap; overflow: hidden; text-overflow: ellipsis', this.classes.subdued);
     text.append(this.title, this.subtitle);
     this.chevron = svg(CHEVRON, 16);
@@ -98,7 +104,7 @@ export class LikedSongsCard {
 
     this.list = el('ol', 'list-style: none; margin: 4px 0 0; padding: 0; max-height: 420px; overflow-y: auto');
     this.list.hidden = true;
-    this.root.append(this.header, this.list);
+    this.root.append(this.heading, this.header, this.list);
   }
 
   /** Inserts the card after the Popular block (idempotent). */
@@ -118,6 +124,7 @@ export class LikedSongsCard {
     const sameTracks =
       this.model?.tracks.length === model.tracks.length && this.model.tracks.every((t, i) => t.t === model.tracks[i]?.t);
     this.model = model;
+    setText(this.heading, likedSectionTitle());
     setText(this.title, likedCountText(model.tracks.length));
     setText(this.subtitle, byArtistText(model.artistName));
     this.renderImage(model.imageUrl);
@@ -138,8 +145,8 @@ export class LikedSongsCard {
     } else {
       picture.append(svg(HEART, 24));
     }
-    const badge = el('div', `position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%; background: ${ACCENT}; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--background-base, #121212)`);
-    badge.append(svg(HEART, 12));
+    const badge = el('div', `position: absolute; right: 2px; bottom: 2px; width: 24px; height: 24px; border-radius: 50%; background: ${ACCENT}; color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--background-base, #121212)`);
+    badge.append(svg(HEART, 13));
     this.image.append(picture, badge);
   }
 

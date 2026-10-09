@@ -9,7 +9,7 @@ function buildArtistPage(): HTMLElement {
     <main>
       <div data-testid="grid-container">
         <div id="popular">
-          <h2>Popolari</h2>
+          <h2 class="heading">Popolari</h2>
           <div>
             <div role="grid" data-testid="track-list">
               <div role="row"><div data-testid="tracklist-row">
@@ -46,7 +46,9 @@ describe('LikedSongsCard', () => {
     card.mount();
     expect(block.nextElementSibling).toBe(card.root);
     expect(main.querySelectorAll('[data-sfe-liked]').length).toBe(1);
-    expect(card.root.textContent).toContain('Hai messo Mi piace a 2 brani');
+    expect(card.root.querySelector('h2')?.textContent).toBe('Cosa ti è piaciuto');
+    expect(card.root.querySelector('h2')?.className).toBe('heading');
+    expect(card.root.textContent).toContain('2 brani');
     expect(card.root.textContent).toContain('Di Angels & Airwaves');
     // Typography borrowed from the Popular rows.
     expect(card.root.querySelector('.row-title')).not.toBeNull();

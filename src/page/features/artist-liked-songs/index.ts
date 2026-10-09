@@ -28,6 +28,11 @@ export interface LikedSongsDeps {
   now?: () => number;
 }
 
+/** After a failure, the feature stays quiet for this long. */
+const RETRY_AFTER_MS = 60_000;
+/** How long to wait for the player's own profileAttributes before asking ourselves. */
+const PROFILE_WAIT_MS = 4000;
+
 async function sha256Hex(text: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
@@ -43,7 +48,8 @@ export class ArtistLikedSongsFeature {
   /** A like was seen: check the server even if the index is recent. */
   private dirty = false;
   private syncing: Promise<void> | null = null;
-  private failed = false;
+  private failedAt = Number.NEGATIVE_INFINITY;
+  private profileWaiters: (() => void)[] = [];
   private readonly artists = new Map<string, ArtistInfo>();
   private card: LikedSongsCard | null = null;
   private mainObserver: MutationObserver | null = null;
@@ -86,7 +92,10 @@ export class ArtistLikedSongsFeature {
     const operation = capture.operationName;
     if (operation === OPERATIONS.profile) {
       const uri = parseProfileUri(capture.json);
-      if (uri) this.profileUri = uri;
+      if (uri) {
+        this.profileUri = uri;
+        for (const wake of this.profileWaiters.splice(0)) wake();
+      }
     } else if (operation === OPERATIONS.artistOverview) {
       const artist = parseArtistOverview(capture.json);
       if (artist) {
@@ -118,8 +127,18 @@ export class ArtistLikedSongsFeature {
     void this.ensureFresh().then(() => this.scheduler.schedule());
   }
 
+  private waitForProfile(timeoutMs: number): Promise<void> {
+    if (this.profileUri) return Promise.resolve();
+    return new Promise((resolve) => {
+      this.profileWaiters.push(resolve);
+      setTimeout(resolve, timeoutMs);
+    });
+  }
+
   private async ensureUserKey(): Promise<string | null> {
     if (this.userKey) return this.userKey;
+    // The player asks for its profile at startup: wait for it before asking ourselves.
+    await this.waitForProfile(PROFILE_WAIT_MS);
     if (!this.profileUri && this.deps.client) {
       // The player asks for the profile at startup; ask ourselves only if that was missed.
       const result = await this.deps.client.query(OPERATIONS.profile, {});
@@ -139,8 +158,10 @@ export class ArtistLikedSongsFeature {
 
   private async sync(): Promise<void> {
     const client = this.deps.client;
-    if (!client || this.failed) return;
+    if (!client || this.now() - this.failedAt < RETRY_AFTER_MS) return;
     try {
+      // Nothing can be done before the player's first requests (session headers, hashes).
+      if (!(await client.waitForSession())) return;
       const key = await this.ensureUserKey();
       if (!key) return;
       if (!this.indexLoaded) {
@@ -167,8 +188,8 @@ export class ArtistLikedSongsFeature {
       this.dirty = false;
       this.deps.saveIndex(key, this.index);
     } catch (error) {
-      // Fail silently: no card. Retry on a later page change only after a reload.
-      this.failed = true;
+      // Fail silently: no card. Tried again on a later artist page, after a pause.
+      this.failedAt = this.now();
       debugWarn('liked songs: index unavailable', error instanceof Error ? error.message : error);
     }
   }

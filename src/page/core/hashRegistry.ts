@@ -18,7 +18,8 @@ export class HashRegistry {
   private readonly entries = new Map<string, Map<HashSource, HashEntry>>();
   /** Hashes the server refused (PersistedQueryNotFound), per operation. */
   private readonly refused = new Map<string, Set<string>>();
-  private bundleScan: Promise<void> | null = null;
+  /** Operations already looked up in the bundles. */
+  private readonly scanned = new Set<string>();
 
   constructor(
     known: Readonly<Record<string, string>> = KNOWN_HASHES,
@@ -65,18 +66,24 @@ export class HashRegistry {
     set.add(hash);
   }
 
-  /** Scans the player's bundles once for the given operations. */
+  /**
+   * Scans the player's bundles for operations not scanned yet (bundles come from the browser
+   * cache). A scan that found no bundle, e.g. too early in the page load, is not remembered.
+   */
   async scanBundles(operations: readonly string[]): Promise<void> {
-    this.bundleScan ??= (async () => {
-      try {
-        for (const source of await this.loadBundles()) {
-          for (const [operation, hash] of extractHashes(source, operations)) this.set(operation, hash, 'bundle');
-        }
-      } catch {
-        // Source 2 unavailable: sources 1 and 3 remain.
-      }
-    })();
-    await this.bundleScan;
+    const missing = operations.filter((operation) => !this.scanned.has(operation));
+    if (!missing.length) return;
+    let sources: string[] = [];
+    try {
+      sources = await this.loadBundles();
+    } catch {
+      sources = [];
+    }
+    if (!sources.length) return;
+    for (const operation of missing) this.scanned.add(operation);
+    for (const source of sources) {
+      for (const [operation, hash] of extractHashes(source, missing)) this.set(operation, hash, 'bundle');
+    }
   }
 
   /** Operation → hash source, for debug mode. */

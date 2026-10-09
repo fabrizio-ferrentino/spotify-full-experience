@@ -73,34 +73,49 @@ export function formatCount(value: number, lang = pageLanguage()): string {
   return formatter.format(value);
 }
 
-type CountMessages = { one: (n: string) => string; other: (n: string) => string; by: (name: string) => string };
-
-/**
- * Artist card texts. Italian and English follow the desktop app; the others are reasonable
- * translations. Languages without an entry fall back to English.
- */
-const LIKED_MESSAGES: Record<string, CountMessages> = {
-  it: { one: () => 'Hai messo Mi piace a 1 brano', other: (n) => `Hai messo Mi piace a ${n} brani`, by: (a) => `Di ${a}` },
-  en: { one: () => "You've liked 1 song", other: (n) => `You've liked ${n} songs`, by: (a) => `By ${a}` },
-  es: { one: () => 'Te gusta 1 canción', other: (n) => `Te gustan ${n} canciones`, by: (a) => `De ${a}` },
-  fr: { one: () => 'Vous aimez 1 titre', other: (n) => `Vous aimez ${n} titres`, by: (a) => `De ${a}` },
-  de: { one: () => 'Dir gefällt 1 Song', other: (n) => `Dir gefallen ${n} Songs`, by: (a) => `Von ${a}` },
-  pt: { one: () => 'Você curtiu 1 música', other: (n) => `Você curtiu ${n} músicas`, by: (a) => `De ${a}` },
+type LikedMessages = {
+  section: string;
+  one: string;
+  other: (n: string) => string;
+  by: (name: string) => string;
+  pageTitle: (name: string) => string;
 };
 
-function likedMessages(lang: string): CountMessages {
+/**
+ * Artist page texts. Italian follows the desktop app ("Cosa ti è piaciuto", "17 brani",
+ * "Di <artista>", "Brani che ti piacciono di <artista>"); the others are reasonable
+ * translations. Languages without an entry fall back to English.
+ */
+const LIKED_MESSAGES: Record<string, LikedMessages> = {
+  it: { section: 'Cosa ti è piaciuto', one: '1 brano', other: (n) => `${n} brani`, by: (a) => `Di ${a}`, pageTitle: (a) => `Brani che ti piacciono di ${a}` },
+  en: { section: 'Liked songs', one: '1 song', other: (n) => `${n} songs`, by: (a) => `By ${a}`, pageTitle: (a) => `Liked songs by ${a}` },
+  es: { section: 'Lo que te gusta', one: '1 canción', other: (n) => `${n} canciones`, by: (a) => `De ${a}`, pageTitle: (a) => `Canciones que te gustan de ${a}` },
+  fr: { section: 'Titres likés', one: '1 titre', other: (n) => `${n} titres`, by: (a) => `De ${a}`, pageTitle: (a) => `Titres likés de ${a}` },
+  de: { section: 'Lieblingssongs', one: '1 Song', other: (n) => `${n} Songs`, by: (a) => `Von ${a}`, pageTitle: (a) => `Lieblingssongs von ${a}` },
+  pt: { section: 'Músicas curtidas', one: '1 música', other: (n) => `${n} músicas`, by: (a) => `De ${a}`, pageTitle: (a) => `Músicas curtidas de ${a}` },
+};
+
+function likedMessages(lang: string): LikedMessages {
   const base = lang.toLowerCase().split('-')[0] ?? 'en';
   return LIKED_MESSAGES[base] ?? LIKED_MESSAGES['en']!;
 }
 
-/** "You've liked 12 songs", with the number formatted for the page locale. */
+export function likedSectionTitle(lang = pageLanguage()): string {
+  return likedMessages(lang).section;
+}
+
+/** "17 brani", with the number formatted for the page locale. */
 export function likedCountText(count: number, lang = pageLanguage()): string {
   const messages = likedMessages(lang);
-  return count === 1 ? messages.one('1') : messages.other(formatCount(count, lang));
+  return count === 1 ? messages.one : messages.other(formatCount(count, lang));
 }
 
 export function byArtistText(name: string, lang = pageLanguage()): string {
   return likedMessages(lang).by(name);
+}
+
+export function likedPageTitle(name: string, lang = pageLanguage()): string {
+  return likedMessages(lang).pageTitle(name);
 }
 
 const RELATIVE_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [

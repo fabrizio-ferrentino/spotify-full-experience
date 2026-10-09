@@ -58,6 +58,11 @@ export class PathfinderClient {
     this.now = options.now ?? (() => Date.now());
   }
 
+  /** Resolves true once the player has sent a request we can take the session from. */
+  waitForSession(timeoutMs = this.tokenWaitMs): Promise<boolean> {
+    return this.session.waitUntilReady(timeoutMs);
+  }
+
   /** Runs a query; identical concurrent queries share one request. Throws PathfinderError. */
   query(operationName: string, variables: Record<string, unknown>): Promise<QueryResult> {
     const key = JSON.stringify([operationName, variables]);
