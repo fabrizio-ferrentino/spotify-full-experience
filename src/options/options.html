@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spotify Full Experience: options</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Options</h1>
+      <label class="toggle">
+        <input type="checkbox" id="debug" disabled />
+        <span>
+          <strong>Debug mode</strong>
+          <small>Logs the structure of the web player's internal requests to the page console. Reload the Spotify tab after changing it.</small>
+        </span>
+      </label>
+      <p id="status" role="status" aria-live="polite"></p>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
