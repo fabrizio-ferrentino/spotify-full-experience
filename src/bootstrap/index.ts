@@ -21,6 +21,16 @@ function sendSettings(settings: Settings): void {
   postToPage({ type: 'settings', settings });
 }
 
+async function saveTitleWidth(width: number | null): Promise<void> {
+  try {
+    const current = await loadSettings();
+    if (current.playcountsTitleWidth === width) return;
+    await ext.storage.local.set({ [SETTINGS_STORAGE_KEY]: { ...current, playcountsTitleWidth: width } });
+  } catch {
+    // Not saved: the layout simply resets on the next visit.
+  }
+}
+
 async function loadSettings(): Promise<Settings> {
   try {
     const stored = await ext.storage.local.get(SETTINGS_STORAGE_KEY);
@@ -48,6 +58,7 @@ function main(): void {
     if (!isOwnWindowMessage(event)) return;
     const msg = parsePageToContent(event.data);
     if (msg?.type === 'hello') void settingsReady.then(sendSettings);
+    else if (msg?.type === 'set-playcounts-title-width') void saveTitleWidth(msg.width);
   });
   void settingsReady.then(sendSettings);
 

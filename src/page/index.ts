@@ -1,7 +1,7 @@
 // Entry point of the code running in the page's JS context (injected by bootstrap).
 // Passive capture of the player's internal requests, feeding the features and debug mode.
 import { DEFAULT_SETTINGS } from '../shared/settings';
-import { startBridge } from './core/bridge';
+import { sendToContent, startBridge } from './core/bridge';
 import { installFetchInterceptor, installXhrInterceptor, type InterceptorHooks } from './core/interceptor';
 import { currentPage, onPageChange, startRouter } from './core/router';
 import { getSettings, onSettingsChange } from './core/settings';
@@ -39,7 +39,7 @@ function main(): void {
   const startup = takeStartupSnapshot();
 
   // Features start with their defaults; the settings arrive a few milliseconds later.
-  const playcounts = new PlaycountsFeature();
+  const playcounts = new PlaycountsFeature((width) => sendToContent({ type: 'set-playcounts-title-width', width }));
   if (DEFAULT_SETTINGS.playcounts) playcounts.enable();
 
   // Until the settings arrive, debug captures go into a small buffer so early requests are not lost.
@@ -61,6 +61,7 @@ function main(): void {
   startCoverage();
 
   onSettingsChange((settings, previous) => {
+    playcounts.setTitleWidth(settings.playcountsTitleWidth);
     if (settings.playcounts) playcounts.enable();
     else playcounts.disable();
 

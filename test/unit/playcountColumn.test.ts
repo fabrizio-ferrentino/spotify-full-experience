@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { titleCellOf, trackIdOfRow } from '../../src/page/adapters/spotifyDom';
-import { MIN_LIST_WIDTH, PlaycountColumn } from '../../src/page/features/playcounts/column';
+import { MIN_LIST_WIDTH, MIN_PLAYS_WIDTH, MIN_TITLE_WIDTH, PlaycountColumn, playsBasis } from '../../src/page/features/playcounts/column';
 import { PlaycountStore } from '../../src/page/features/playcounts/store';
 
 // Synthetic markup reproducing the album track list structure observed in Phase 0.
@@ -45,8 +45,25 @@ function buildList(ids: (string | null)[] = IDS): HTMLElement {
 
 const fmt = (value: number) => value.toLocaleString('it');
 
-function columnFor(list: HTMLElement, store: PlaycountStore, width = 800) {
-  return new PlaycountColumn(list, { lookup: (id) => store.get(id), label: () => 'Riproduzioni', format: fmt }, () => width);
+function columnFor(list: HTMLElement, store: PlaycountStore, width = 800, prefs = { titleWidth: null as number | null, saved: [] as (number | null)[] }) {
+  return new PlaycountColumn(
+    list,
+    {
+      lookup: (id) => store.get(id),
+      label: () => 'Riproduzioni',
+      format: fmt,
+      titleWidth: () => prefs.titleWidth,
+      saveTitleWidth: (value) => {
+        prefs.titleWidth = value;
+        prefs.saved.push(value);
+      },
+    },
+    () => width,
+  );
+}
+
+function fakeRect(element: Element, left: number, width: number): void {
+  element.getBoundingClientRect = () => ({ left, width, right: left + width, top: 0, bottom: 20, height: 20, x: left, y: 0, toJSON: () => ({}) }) as DOMRect;
 }
 
 const rowsOf = (list: HTMLElement) => [...list.querySelectorAll<HTMLElement>('[data-testid="tracklist-row"]')];
@@ -82,14 +99,16 @@ describe('PlaycountColumn', () => {
     const titleHeader = list.querySelector('[role="columnheader"][aria-colindex="2"]')!;
     const ours = [...titleHeader.children].map((el) => el.getAttribute('data-sfe-playcount') ?? el.getAttribute('role') ?? 'player');
     expect(ours).toEqual(['player', 'spacer', 'header', 'separator']);
+    const handle = titleHeader.querySelector('[data-sfe-playcount-handle]')!;
+    expect(handle.getAttribute('aria-hidden')).toBe('true');
+    expect(handle.hasAttribute('role')).toBe(false);
     const box = titleHeader.querySelector('[data-sfe-playcount="header"]')!;
     const label = box.querySelector('[data-sfe-playcount-label]')!;
     expect(label.textContent).toBe('Riproduzioni');
     expect(label.className).toBe('hdr-text');
-    // The leading divider only copies the handle's look: never a second resize handle.
-    const divider = box.firstElementChild!;
-    expect(divider.getAttribute('aria-hidden')).toBe('true');
-    expect(divider.hasAttribute('role')).toBe(false);
+    // Our handle copies the player's look but is never a second player handle.
+    expect(box.firstElementChild).toBe(handle);
+    expect(handle.className).toBe('handle');
     expect(titleHeader.querySelectorAll('[role="separator"]').length).toBe(1);
   });
 
@@ -152,6 +171,61 @@ describe('PlaycountColumn', () => {
     column.render();
     expect(cell.lastElementChild?.hasAttribute('data-sfe-playcount')).toBe(true);
     expect(cell.querySelectorAll('[data-sfe-playcount]').length).toBe(1);
+  });
+});
+
+describe('title width', () => {
+  let store: PlaycountStore;
+  beforeEach(() => {
+    store = new PlaycountStore();
+    store.ingest(new Map([[IDS[0]!, 5]]));
+  });
+
+  const rowNodes = (list: HTMLElement) => [...list.querySelectorAll<HTMLElement>('[data-sfe-playcount="row"]')];
+
+  it('uses the default share until a width is chosen, then keeps the title width fixed', () => {
+    const list = buildList();
+    const prefs = { titleWidth: null as number | null, saved: [] as (number | null)[] };
+    const column = columnFor(list, store, 800, prefs);
+    column.render();
+    expect(rowNodes(list).every((n) => n.style.flexBasis === playsBasis(null))).toBe(true);
+    prefs.titleWidth = 250;
+    column.render();
+    expect(playsBasis(250)).toBe('calc(100% - 250px)');
+    expect(rowNodes(list).every((n) => n.style.flexBasis === playsBasis(250))).toBe(true);
+  });
+
+  it('drags our handle to resize the title, clamps it, saves on release and never reaches the player', () => {
+    const list = buildList();
+    const prefs = { titleWidth: null as number | null, saved: [] as (number | null)[] };
+    const column = columnFor(list, store, 800, prefs);
+    column.render();
+    const header = list.querySelector<HTMLElement>('[role="columnheader"][aria-colindex="2"]')!;
+    const box = header.querySelector<HTMLElement>('[data-sfe-playcount="header"]')!;
+    const handle = box.querySelector<HTMLElement>('[data-sfe-playcount-handle]')!;
+    fakeRect(header, 100, 600);
+    fakeRect(box, 340, 352);
+
+    let reachedPlayer = 0;
+    header.addEventListener('pointerdown', () => reachedPlayer++);
+    header.addEventListener('pointermove', () => reachedPlayer++);
+    const pointer = (type: string, clientX: number) =>
+      handle.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, clientX, button: 0, pointerId: 1 }));
+
+    pointer('pointerdown', 342); // grabbed 2px right of the column edge
+    pointer('pointermove', 402); // edge moves to 400: title width 300
+    expect(rowNodes(list)[0]!.style.flexBasis).toBe(playsBasis(300));
+    expect(prefs.saved).toEqual([]);
+    pointer('pointermove', 2000); // clamped: the plays column keeps its minimum width
+    expect(rowNodes(list)[0]!.style.flexBasis).toBe(playsBasis(600 - MIN_PLAYS_WIDTH));
+    pointer('pointermove', 0); // clamped: minimum title width
+    pointer('pointerup', 0);
+    expect(prefs.saved).toEqual([MIN_TITLE_WIDTH]);
+    expect(reachedPlayer).toBe(0);
+
+    handle.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }));
+    expect(prefs.saved).toEqual([MIN_TITLE_WIDTH, null]);
+    expect(rowNodes(list)[0]!.style.flexBasis).toBe(playsBasis(null));
   });
 });
 

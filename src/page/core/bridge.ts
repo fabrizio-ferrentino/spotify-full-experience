@@ -1,6 +1,15 @@
-// Page side of the bridge: announces itself and receives settings.
-import { envelopeToContent, isOwnWindowMessage, parseContentToPage } from '../../shared/protocol';
+// Page side of the bridge: announces itself, receives settings, sends layout preferences.
+import {
+  envelopeToContent,
+  isOwnWindowMessage,
+  parseContentToPage,
+  type PageToContentMessage,
+} from '../../shared/protocol';
 import { setSettings } from './settings';
+
+export function sendToContent(msg: PageToContentMessage): void {
+  window.postMessage(envelopeToContent(msg), window.location.origin);
+}
 
 export function startBridge(): void {
   window.addEventListener('message', (event) => {
@@ -8,5 +17,5 @@ export function startBridge(): void {
     const msg = parseContentToPage(event.data);
     if (msg?.type === 'settings') setSettings(msg.settings);
   });
-  window.postMessage(envelopeToContent({ type: 'hello' }), window.location.origin);
+  sendToContent({ type: 'hello' });
 }

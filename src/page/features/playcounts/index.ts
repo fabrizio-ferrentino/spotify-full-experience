@@ -11,6 +11,8 @@ import { PlaycountStore } from './store';
 
 export class PlaycountsFeature {
   private enabled = false;
+  /** Title width chosen by the user (from the settings), null for the default layout. */
+  private titleWidth: number | null = null;
   private onAlbumPage = false;
   private readonly store = new PlaycountStore();
   private column: PlaycountColumn | null = null;
@@ -19,6 +21,9 @@ export class PlaycountsFeature {
   private cancelWait: (() => void) | null = null;
   private warnedLayout = false;
   private readonly scheduler = frameScheduler(() => this.sync());
+
+  /** @param persistTitleWidth stores the title width chosen by dragging (via the bridge). */
+  constructor(private readonly persistTitleWidth: (width: number | null) => void = () => {}) {}
 
   get isEnabled(): boolean {
     return this.enabled;
@@ -35,6 +40,12 @@ export class PlaycountsFeature {
     this.enabled = false;
     this.stop();
     this.store.clear();
+  }
+
+  setTitleWidth(width: number | null): void {
+    if (width === this.titleWidth) return;
+    this.titleWidth = width;
+    if (this.onAlbumPage) this.scheduler.schedule();
   }
 
   onPageChange(page: PageInfo): void {
@@ -101,6 +112,11 @@ export class PlaycountsFeature {
           lookup: (id) => this.store.get(id),
           label: () => label('playcounts'),
           format: (value) => formatCount(value),
+          titleWidth: () => this.titleWidth,
+          saveTitleWidth: (width) => {
+            this.titleWidth = width;
+            this.persistTitleWidth(width);
+          },
         },
         undefined,
         () => this.scheduler.schedule(),

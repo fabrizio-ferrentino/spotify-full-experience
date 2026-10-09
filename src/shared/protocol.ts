@@ -1,11 +1,14 @@
 // Page <-> content script bridge over window.postMessage.
 // Only settings travel on the bridge. Never put tokens or captured traffic here:
-// any script running in the page can read and forge these messages.
-import { parseSettings, type Settings } from './settings';
+// any script running in the page can read and forge these messages, so the page may only
+// ask to change harmless layout preferences, validated on the content script side.
+import { parseSettings, parseTitleWidth, type Settings } from './settings';
 
 export const BRIDGE_NAMESPACE = 'spotify-full-experience/bridge/v1';
 
-export type PageToContentMessage = { type: 'hello' };
+export type PageToContentMessage =
+  | { type: 'hello' }
+  | { type: 'set-playcounts-title-width'; width: number | null };
 export type ContentToPageMessage = { type: 'settings'; settings: Settings };
 
 type Direction = 'to-content' | 'to-page';
@@ -31,6 +34,10 @@ export function parsePageToContent(data: unknown): PageToContentMessage | null {
   const record = readEnvelope(data, 'to-content');
   if (!record) return null;
   if (record['type'] === 'hello') return { type: 'hello' };
+  if (record['type'] === 'set-playcounts-title-width') {
+    const width = record['width'] === null ? null : parseTitleWidth(record['width']);
+    if (width !== null || record['width'] === null) return { type: 'set-playcounts-title-width', width };
+  }
   return null;
 }
 
