@@ -13,7 +13,7 @@ import {
   type ArtistInfo,
 } from '../../adapters/libraryShapes';
 import type { PageInfo } from '../../adapters/routes';
-import { headerTitleOf, popularBlockOf, SELECTORS } from '../../adapters/spotifyDom';
+import { headerTitleOf, mainViewportOf, popularBlockOf, SELECTORS } from '../../adapters/spotifyDom';
 import { frameScheduler, whenAvailable } from '../../core/dom';
 import type { CapturedRequest } from '../../core/interceptor';
 import type { PathfinderClient } from '../../core/pathfinderClient';
@@ -241,7 +241,7 @@ export class ArtistLikedSongsFeature {
     const name = artistId ? this.artistName(artistId, main) : null;
     if (!artistId || !card || !main || !name) return;
     this.view?.close();
-    this.view = new LikedSongsView(main, card.typography, () => (this.view = null));
+    this.view = new LikedSongsView(mainViewportOf(main), card.typography, () => (this.view = null));
     this.view.open(this.viewModel(artistId, name));
   }
 

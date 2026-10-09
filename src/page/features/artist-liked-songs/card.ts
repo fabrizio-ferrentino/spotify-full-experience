@@ -3,7 +3,7 @@
 // liked songs view (view.ts).
 import { setText } from '../../core/dom';
 import { byArtistText, likedCountText, likedSectionTitle } from '../../ui/format';
-import { ACCENT, borrowTypography, el, ELLIPSIS, hoverable, icon, ICONS, type Typography } from './typography';
+import { ACCENT, borrowTypography, el, hoverable, icon, ICONS, type Typography } from './typography';
 
 const OWN = 'data-sfe-liked';
 const PICTURE_SIZE = 88;
@@ -40,9 +40,10 @@ export class LikedSongsCard {
     button.addEventListener('click', onOpen);
 
     this.image = el('div', `position: relative; flex: 0 0 ${PICTURE_SIZE}px; width: ${PICTURE_SIZE}px; height: ${PICTURE_SIZE}px`);
-    const text = el('div', 'display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 auto');
-    this.title = el('span', `${ELLIPSIS}; font-weight: 700`, this.typography.title);
-    this.subtitle = el('span', `${this.typography.subdued}; ${ELLIPSIS}`);
+    // Short texts on one line, never cut (an ellipsis made the button shrink-wrap too narrow).
+    const text = el('div', 'display: flex; flex-direction: column; gap: 4px; flex: 0 0 auto');
+    this.title = el('span', 'display: block; white-space: nowrap; font-weight: 700', this.typography.title);
+    this.subtitle = el('span', `${this.typography.subdued}; display: block; white-space: nowrap`);
     text.append(this.title, this.subtitle);
     button.append(this.image, text);
     this.root.append(this.heading, button);

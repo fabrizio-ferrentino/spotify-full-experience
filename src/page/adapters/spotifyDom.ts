@@ -28,6 +28,18 @@ export function popularBlockOf(root: ParentNode): HTMLElement | null {
   return block;
 }
 
+/**
+ * The visible box of the main view: the first ancestor of <main> that scrolls (the player
+ * scrolls a wrapper, so <main> itself moves above the viewport when the page is scrolled).
+ */
+export function mainViewportOf(main: HTMLElement): HTMLElement {
+  for (let node: HTMLElement | null = main; node; node = node.parentElement) {
+    const overflow = getComputedStyle(node).overflowY;
+    if (overflow === 'auto' || overflow === 'scroll') return node;
+  }
+  return main;
+}
+
 /** Artist name shown in the page header (fallback when the response was not captured). */
 export function headerTitleOf(root: ParentNode): string | null {
   return root.querySelector(`${SELECTORS.entityHeader} h1`)?.textContent?.trim() || null;
