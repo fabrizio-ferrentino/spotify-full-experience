@@ -2,15 +2,18 @@ export interface Settings {
   debug: boolean;
   /** Feature: play counts column on album pages. */
   playcounts: boolean;
+  /** Feature: liked songs of the artist on artist pages. */
+  likedSongs: boolean;
   /** Title width (px) chosen by dragging the play counts column edge; null for the default layout. */
   playcountsTitleWidth: number | null;
 }
 
-export type ToggleKey = 'debug' | 'playcounts';
+export type ToggleKey = 'debug' | 'playcounts' | 'likedSongs';
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   debug: false,
   playcounts: true,
+  likedSongs: true,
   playcountsTitleWidth: null,
 });
 
@@ -33,6 +36,7 @@ export function parseSettings(value: unknown): Settings {
   return {
     debug: flag('debug'),
     playcounts: flag('playcounts'),
+    likedSongs: flag('likedSongs'),
     playcountsTitleWidth: parseTitleWidth(source['playcountsTitleWidth']),
   };
 }

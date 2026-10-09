@@ -1,15 +1,20 @@
 // Page <-> content script bridge over window.postMessage.
-// Only settings travel on the bridge. Never put tokens or captured traffic here:
-// any script running in the page can read and forge these messages, so the page may only
-// ask to change harmless layout preferences, validated on the content script side.
+// Settings and the liked songs index travel on the bridge. Never put tokens or captured traffic
+// here: any script running in the page can read and forge these messages, so everything coming
+// from the page is validated on the content script side.
+import { INDEX_KEY, parseLikedIndex, type LikedIndex } from './likedIndex';
 import { parseSettings, parseTitleWidth, type Settings } from './settings';
 
 export const BRIDGE_NAMESPACE = 'spotify-full-experience/bridge/v1';
 
 export type PageToContentMessage =
   | { type: 'hello' }
-  | { type: 'set-playcounts-title-width'; width: number | null };
-export type ContentToPageMessage = { type: 'settings'; settings: Settings };
+  | { type: 'set-playcounts-title-width'; width: number | null }
+  | { type: 'load-liked-index'; key: string }
+  | { type: 'save-liked-index'; key: string; index: LikedIndex | null };
+export type ContentToPageMessage =
+  | { type: 'settings'; settings: Settings }
+  | { type: 'liked-index'; key: string; index: LikedIndex | null };
 
 type Direction = 'to-content' | 'to-page';
 
@@ -38,6 +43,14 @@ export function parsePageToContent(data: unknown): PageToContentMessage | null {
     const width = record['width'] === null ? null : parseTitleWidth(record['width']);
     if (width !== null || record['width'] === null) return { type: 'set-playcounts-title-width', width };
   }
+  const key = record['key'];
+  if (typeof key !== 'string' || !INDEX_KEY.test(key)) return null;
+  if (record['type'] === 'load-liked-index') return { type: 'load-liked-index', key };
+  if (record['type'] === 'save-liked-index') {
+    if (record['index'] === null) return { type: 'save-liked-index', key, index: null };
+    const index = parseLikedIndex(record['index']);
+    if (index) return { type: 'save-liked-index', key, index };
+  }
   return null;
 }
 
@@ -46,6 +59,9 @@ export function parseContentToPage(data: unknown): ContentToPageMessage | null {
   if (!record) return null;
   if (record['type'] === 'settings' && typeof record['settings'] === 'object' && record['settings'] !== null) {
     return { type: 'settings', settings: parseSettings(record['settings']) };
+  }
+  if (record['type'] === 'liked-index' && typeof record['key'] === 'string' && INDEX_KEY.test(record['key'])) {
+    return { type: 'liked-index', key: record['key'], index: parseLikedIndex(record['index']) };
   }
   return null;
 }

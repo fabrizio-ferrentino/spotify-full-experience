@@ -8,6 +8,7 @@ import {
   parsePageToContent,
   type ContentToPageMessage,
 } from '../shared/protocol';
+import { parseLikedIndex, storageKeyFor, type LikedIndex } from '../shared/likedIndex';
 import { DEFAULT_SETTINGS, parseSettings, SETTINGS_STORAGE_KEY, type Settings } from '../shared/settings';
 
 /** Set per build target by scripts/build.mjs. */
@@ -19,6 +20,27 @@ function postToPage(msg: ContentToPageMessage): void {
 
 function sendSettings(settings: Settings): void {
   postToPage({ type: 'settings', settings });
+}
+
+async function loadLikedIndex(key: string): Promise<void> {
+  let index: LikedIndex | null = null;
+  try {
+    const storageKey = storageKeyFor(key);
+    const stored = await ext.storage.local.get(storageKey);
+    index = parseLikedIndex(stored[storageKey]);
+  } catch {
+    index = null;
+  }
+  postToPage({ type: 'liked-index', key, index });
+}
+
+async function saveLikedIndex(key: string, index: LikedIndex | null): Promise<void> {
+  try {
+    if (index) await ext.storage.local.set({ [storageKeyFor(key)]: index });
+    else await ext.storage.local.remove(storageKeyFor(key));
+  } catch {
+    // Not saved: the index is rebuilt on a later visit.
+  }
 }
 
 async function saveTitleWidth(width: number | null): Promise<void> {
@@ -59,6 +81,8 @@ function main(): void {
     const msg = parsePageToContent(event.data);
     if (msg?.type === 'hello') void settingsReady.then(sendSettings);
     else if (msg?.type === 'set-playcounts-title-width') void saveTitleWidth(msg.width);
+    else if (msg?.type === 'load-liked-index') void loadLikedIndex(msg.key);
+    else if (msg?.type === 'save-liked-index') void saveLikedIndex(msg.key, msg.index);
   });
   void settingsReady.then(sendSettings);
 
