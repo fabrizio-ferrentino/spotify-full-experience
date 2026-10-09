@@ -1,5 +1,5 @@
-// Renders play counts as a right-aligned column inside the title cell of each row, with the
-// label inside the title header. The player's grid is left untouched on purpose: an extra grid
+// Renders play counts as a fixed-width, right-aligned column at the end of the title cell of
+// each row, with "| label |" at the end of the title header, like the desktop app. The player's grid is left untouched on purpose: an extra grid
 // track is measured by the player's column resizer and persisted in its saved column widths,
 // which would outlive the extension. hide() removes every node we added.
 import { SELECTORS, titleCellOf, titleHeaderOf, trackIdOfRow } from '../../adapters/spotifyDom';
@@ -12,8 +12,35 @@ const OWN = 'data-sfe-playcount';
 export const MIN_LIST_WIDTH = 560;
 
 const DURATION_TEXT = /^\d+:\d{2}$/;
+/** Width of the play count column, in rows and header alike. */
+const COLUMN_WIDTH = 140;
+/** Gap between the numbers and the next column; the header label stops before the resize handle. */
+const ROW_PADDING_RIGHT = 16;
+const HANDLE_WIDTH = 8;
+
 /** Pushed to the right edge of the flex title cell; the title text keeps its own ellipsis. */
-const OWN_STYLE = 'margin-left: auto; flex: 0 0 auto; padding: 0 16px; white-space: nowrap; text-align: right;';
+const ROW_STYLE = [
+  'margin-left: auto',
+  `flex: 0 0 ${COLUMN_WIDTH}px`,
+  'box-sizing: border-box',
+  `padding-right: ${ROW_PADDING_RIGHT}px`,
+  'text-align: right',
+  'white-space: nowrap',
+  'overflow: hidden',
+].join('; ');
+/** Takes the free space of the header cell (the player's resize handle also has margin-left: auto). */
+const SPACER_STYLE = 'flex: 1 1 auto; min-width: 0';
+/** Ends where the resize handle starts, so its left edge lines up with the row column. */
+const HEADER_BOX_STYLE = `flex: 0 0 ${COLUMN_WIDTH - HANDLE_WIDTH}px; display: flex; align-items: center; box-sizing: border-box; min-width: 0`;
+const HEADER_LABEL_STYLE = [
+  'flex: 1 1 auto',
+  'min-width: 0',
+  'text-align: right',
+  `padding-right: ${ROW_PADDING_RIGHT - HANDLE_WIDTH}px`,
+  'white-space: nowrap',
+  'overflow: hidden',
+  'text-overflow: ellipsis',
+].join('; ');
 
 export interface ColumnSource {
   lookup(trackId: string): number | undefined;
@@ -59,7 +86,7 @@ export class PlaycountColumn {
 
     const header = this.list.querySelector<HTMLElement>(SELECTORS.headerRow);
     const titleHeader = header && titleColindex !== null ? titleHeaderOf(header, titleColindex) : null;
-    if (titleHeader) setText(this.ensureHeaderNode(titleHeader), this.source.label());
+    if (titleHeader) setText(this.ensureHeaderLabel(titleHeader), this.source.label());
   }
 
   /** Removes every node we added; the player's markup is otherwise untouched. */
@@ -79,28 +106,57 @@ export class PlaycountColumn {
       );
       if (durationText) node.className = durationText.className;
       else node.style.cssText = 'color: var(--text-subdued); font-variant-numeric: tabular-nums;';
-      node.style.cssText += OWN_STYLE;
+      node.style.cssText += `; ${ROW_STYLE}`;
     }
     if (cell.lastElementChild !== node) cell.append(node);
     return node;
   }
 
-  /** Label right before the resize handle of the title header, styled like the "Title" label. */
-  private ensureHeaderNode(header: HTMLElement): HTMLElement {
-    let node = header.querySelector<HTMLElement>(`:scope > [${OWN}]`);
-    if (!node) {
-      node = document.createElement('span');
-      node.setAttribute(OWN, '');
-      const titleLabel = [...header.querySelectorAll('span')].find((el) => el.children.length === 0 && el.textContent?.trim());
-      if (titleLabel) node.className = titleLabel.className;
-      node.style.cssText = OWN_STYLE;
+  /**
+   * Header layout: [player's label] [spacer] [ | label ] [player's resize handle].
+   * The leading "|" is a copy of the resize handle's look only: no role, no events.
+   */
+  private ensureHeaderLabel(header: HTMLElement): HTMLElement {
+    const handle = header.querySelector<HTMLElement>(`:scope > ${SELECTORS.resizeHandle}`);
+    let spacer = header.querySelector<HTMLElement>(`:scope > [${OWN}="spacer"]`);
+    let box = header.querySelector<HTMLElement>(`:scope > [${OWN}="header"]`);
+    if (!spacer || !box) {
+      spacer?.remove();
+      box?.remove();
+      spacer = document.createElement('div');
+      spacer.setAttribute(OWN, 'spacer');
+      spacer.style.cssText = SPACER_STYLE;
+      box = this.createHeaderBox(header, handle);
     }
-    const handle = header.querySelector(`:scope > ${SELECTORS.resizeHandle}`);
+    const label = box.querySelector<HTMLElement>(`[${OWN}-label]`) ?? box;
     if (handle) {
-      if (node.nextElementSibling !== handle) header.insertBefore(node, handle);
-    } else if (header.lastElementChild !== node) {
-      header.append(node);
+      if (box.nextElementSibling !== handle) header.insertBefore(box, handle);
+    } else if (header.lastElementChild !== box) {
+      header.append(box);
     }
-    return node;
+    if (box.previousElementSibling !== spacer) header.insertBefore(spacer, box);
+    return label;
+  }
+
+  private createHeaderBox(header: HTMLElement, handle: HTMLElement | null): HTMLElement {
+    const box = document.createElement('div');
+    box.setAttribute(OWN, 'header');
+    box.style.cssText = HEADER_BOX_STYLE;
+    if (handle) {
+      const divider = document.createElement('div');
+      divider.className = handle.className;
+      divider.setAttribute('aria-hidden', 'true');
+      divider.style.cssText = 'pointer-events: none; cursor: default; flex: 0 0 auto';
+      box.append(divider);
+    }
+    const label = document.createElement('span');
+    label.setAttribute(`${OWN}-label`, '');
+    const titleLabel = [...header.querySelectorAll('span')].find(
+      (el) => !el.closest(`[${OWN}]`) && el.children.length === 0 && el.textContent?.trim(),
+    );
+    if (titleLabel) label.className = titleLabel.className;
+    label.style.cssText = HEADER_LABEL_STYLE;
+    box.append(label);
+    return box;
   }
 }

@@ -30,7 +30,7 @@ function buildList(ids: (string | null)[] = IDS): HTMLElement {
             <div role="columnheader" aria-colindex="1">#</div>
             <div role="columnheader" aria-colindex="2">
               <div data-testid="column-header-context-menu"><div class="hdr"><span class="hdr-text">Titolo</span></div></div>
-              <div role="separator"></div>
+              <div role="separator" class="handle" tabindex="0"></div>
             </div>
             <div role="columnheader" aria-colindex="3"><svg></svg></div>
           </div>
@@ -80,10 +80,17 @@ describe('PlaycountColumn', () => {
     expect(node.style.marginLeft).toBe('auto');
 
     const titleHeader = list.querySelector('[role="columnheader"][aria-colindex="2"]')!;
-    const label = titleHeader.querySelector(':scope > [data-sfe-playcount]')!;
+    const ours = [...titleHeader.children].map((el) => el.getAttribute('data-sfe-playcount') ?? el.getAttribute('role') ?? 'player');
+    expect(ours).toEqual(['player', 'spacer', 'header', 'separator']);
+    const box = titleHeader.querySelector('[data-sfe-playcount="header"]')!;
+    const label = box.querySelector('[data-sfe-playcount-label]')!;
     expect(label.textContent).toBe('Riproduzioni');
     expect(label.className).toBe('hdr-text');
-    expect(label.nextElementSibling?.getAttribute('role')).toBe('separator');
+    // The leading divider only copies the handle's look: never a second resize handle.
+    const divider = box.firstElementChild!;
+    expect(divider.getAttribute('aria-hidden')).toBe('true');
+    expect(divider.hasAttribute('role')).toBe(false);
+    expect(titleHeader.querySelectorAll('[role="separator"]').length).toBe(1);
   });
 
   it('never touches the grid: template, column count and column indexes stay the same', () => {
@@ -104,7 +111,7 @@ describe('PlaycountColumn', () => {
     column.render();
     column.render();
     expect(list.outerHTML).toBe(html);
-    expect(list.querySelectorAll('[data-sfe-playcount]').length).toBe(IDS.length + 1);
+    expect(list.querySelectorAll('[data-sfe-playcount]').length).toBe(IDS.length + 2);
   });
 
   it('restores the original markup exactly when hidden', () => {
