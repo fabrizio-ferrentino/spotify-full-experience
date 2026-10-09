@@ -271,7 +271,11 @@ export class ArtistLikedSongsFeature {
         return;
       }
     }
-    debugLog('liked songs: play command unavailable, opening the track page');
+    debugLog(
+      contexts.length
+        ? 'liked songs: play commands not confirmed by the player, opening the track page'
+        : `liked songs: play command unavailable (${!player ? 'no player' : !player.ready ? `player not ready: ${JSON.stringify(player.describe())}` : 'profile unknown'}), opening the track page`,
+    );
     navigateTo(trackPath(track.t));
   }
 

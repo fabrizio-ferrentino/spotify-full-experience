@@ -83,8 +83,8 @@ function main(): void {
   installXhrInterceptor(window, hooks);
   // Our own queries use the unwrapped fetch: they are never mistaken for the player's traffic.
   const client = nativeFetch ? new PathfinderClient(nativeFetch, session, registry) : null;
-  const services = client ? { session, registry, client } : null;
   player = nativeFetch ? new PlayerCommands(nativeFetch, session) : null;
+  const services = client ? { session, registry, client, player } : null;
   likedSongs = new ArtistLikedSongsFeature({ client, player, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
   if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();
   const liked = likedSongs;

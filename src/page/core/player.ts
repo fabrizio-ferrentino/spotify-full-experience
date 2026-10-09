@@ -41,6 +41,16 @@ export class PlayerCommands {
     return this.endpoint !== null && this.session.ready;
   }
 
+  /** What is known, without any value (for debug mode). */
+  describe(): { device: 'none' | 'registration' | 'command'; session: boolean; license: boolean; playOrigin: boolean } {
+    return {
+      device: this.endpoint ? (this.endpoint.fromCommand ? 'command' : 'registration') : 'none',
+      session: this.session.ready,
+      license: this.params.license !== null,
+      playOrigin: this.params.playOrigin !== null,
+    };
+  }
+
   /** Asks the player to play `trackUri` within `contextUri`. Resolves false on any failure. */
   async play(contextUri: string, trackUri: string): Promise<boolean> {
     const endpoint = this.endpoint;
