@@ -1,7 +1,7 @@
 // Entry point of the code running in the page's JS context (injected by bootstrap).
 // Passive capture of the player's internal requests, feeding the features and debug mode.
 import { DEFAULT_SETTINGS } from '../shared/settings';
-import { sendToContent, startBridge } from './core/bridge';
+import { loadLikedIndex, saveLikedIndex, sendToContent, startBridge } from './core/bridge';
 import { HashRegistry } from './core/hashRegistry';
 import { installFetchInterceptor, installXhrInterceptor, type InterceptorHooks } from './core/interceptor';
 import { PathfinderClient } from './core/pathfinderClient';
@@ -16,6 +16,7 @@ import { mountPanel, unmountPanel } from './debug/panel';
 import { clearRecords, flushBuffered, record } from './debug/recorder';
 import { logPageChange } from './debug/requestLog';
 import { logStartupReport, takeStartupSnapshot } from './debug/startupReport';
+import { ArtistLikedSongsFeature } from './features/artist-liked-songs';
 import { PlaycountsFeature } from './features/playcounts';
 
 const LOADED = Symbol.for('spotify-full-experience.loaded');
@@ -51,6 +52,8 @@ function main(): void {
   // Until the settings arrive, debug captures go into a small buffer so early requests are not lost.
   // With debug off, only what an enabled feature needs is captured; otherwise the wrappers are pass-through.
   const debugCapturing = () => getSettings()?.debug ?? true;
+  // Created below, once the client exists; captures before that only matter to debug and playcounts.
+  let likedSongs: ArtistLikedSongsFeature | null = null;
   // Session headers and hashes are taken from every Pathfinder request of the player.
   const session = new Session();
   const registry = new HashRegistry();
@@ -59,13 +62,16 @@ function main(): void {
       session.observe(headers);
       registry.observe(operationName, hash);
     },
-    shouldCapture: (kind) => debugCapturing() || (kind === 'pathfinder' && playcounts.isEnabled),
+    shouldCapture: (kind) =>
+      debugCapturing() || (kind === 'pathfinder' && (playcounts.isEnabled || likedSongs?.isEnabled === true)),
     onCapture: (capture) => {
       if (debugCapturing()) record(capture);
-      try {
-        playcounts.onCapture(capture);
-      } catch {
-        // A failing feature turns itself off silently.
+      for (const feature of [playcounts, likedSongs]) {
+        try {
+          feature?.onCapture(capture);
+        } catch {
+          // A failing feature turns itself off silently.
+        }
       }
     },
   };
@@ -74,12 +80,17 @@ function main(): void {
   // Our own queries use the unwrapped fetch: they are never mistaken for the player's traffic.
   const client = nativeFetch ? new PathfinderClient(nativeFetch, session, registry) : null;
   const services = client ? { session, registry, client } : null;
+  likedSongs = new ArtistLikedSongsFeature({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
+  if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();
+  const liked = likedSongs;
   startCoverage();
 
   onSettingsChange((settings, previous) => {
     playcounts.setTitleWidth(settings.playcountsTitleWidth);
     if (settings.playcounts) playcounts.enable();
     else playcounts.disable();
+    if (settings.likedSongs) liked.enable();
+    else liked.disable();
 
     const wasDebug = previous?.debug ?? false;
     if (settings.debug && !wasDebug) {
@@ -94,6 +105,7 @@ function main(): void {
 
   onPageChange((page) => {
     playcounts.onPageChange(page);
+    liked.onPageChange(page);
     if (!isDebugEnabled()) return;
     logCoverage();
     logPageChange(page);
