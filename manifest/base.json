@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Spotify Full Experience",
+  "description": "Adds desktop-only information to the web player. Unofficial, not affiliated with Spotify.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://open.spotify.com/*"],
+      "js": ["bootstrap.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["page.js"],
+      "matches": ["https://open.spotify.com/*"]
+    }
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+
+# Raw traffic and logs may contain tokens or personal data: never commit them.
+*.har
+*.log
+scratch/
+
+.DS_Store
+Thumbs.db
