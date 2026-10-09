@@ -14,9 +14,11 @@ A browser extension (Chromium and Firefox, Manifest V3) that adds to the Spotify
 
 - **Play counts on album pages.** A "Plays" column after the title, as in the desktop app, with numbers formatted for the page language. The data comes from the responses the web player already receives: no extra requests. The edge between title and plays can be dragged (double click to reset). Can be turned off in the extension options.
 
+- **Liked songs on artist pages.** A section under Popular showing how many of the artist's songs you liked (primary artist only, as in the desktop app). It opens a "liked songs by <artist>" list; a double click plays the songs from there. Uses a local index of your liked songs, stored only in the extension's storage under a hashed key. Can be turned off in the extension options.
+
 ## Status
 
-Phase 1 (play counts) is complete. Next: liked songs per artist on artist pages.
+Phase 1 (play counts) is complete. Phase 2 (liked songs per artist) is being validated.
 
 ## Build
 

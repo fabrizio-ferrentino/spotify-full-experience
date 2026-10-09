@@ -33,6 +33,18 @@ Run with the "Play counts on album pages" option enabled.
 - [ ] Option disabled (reload the tab): album pages identical to the original.
 - [ ] No new errors in the console.
 
+## Liked songs on artist pages (Phase 2)
+
+Run with the "Liked songs on artist pages" option enabled. Keep Spotify open in one tab only: with another device active, the player does not start playback in this tab.
+
+- [ ] Artist page: a "Cosa ti è piaciuto" / "Liked songs" section under Popular, with the artist picture, heart badge, "N brani" and "Di <artist>"; only when N > 0.
+- [ ] N matches the desktop app on 3 artists, at least one with collaborations (only the primary artist counts).
+- [ ] First visit: the index is built with 2 requests for ~1200 liked songs, no 429.
+- [ ] Click the section: the "Brani che ti piacciono di <artist>" view covers the main view; back button, Escape and any navigation restore the artist page.
+- [ ] Rows: hover shows "…"; click selects; double click plays the track and continues with the artist's liked songs; title, artists and album open their pages; right click opens the same menu as "…".
+- [ ] Like a track of the artist elsewhere, come back: the count goes up. Unlike it: the count goes down.
+- [ ] Option disabled (reload the tab): no section, artist page identical to the original.
+
 ## Phase 0 reconnaissance
 
 Navigate **inside the app** (click links) rather than reloading a URL: requests issued before the page script starts cannot be captured.

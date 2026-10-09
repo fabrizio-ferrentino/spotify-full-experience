@@ -45,3 +45,9 @@ For "Paper Thin" (`spotify:track:33LQdszht4rDfgmOSth8W0`), `artists.items` is IL
 
 - **Strategy 1 (native filter): not available.** The web player's Liked Songs page has no "search in playlist" field and no sort menu: the action bar only has play, Smart Shuffle, download and "Visualizza come" (compact/list).
 - **Strategy 2 (desktop route): not available.** `/collection/artist/<artistId>` is recognised but redirects to the full `/collection/tracks`.
+
+## Playback from our view
+
+- In the web player, opening a track page plays it: the router adds `?autoplay_ok=1` (also for the player's own title links), but only when this tab is the active Connect device.
+- A double click on a native row sends a Connect command: `POST https://<spclient host>/connect-state/v1/player/command/from/<device>/to/<device>` with `{ command: { endpoint: "play", context: { uri, url: "context://<uri>" }, play_origin, options: { license, skip_to: { track_uri } }, logging_params } }`. "Add to queue" is the same command with `endpoint: "add_to_queue"`, preceded by a `connect/transfer` when another device is active.
+- Our double click sends the same `play` command (CLAUDE.md §2.10) with the desktop's context `spotify:user:<id>:collection:artist:<artistId>`, then the liked songs, then falls back to the track page. Works on Chrome, Brave and Firefox when the tab is the active device.
