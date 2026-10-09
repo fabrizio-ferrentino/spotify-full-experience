@@ -17,10 +17,6 @@ import { headerTitleOf, mainViewportOf, popularBlockOf, SELECTORS } from '../../
 import { frameScheduler, whenAvailable } from '../../core/dom';
 import type { CapturedRequest } from '../../core/interceptor';
 import type { PathfinderClient } from '../../core/pathfinderClient';
-import type { PlayerCommands } from '../../core/player';
-import { likedByArtistContext, likedSongsContext, nowPlayingTitle } from '../../adapters/connectShapes';
-import { navigateTo, trackPath } from '../../adapters/spotifyNav';
-import type { LikedTrack } from '../../../shared/likedIndex';
 import { debugLog, debugWarn } from '../../debug/log';
 import { LikedSongsCard } from './card';
 import { LikedSongsView, type ViewModel } from './view';
@@ -28,26 +24,9 @@ import { buildIndex, isStale, refreshIndex, removeTracks, tracksByArtist, type F
 
 export interface LikedSongsDeps {
   client: PathfinderClient | null;
-  /** Connect commands for double click → play; null: always open the track page. */
-  player?: PlayerCommands | null;
   loadIndex(key: string): Promise<LikedIndex | null>;
   saveIndex(key: string, index: LikedIndex | null): void;
   now?: () => number;
-}
-
-/** How long to wait for the player to show the requested track before trying the next way. */
-const PLAY_CONFIRM_MS = 4000;
-
-function waitForNowPlaying(title: string, timeoutMs: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const started = Date.now();
-    const check = () => {
-      if (nowPlayingTitle() === title.trim()) resolve(true);
-      else if (Date.now() - started >= timeoutMs) resolve(false);
-      else setTimeout(check, 250);
-    };
-    check();
-  });
 }
 
 /** After a failure, the feature stays quiet for this long. */
@@ -255,26 +234,6 @@ export class ArtistLikedSongsFeature {
     return this.artists.get(artistId)?.name ?? (main ? headerTitleOf(main) : null);
   }
 
-  /**
-   * Double click on a row: like the desktop app, play the artist's liked songs from this track
-   * (Connect "play" with the desktop's context), else the liked songs from this track, else open
-   * the track page, which the web player starts by itself. Each step is confirmed by the
-   * player's "now playing" bar before giving up on it.
-   */
-  private async playTrack(track: LikedTrack, artistId: string): Promise<void> {
-    const player = this.deps.player;
-    const trackUri = `spotify:track:${track.t}`;
-    const contexts = this.profileUri && player?.ready ? [likedByArtistContext(this.profileUri, artistId), likedSongsContext(this.profileUri)] : [];
-    for (const context of contexts) {
-      if ((await player!.play(context, trackUri)) && (await waitForNowPlaying(track.n, PLAY_CONFIRM_MS))) {
-        debugLog(`liked songs: playing via ${context === contexts[0] ? 'artist' : 'liked songs'} context`);
-        return;
-      }
-    }
-    debugLog('liked songs: play command unavailable, opening the track page');
-    navigateTo(trackPath(track.t));
-  }
-
   /** Shows "Brani che ti piacciono di <artist>" in place of the artist page content. */
   private openView(): void {
     const artistId = this.artistId;
@@ -283,12 +242,7 @@ export class ArtistLikedSongsFeature {
     const name = artistId ? this.artistName(artistId, main) : null;
     if (!artistId || !card || !main || !name) return;
     this.view?.close();
-    this.view = new LikedSongsView(
-      mainViewportOf(main),
-      card.typography,
-      () => (this.view = null),
-      (track) => void this.playTrack(track, artistId),
-    );
+    this.view = new LikedSongsView(mainViewportOf(main), card.typography, () => (this.view = null));
     this.view.open(this.viewModel(artistId, name));
   }
 

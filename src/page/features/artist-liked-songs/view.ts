@@ -47,8 +47,6 @@ export class LikedSongsView {
     private readonly anchor: HTMLElement,
     private readonly typography: Typography,
     private readonly onClose: () => void,
-    /** Double click on a row (default: open the track page, which the player starts). */
-    private readonly onPlay: (track: LikedTrack) => void = (track) => navigateTo(trackPath(track.t)),
   ) {
     this.menu = new ContextMenu(typography.title);
     this.root = el(
@@ -279,7 +277,9 @@ export class LikedSongsView {
       paint();
       if (document.activeElement !== more) more.style.opacity = '0';
     });
-    // Like the player's rows: a click selects, a double click plays (see onPlay).
+    // Like the player's rows: a click selects, a double click plays. Opening a track page plays
+    // it in the web player (it adds autoplay_ok, as its own title links do), so a double click
+    // opens the track page and the player starts it with its own code.
     const onRowControl = (event: Event) => (event.target as Element).closest('a, button') !== null;
     row.addEventListener('click', (event) => {
       if (onRowControl(event)) return;
@@ -292,7 +292,7 @@ export class LikedSongsView {
     });
     row.addEventListener('dblclick', (event) => {
       if (onRowControl(event)) return;
-      this.onPlay(track);
+      navigateTo(trackPath(track.t));
     });
     row.addEventListener('contextmenu', (event) => {
       event.preventDefault();
