@@ -80,18 +80,19 @@ describe('LikedSongsCard', () => {
 });
 
 describe('LikedSongsView', () => {
-  it('replaces the artist page content until closed, and restores it exactly', () => {
+  it('lays a panel over the main view without touching the page, and closes cleanly', () => {
     const main = buildArtistPage();
-    const page = main.querySelector<HTMLElement>('#page')!;
     const before = main.innerHTML;
     const onClose = vi.fn();
     const card = new LikedSongsCard(popularBlockOf(main)!, () => {});
-    const view = new LikedSongsView(page, card.typography, onClose, 24);
-    view.open({ artistName: 'Angels & Airwaves', tracks, now });
+    const view = new LikedSongsView(main, card.typography, onClose);
+    view.open({ artistName: 'Angels & Airwaves', imageUrl: 'https://i/160', tracks, now });
 
-    expect(page.style.display).toBe('none');
-    expect(page.previousElementSibling).toBe(view.root);
-    expect(view.root.querySelector('h2')?.textContent).toBe('Brani che ti piacciono di Angels & Airwaves');
+    expect(view.root.parentElement).toBe(document.body);
+    expect(view.root.style.position).toBe('fixed');
+    expect(main.innerHTML).toBe(before);
+    expect(view.root.querySelector('h1')?.textContent).toBe('Brani che ti piacciono di Angels & Airwaves');
+    expect(view.root.querySelector('img')?.getAttribute('src')).toBe('https://i/160');
     expect(view.root.textContent).toContain('Aggiunto il giorno');
     const rows = [...view.root.querySelectorAll('li')];
     expect(rows).toHaveLength(2);
@@ -104,7 +105,8 @@ describe('LikedSongsView', () => {
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(main.innerHTML).toBe(before);
+    expect(view.isOpen).toBe(false);
+    expect(document.querySelector('[data-sfe-liked-view]')).toBeNull();
     view.close();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -112,8 +114,8 @@ describe('LikedSongsView', () => {
   it('opens titles and albums inside the app', () => {
     const main = buildArtistPage();
     const card = new LikedSongsCard(popularBlockOf(main)!, () => {});
-    const view = new LikedSongsView(main.querySelector<HTMLElement>('#page')!, card.typography, () => {}, 0);
-    view.open({ artistName: 'X', tracks, now });
+    const view = new LikedSongsView(main, card.typography, () => {});
+    view.open({ artistName: 'X', imageUrl: null, tracks, now });
     const popstate = vi.fn();
     window.addEventListener('popstate', popstate);
     view.root.querySelector<HTMLAnchorElement>(`a[href="/track/${'A'.repeat(22)}"]`)!.click();

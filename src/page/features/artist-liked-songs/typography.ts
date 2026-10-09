@@ -1,15 +1,19 @@
-// Classes borrowed from the artist's Popular block, so our section and view follow the player's
-// typography and colours without hardcoding its CSS.
+// Typography borrowed from the artist's Popular block, so our section and view follow the
+// player's fonts and colours without hardcoding its CSS. Headings and titles reuse the player's
+// classes; for subdued text only the text properties are copied, because the class of the
+// duration cell also carries layout (an end-aligned flex box) that truncates longer text.
 import { SELECTORS } from '../../adapters/spotifyDom';
 
 const DURATION_TEXT = /^\d+:\d{2}$/;
+const TEXT_PROPERTIES = ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'color'] as const;
+const FALLBACK_SUBDUED = 'color: var(--text-subdued, #b3b3b3); font-size: 14px';
 
 export interface Typography {
-  /** Section heading ("Popolari"). */
+  /** Class of the section heading ("Popolari"). */
   heading: string;
-  /** Track title in a row. */
+  /** Class of a track title in a row. */
   title: string;
-  /** Subdued text (duration). */
+  /** Inline text style of subdued text (the duration), without layout. */
   subdued: string;
 }
 
@@ -17,15 +21,22 @@ export function borrowTypography(block: HTMLElement): Typography {
   const heading = [...block.children].find((child) => child.tagName === 'H2')?.className ?? '';
   const row = block.querySelector(SELECTORS.trackRow);
   const title = row?.querySelector(`${SELECTORS.trackLink} div`)?.className ?? '';
-  const subdued =
-    [...(row?.querySelectorAll('*') ?? [])].find(
-      (el) => el.children.length === 0 && DURATION_TEXT.test(el.textContent?.trim() ?? ''),
-    )?.className ?? '';
+  const duration = [...(row?.querySelectorAll('*') ?? [])].find(
+    (el) => el.children.length === 0 && DURATION_TEXT.test(el.textContent?.trim() ?? ''),
+  );
+  let subdued = FALLBACK_SUBDUED;
+  if (duration) {
+    const style = getComputedStyle(duration);
+    const copied = TEXT_PROPERTIES.map((name) => [name, style.getPropertyValue(name)] as const).filter(([, value]) => value);
+    if (copied.length) subdued = copied.map(([name, value]) => `${name}: ${value}`).join('; ');
+  }
   return { heading, title, subdued };
 }
 
 export const HOVER = 'rgba(255, 255, 255, 0.07)';
 export const ACCENT = 'var(--essential-bright-accent, #1ed760)';
+/** Single-line text that ends with an ellipsis. */
+export const ELLIPSIS = 'display: block; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis';
 
 export function el<K extends keyof HTMLElementTagNameMap>(tag: K, style = '', className = ''): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -47,6 +58,7 @@ export function icon(path: string, size: number, viewBox = 16): SVGSVGElement {
   svg.setAttribute('height', String(size));
   svg.setAttribute('aria-hidden', 'true');
   svg.style.fill = 'currentColor';
+  svg.style.flex = '0 0 auto';
   const shape = document.createElementNS(ns, 'path');
   shape.setAttribute('d', path);
   svg.append(shape);

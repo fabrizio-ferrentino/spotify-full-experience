@@ -221,7 +221,12 @@ export class ArtistLikedSongsFeature {
   }
 
   private viewModel(artistId: string, name: string): ViewModel {
-    return { artistName: name, tracks: this.index ? tracksByArtist(this.index, artistId) : [], now: this.now() };
+    return {
+      artistName: name,
+      imageUrl: this.artists.get(artistId)?.imageUrl ?? null,
+      tracks: this.index ? tracksByArtist(this.index, artistId) : [],
+      now: this.now(),
+    };
   }
 
   private artistName(artistId: string, main: HTMLElement | null): string | null {
@@ -233,13 +238,10 @@ export class ArtistLikedSongsFeature {
     const artistId = this.artistId;
     const card = this.card;
     const main = document.querySelector<HTMLElement>(SELECTORS.main);
-    const page = main?.querySelector<HTMLElement>(SELECTORS.artistPage);
-    const name = artistId ? this.artistName(artistId, main ?? null) : null;
-    if (!artistId || !card || !page || !name) return;
-    // Same side margins as the Popular block.
-    const inset = Math.max(0, Math.round(card.block.getBoundingClientRect().left - page.getBoundingClientRect().left));
+    const name = artistId ? this.artistName(artistId, main) : null;
+    if (!artistId || !card || !main || !name) return;
     this.view?.close();
-    this.view = new LikedSongsView(page, card.typography, () => (this.view = null), inset);
+    this.view = new LikedSongsView(main, card.typography, () => (this.view = null));
     this.view.open(this.viewModel(artistId, name));
   }
 

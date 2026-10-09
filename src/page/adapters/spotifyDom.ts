@@ -13,8 +13,6 @@ export const SELECTORS = {
   trackLink: 'a[data-testid="internal-track-link"]',
   /** Column resize handle, a direct child of the resizable header cell. */
   resizeHandle: '[role="separator"]',
-  /** Root of the artist page content (hidden while our liked songs view is open). */
-  artistPage: '[data-testid="artist-page"]',
   /** Artist and album page header. */
   entityHeader: '[data-testid="entity-header"]',
 } as const;
