@@ -27,6 +27,8 @@ const ROW_STYLE = [
   `flex: 0 0 ${PLAYS_SHARE}%`,
   'box-sizing: border-box',
   `padding: 0 ${INSET}px`,
+  // The duration class we copy is a flex box aligned to the end.
+  'justify-content: flex-start',
   'text-align: left',
   'white-space: nowrap',
   'overflow: hidden',
@@ -78,18 +80,38 @@ export class PlaycountColumn {
     this.visible = true;
 
     let titleColindex: string | null = null;
+    let firstNode: HTMLElement | null = null;
     for (const row of rows) {
       const cell = titleCellOf(row);
       if (!cell) continue;
       titleColindex ??= cell.getAttribute('aria-colindex');
       const id = trackIdOfRow(row);
       const count = id === null ? undefined : this.source.lookup(id);
-      setText(this.ensureRowNode(cell, row), count === undefined ? '' : this.source.format(count));
+      const node = this.ensureRowNode(cell, row);
+      firstNode ??= node;
+      setText(node, count === undefined ? '' : this.source.format(count));
     }
 
     const header = this.list.querySelector<HTMLElement>(SELECTORS.headerRow);
     const titleHeader = header && titleColindex !== null ? titleHeaderOf(header, titleColindex) : null;
-    if (titleHeader) setText(this.ensureHeaderLabel(titleHeader), this.source.label());
+    if (titleHeader) {
+      setText(this.ensureHeaderLabel(titleHeader), this.source.label());
+      this.alignHeader(titleHeader, firstNode);
+    }
+  }
+
+  /**
+   * Lines the header column up with the row column by measuring both: the header cell's own
+   * flex layout (resize handle with an auto margin) makes a computed width unreliable.
+   * Runs on every render, so window and column resizes are followed too.
+   */
+  private alignHeader(titleHeader: HTMLElement, firstNode: HTMLElement | null): void {
+    const box = titleHeader.querySelector<HTMLElement>(`:scope > [${OWN}="header"]`);
+    if (!box || !firstNode) return;
+    const boxRect = box.getBoundingClientRect();
+    const delta = Math.round(boxRect.left - firstNode.getBoundingClientRect().left);
+    if (delta === 0 || boxRect.width === 0) return;
+    box.style.flexBasis = `${Math.max(0, Math.round(boxRect.width + delta))}px`;
   }
 
   /** Removes every node we added; the player's markup is otherwise untouched. */
@@ -149,7 +171,9 @@ export class PlaycountColumn {
       const divider = document.createElement('div');
       divider.className = handle.className;
       divider.setAttribute('aria-hidden', 'true');
-      divider.style.cssText = 'pointer-events: none; cursor: default; flex: 0 0 auto';
+      // The handle gets its height from the header layout, not from its class: copy it.
+      const height = getComputedStyle(handle).height;
+      divider.style.cssText = `pointer-events: none; cursor: default; flex: 0 0 auto; height: ${height || '18px'}`;
       box.append(divider);
     }
     const label = document.createElement('span');
