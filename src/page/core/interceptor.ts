@@ -39,6 +39,8 @@ export interface InterceptorHooks {
   onCapture(request: CapturedRequest): void;
   /** Every Pathfinder fetch of the player, captured or not (session headers, hash registry). */
   onPathfinderRequest?(event: PathfinderRequestEvent): void;
+  /** Every spclient fetch of the player: URL and string body (Connect device and play params). */
+  onSpclientRequest?(url: string, body: string | null): void;
 }
 
 interface RequestPart {
@@ -130,8 +132,13 @@ function collectHeaderNames(target: Set<string>, init: HeadersInit | undefined):
 }
 
 function notifyPathfinder(args: FetchArgs, rawUrl: string, hooks: InterceptorHooks): void {
-  if (!hooks.onPathfinderRequest || matchEndpoint(rawUrl, baseUrl())?.kind !== 'pathfinder') return;
+  const kind = matchEndpoint(rawUrl, baseUrl())?.kind;
   const [input, init] = args;
+  if (kind === 'spclient' && hooks.onSpclientRequest) {
+    hooks.onSpclientRequest(new URL(rawUrl, baseUrl()).href, typeof init?.body === 'string' ? init.body : null);
+    return;
+  }
+  if (!hooks.onPathfinderRequest || kind !== 'pathfinder') return;
   const headers = new Headers(typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined);
   if (init?.headers) new Headers(init.headers).forEach((value, name) => headers.set(name, value));
   const body = typeof init?.body === 'string' ? init.body : null;

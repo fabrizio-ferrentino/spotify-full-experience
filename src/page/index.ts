@@ -5,6 +5,7 @@ import { loadLikedIndex, saveLikedIndex, sendToContent, startBridge } from './co
 import { HashRegistry } from './core/hashRegistry';
 import { installFetchInterceptor, installXhrInterceptor, type InterceptorHooks } from './core/interceptor';
 import { PathfinderClient } from './core/pathfinderClient';
+import { PlayerCommands } from './core/player';
 import { currentPage, onPageChange, startRouter } from './core/router';
 import { Session } from './core/session';
 import { getSettings, onSettingsChange } from './core/settings';
@@ -56,8 +57,11 @@ function main(): void {
   let likedSongs: ArtistLikedSongsFeature | null = null;
   // Session headers and hashes are taken from every Pathfinder request of the player.
   const session = new Session();
+  // Assigned once the native fetch is known; the hook only needs it after that.
+  let player: PlayerCommands | null = null;
   const registry = new HashRegistry();
   const hooks: InterceptorHooks = {
+    onSpclientRequest: (url, body) => player?.observe(url, body),
     onPathfinderRequest: ({ operationName, hash, headers }) => {
       session.observe(headers);
       registry.observe(operationName, hash);
@@ -80,7 +84,8 @@ function main(): void {
   // Our own queries use the unwrapped fetch: they are never mistaken for the player's traffic.
   const client = nativeFetch ? new PathfinderClient(nativeFetch, session, registry) : null;
   const services = client ? { session, registry, client } : null;
-  likedSongs = new ArtistLikedSongsFeature({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
+  player = nativeFetch ? new PlayerCommands(nativeFetch, session) : null;
+  likedSongs = new ArtistLikedSongsFeature({ client, player, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
   if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();
   const liked = likedSongs;
   startCoverage();
