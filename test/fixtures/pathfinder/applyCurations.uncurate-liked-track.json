@@ -1,0 +1,56 @@
+{
+  "format": "sfe-fixture/v1",
+  "capturedOn": "2026-10-09",
+  "request": {
+    "transport": "fetch",
+    "kind": "pathfinder",
+    "method": "POST",
+    "endpoint": "api-partner.spotify.com/pathfinder/v2/query",
+    "pathfinderVersion": 2,
+    "operationName": "applyCurations",
+    "hash": "05b739a3a73091c213385233b9d3ed8a857c2ca29d2eebadb3d04ed12e288697",
+    "variables": {
+      "input": {
+        "curations": [
+          {
+            "contextUri": "spotify:collection:tracks",
+            "curationType": "UNCURATE"
+          }
+        ],
+        "itemUris": [
+          "spotify:track:13GGf9FYOVVmKuudG0Kqhy"
+        ]
+      }
+    },
+    "requestHeaderNames": [
+      "accept",
+      "accept-language",
+      "app-platform",
+      "authorization",
+      "client-token",
+      "content-type",
+      "spotify-app-version"
+    ]
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "responseHeaderNames": [
+      "cache-control",
+      "content-type"
+    ],
+    "json": {
+      "data": {
+        "applyCurations": [
+          {
+            "__typename": "TrackResponseWrapper",
+            "data": {
+              "__typename": "Track",
+              "isCurated": false
+            }
+          }
+        ]
+      }
+    }
+  }
+}

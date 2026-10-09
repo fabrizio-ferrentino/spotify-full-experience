@@ -1,0 +1,43 @@
+{
+  "format": "sfe-fixture/v1",
+  "capturedOn": "2026-10-09",
+  "request": {
+    "transport": "fetch",
+    "kind": "pathfinder",
+    "method": "POST",
+    "endpoint": "api-partner.spotify.com/pathfinder/v2/query",
+    "pathfinderVersion": 2,
+    "operationName": "addToLibrary",
+    "hash": "896ebcb47815681340860d121cb5d494e157e2a78d3950385cd54e0393c67148",
+    "variables": {
+      "libraryItemUris": [
+        "spotify:track:13GGf9FYOVVmKuudG0Kqhy"
+      ],
+      "interactionId": "<redacted>"
+    },
+    "requestHeaderNames": [
+      "accept",
+      "accept-language",
+      "app-platform",
+      "authorization",
+      "client-token",
+      "content-type",
+      "spotify-app-version"
+    ]
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "responseHeaderNames": [
+      "cache-control",
+      "content-type"
+    ],
+    "json": {
+      "data": {
+        "addLibraryItems": {
+          "__typename": "AddLibraryItemsResponse"
+        }
+      }
+    }
+  }
+}

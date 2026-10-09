@@ -1,0 +1,392 @@
+{
+  "format": "sfe-fixture/v1",
+  "capturedOn": "2026-10-09",
+  "request": {
+    "transport": "fetch",
+    "kind": "pathfinder",
+    "method": "POST",
+    "endpoint": "api-partner.spotify.com/pathfinder/v1/query",
+    "pathfinderVersion": 1,
+    "operationName": null,
+    "hash": "f952da037440f694cc6925b9e3f649d39077a744c4db7dfba01cb883723f4f77",
+    "variables": {
+      "uris": [
+        "spotify:track:1bI5cazRwt66vksBjV6RmH",
+        "spotify:track:7zFp0jVyDl5c5S3TAGDurB",
+        "spotify:track:3zdg1IMqKog1YNRpTjKDOB",
+        "spotify:track:1VAsUV8cM8Ts0ARnFyIevN",
+        "spotify:track:0yGrVvkJl1lMo4CcQShHd7"
+      ]
+    },
+    "requestHeaderNames": [
+      "authorization",
+      "client-token",
+      "content-type"
+    ]
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "responseHeaderNames": [
+      "cache-control",
+      "content-length",
+      "content-type"
+    ],
+    "json": {
+      "data": {
+        "lookupEntities": [
+          {
+            "__typename": "Entity",
+            "uri": "spotify:track:1bI5cazRwt66vksBjV6RmH",
+            "entityTypeTrait": {
+              "__typename": "EntityTypeTrait",
+              "type": "ENTITY_TYPE_TRACK"
+            },
+            "consumptionExperienceTrait": {
+              "__typename": "ConsumptionExperienceTrait",
+              "duration": {
+                "seconds": 209,
+                "nanoSeconds": 0
+              }
+            },
+            "typedEntity": {
+              "data": {
+                "__typename": "Track",
+                "uri": "spotify:track:1bI5cazRwt66vksBjV6RmH",
+                "name": "When I Was Young",
+                "albumOfTrack": {
+                  "uri": "spotify:album:3Jpdv1X5cweLrcebtM1tar",
+                  "name": "Dogs Eating Dogs",
+                  "coverArt": {
+                    "sources": [
+                      {
+                        "height": 300,
+                        "width": 300,
+                        "url": "https://i.scdn.co/image/ab67616d00001e0213ce5fdfcbe002c5e0d8d65b"
+                      },
+                      {
+                        "height": 64,
+                        "width": 64,
+                        "url": "https://i.scdn.co/image/ab67616d0000485113ce5fdfcbe002c5e0d8d65b"
+                      },
+                      {
+                        "height": 640,
+                        "width": 640,
+                        "url": "https://i.scdn.co/image/ab67616d0000b27313ce5fdfcbe002c5e0d8d65b"
+                      }
+                    ]
+                  }
+                },
+                "artists": {
+                  "items": [
+                    {
+                      "uri": "spotify:artist:6FBDaR13swtiWwGhX1WQsP",
+                      "profile": {
+                        "name": "blink-182"
+                      }
+                    }
+                  ]
+                },
+                "duration": {
+                  "totalMilliseconds": 209186
+                },
+                "playability": {
+                  "playable": true
+                },
+                "relinkingInformation": null
+              }
+            },
+            "identityTrait": {
+              "__typename": "IdentityTrait",
+              "name": "When I Was Young",
+              "contentHierarchyParent": {
+                "uri": "spotify:album:3Jpdv1X5cweLrcebtM1tar",
+                "typedEntity": {}
+              }
+            }
+          },
+          {
+            "__typename": "Entity",
+            "uri": "spotify:track:7zFp0jVyDl5c5S3TAGDurB",
+            "entityTypeTrait": {
+              "__typename": "EntityTypeTrait",
+              "type": "ENTITY_TYPE_TRACK"
+            },
+            "consumptionExperienceTrait": {
+              "__typename": "ConsumptionExperienceTrait",
+              "duration": {
+                "seconds": 242,
+                "nanoSeconds": 0
+              }
+            },
+            "typedEntity": {
+              "data": {
+                "__typename": "Track",
+                "uri": "spotify:track:7zFp0jVyDl5c5S3TAGDurB",
+                "name": "Hang You Up",
+                "albumOfTrack": {
+                  "uri": "spotify:album:5OM6yWHis0MATzshFTzWSH",
+                  "name": "When You're Through Thinking, Say Yes",
+                  "coverArt": {
+                    "sources": [
+                      {
+                        "height": 300,
+                        "width": 300,
+                        "url": "https://i.scdn.co/image/ab67616d00001e02283177f0bb90830a72303227"
+                      },
+                      {
+                        "height": 64,
+                        "width": 64,
+                        "url": "https://i.scdn.co/image/ab67616d00004851283177f0bb90830a72303227"
+                      },
+                      {
+                        "height": 640,
+                        "width": 640,
+                        "url": "https://i.scdn.co/image/ab67616d0000b273283177f0bb90830a72303227"
+                      }
+                    ]
+                  }
+                },
+                "artists": {
+                  "items": [
+                    {
+                      "uri": "spotify:artist:3zxKH0qp3nBCuPZCZT5Vaf",
+                      "profile": {
+                        "name": "Yellowcard"
+                      }
+                    }
+                  ]
+                },
+                "duration": {
+                  "totalMilliseconds": 242906
+                },
+                "playability": {
+                  "playable": true
+                },
+                "relinkingInformation": null
+              }
+            },
+            "identityTrait": {
+              "__typename": "IdentityTrait",
+              "name": "Hang You Up",
+              "contentHierarchyParent": {
+                "uri": "spotify:album:5OM6yWHis0MATzshFTzWSH",
+                "typedEntity": {}
+              }
+            }
+          },
+          {
+            "__typename": "Entity",
+            "uri": "spotify:track:3zdg1IMqKog1YNRpTjKDOB",
+            "entityTypeTrait": {
+              "__typename": "EntityTypeTrait",
+              "type": "ENTITY_TYPE_TRACK"
+            },
+            "consumptionExperienceTrait": {
+              "__typename": "ConsumptionExperienceTrait",
+              "duration": {
+                "seconds": 238,
+                "nanoSeconds": 0
+              }
+            },
+            "typedEntity": {
+              "data": {
+                "__typename": "Track",
+                "uri": "spotify:track:3zdg1IMqKog1YNRpTjKDOB",
+                "name": "Speak Of The Devil",
+                "albumOfTrack": {
+                  "uri": "spotify:album:4fc73QNw5EjIorFfZ6n6YG",
+                  "name": "Underclass Hero",
+                  "coverArt": {
+                    "sources": [
+                      {
+                        "height": 300,
+                        "width": 300,
+                        "url": "https://i.scdn.co/image/ab67616d00001e021c5301bdbae7e2b35fe8024f"
+                      },
+                      {
+                        "height": 64,
+                        "width": 64,
+                        "url": "https://i.scdn.co/image/ab67616d000048511c5301bdbae7e2b35fe8024f"
+                      },
+                      {
+                        "height": 640,
+                        "width": 640,
+                        "url": "https://i.scdn.co/image/ab67616d0000b2731c5301bdbae7e2b35fe8024f"
+                      }
+                    ]
+                  }
+                },
+                "artists": {
+                  "items": [
+                    {
+                      "uri": "spotify:artist:0qT79UgT5tY4yudH9VfsdT",
+                      "profile": {
+                        "name": "Sum 41"
+                      }
+                    }
+                  ]
+                },
+                "duration": {
+                  "totalMilliseconds": 238693
+                },
+                "playability": {
+                  "playable": true
+                },
+                "relinkingInformation": null
+              }
+            },
+            "identityTrait": {
+              "__typename": "IdentityTrait",
+              "name": "Speak Of The Devil",
+              "contentHierarchyParent": {
+                "uri": "spotify:album:4fc73QNw5EjIorFfZ6n6YG",
+                "typedEntity": {}
+              }
+            }
+          },
+          {
+            "__typename": "Entity",
+            "uri": "spotify:track:1VAsUV8cM8Ts0ARnFyIevN",
+            "entityTypeTrait": {
+              "__typename": "EntityTypeTrait",
+              "type": "ENTITY_TYPE_TRACK"
+            },
+            "consumptionExperienceTrait": {
+              "__typename": "ConsumptionExperienceTrait",
+              "duration": {
+                "seconds": 303,
+                "nanoSeconds": 0
+              }
+            },
+            "typedEntity": {
+              "data": {
+                "__typename": "Track",
+                "uri": "spotify:track:1VAsUV8cM8Ts0ARnFyIevN",
+                "name": "Anxiety",
+                "albumOfTrack": {
+                  "uri": "spotify:album:3iapX57CaPsHR75N7abv1O",
+                  "name": "Love, Pt. 1 & 2",
+                  "coverArt": {
+                    "sources": [
+                      {
+                        "height": 300,
+                        "width": 300,
+                        "url": "https://i.scdn.co/image/ab67616d00001e022171565945b4a3c912d11673"
+                      },
+                      {
+                        "height": 64,
+                        "width": 64,
+                        "url": "https://i.scdn.co/image/ab67616d000048512171565945b4a3c912d11673"
+                      },
+                      {
+                        "height": 640,
+                        "width": 640,
+                        "url": "https://i.scdn.co/image/ab67616d0000b2732171565945b4a3c912d11673"
+                      }
+                    ]
+                  }
+                },
+                "artists": {
+                  "items": [
+                    {
+                      "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp",
+                      "profile": {
+                        "name": "Angels & Airwaves"
+                      }
+                    }
+                  ]
+                },
+                "duration": {
+                  "totalMilliseconds": 303306
+                },
+                "playability": {
+                  "playable": true
+                },
+                "relinkingInformation": null
+              }
+            },
+            "identityTrait": {
+              "__typename": "IdentityTrait",
+              "name": "Anxiety",
+              "contentHierarchyParent": {
+                "uri": "spotify:album:3iapX57CaPsHR75N7abv1O",
+                "typedEntity": {}
+              }
+            }
+          },
+          {
+            "__typename": "Entity",
+            "uri": "spotify:track:0yGrVvkJl1lMo4CcQShHd7",
+            "entityTypeTrait": {
+              "__typename": "EntityTypeTrait",
+              "type": "ENTITY_TYPE_TRACK"
+            },
+            "consumptionExperienceTrait": {
+              "__typename": "ConsumptionExperienceTrait",
+              "duration": {
+                "seconds": 279,
+                "nanoSeconds": 0
+              }
+            },
+            "typedEntity": {
+              "data": {
+                "__typename": "Track",
+                "uri": "spotify:track:0yGrVvkJl1lMo4CcQShHd7",
+                "name": "Hallucinations",
+                "albumOfTrack": {
+                  "uri": "spotify:album:3iapX57CaPsHR75N7abv1O",
+                  "name": "Love, Pt. 1 & 2",
+                  "coverArt": {
+                    "sources": [
+                      {
+                        "height": 300,
+                        "width": 300,
+                        "url": "https://i.scdn.co/image/ab67616d00001e022171565945b4a3c912d11673"
+                      },
+                      {
+                        "height": 64,
+                        "width": 64,
+                        "url": "https://i.scdn.co/image/ab67616d000048512171565945b4a3c912d11673"
+                      },
+                      {
+                        "height": 640,
+                        "width": 640,
+                        "url": "https://i.scdn.co/image/ab67616d0000b2732171565945b4a3c912d11673"
+                      }
+                    ]
+                  }
+                },
+                "artists": {
+                  "items": [
+                    {
+                      "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp",
+                      "profile": {
+                        "name": "Angels & Airwaves"
+                      }
+                    }
+                  ]
+                },
+                "duration": {
+                  "totalMilliseconds": 279346
+                },
+                "playability": {
+                  "playable": true
+                },
+                "relinkingInformation": null
+              }
+            },
+            "identityTrait": {
+              "__typename": "IdentityTrait",
+              "name": "Hallucinations",
+              "contentHierarchyParent": {
+                "uri": "spotify:album:3iapX57CaPsHR75N7abv1O",
+                "typedEntity": {}
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

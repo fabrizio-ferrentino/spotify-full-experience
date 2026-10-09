@@ -1,0 +1,1017 @@
+{
+  "format": "sfe-fixture/v1",
+  "capturedOn": "2026-10-09",
+  "request": {
+    "transport": "fetch",
+    "kind": "pathfinder",
+    "method": "POST",
+    "endpoint": "api-partner.spotify.com/pathfinder/v2/query",
+    "pathfinderVersion": 2,
+    "operationName": "fetchPlaylistContents",
+    "hash": "8964e8eafb21aa992a7d951d256d83285c04be2105d209262901de70cb97584a",
+    "variables": {
+      "uri": "spotify:playlist:<redacted>",
+      "offset": 25,
+      "limit": 50,
+      "includeEpisodeContentRatingsV2": true
+    },
+    "requestHeaderNames": [
+      "accept",
+      "accept-language",
+      "app-platform",
+      "authorization",
+      "client-token",
+      "content-type",
+      "spotify-app-version"
+    ]
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "responseHeaderNames": [
+      "cache-control",
+      "content-length",
+      "content-type"
+    ],
+    "json": {
+      "data": {
+        "playlistV2": {
+          "__typename": "Playlist",
+          "content": {
+            "__typename": "PlaylistItemsPage",
+            "items": [
+              {
+                "addedAt": {
+                  "isoString": "2026-08-05T10:45:31Z"
+                },
+                "addedBy": {
+                  "data": {
+                    "__typename": "User",
+                    "avatar": {
+                      "sources": [
+                        {
+                          "height": 64,
+                          "url": "<redacted>",
+                          "width": 64
+                        },
+                        {
+                          "height": 300,
+                          "url": "<redacted>",
+                          "width": 300
+                        }
+                      ]
+                    },
+                    "name": "<redacted>",
+                    "socialHandle": null,
+                    "uri": "<redacted>",
+                    "username": "<redacted>"
+                  }
+                },
+                "attributes": [],
+                "itemV2": {
+                  "__typename": "TrackResponseWrapper",
+                  "data": {
+                    "__typename": "Track",
+                    "albumOfTrack": {
+                      "artists": {
+                        "items": [
+                          {
+                            "profile": {
+                              "name": "Against The Current"
+                            },
+                            "uri": "spotify:artist:6yhD1KjhLxIETFF7vIRf8B"
+                          }
+                        ]
+                      },
+                      "coverArt": {
+                        "sources": [
+                          {
+                            "height": 300,
+                            "url": "https://i.scdn.co/image/ab67616d00001e0299889a577c515b4eb88cf2ba",
+                            "width": 300
+                          },
+                          {
+                            "height": 64,
+                            "url": "https://i.scdn.co/image/ab67616d0000485199889a577c515b4eb88cf2ba",
+                            "width": 64
+                          },
+                          {
+                            "height": 640,
+                            "url": "https://i.scdn.co/image/ab67616d0000b27399889a577c515b4eb88cf2ba",
+                            "width": 640
+                          }
+                        ]
+                      },
+                      "date": {
+                        "isoString": "2026-05-22T00:00:00Z",
+                        "precision": "DAY"
+                      },
+                      "name": "Dead Man Walking",
+                      "uri": "spotify:album:6ikKNy64oat903y40BvADC"
+                    },
+                    "artists": {
+                      "items": [
+                        {
+                          "profile": {
+                            "name": "Against The Current"
+                          },
+                          "uri": "spotify:artist:6yhD1KjhLxIETFF7vIRf8B"
+                        }
+                      ]
+                    },
+                    "associationsV3": {
+                      "audioAssociations": {
+                        "__typename": "TrackAudioAssociationPage",
+                        "items": []
+                      },
+                      "videoAssociations": {
+                        "totalCount": 1
+                      }
+                    },
+                    "contentRating": {
+                      "label": "NONE"
+                    },
+                    "discNumber": 1,
+                    "trackDuration": {
+                      "totalMilliseconds": 182348
+                    },
+                    "mediaType": "AUDIO",
+                    "name": "Dead Man Walking",
+                    "playability": {
+                      "playable": true,
+                      "reason": "PLAYABLE"
+                    },
+                    "playcount": "2533866",
+                    "playlistAudioAttributes": {
+                      "bpm": 81.99911499023438,
+                      "key": {
+                        "camelotKey": {
+                          "color": "#55f2d8",
+                          "value": "1A"
+                        },
+                        "key": "G#",
+                        "mode": "MODE_MINOR"
+                      }
+                    },
+                    "trackNumber": 1,
+                    "uri": "spotify:track:2lEQYDMTLgAjt515NG9Bh6"
+                  }
+                },
+                "itemV3": {
+                  "__typename": "EntityResponseWrapper",
+                  "data": {
+                    "__typename": "Entity",
+                    "consumptionExperienceTrait": {
+                      "__typename": "ConsumptionExperienceTrait",
+                      "contentRatings": [],
+                      "duration": {
+                        "nanoSeconds": 0,
+                        "seconds": 182
+                      },
+                      "formats": [
+                        "FORMAT_AUDIO",
+                        "FORMAT_VIDEO",
+                        "FORMAT_LOSSLESS"
+                      ]
+                    },
+                    "identityTrait": {
+                      "__typename": "IdentityTrait",
+                      "contentHierarchyParent": {
+                        "__typename": "Entity",
+                        "identityTrait": {
+                          "__typename": "IdentityTrait",
+                          "name": "Dead Man Walking"
+                        },
+                        "publishingMetadataTrait": {
+                          "__typename": "PublishingMetadataTrait",
+                          "firstPublishedAt": {
+                            "isoString": "2026-05-22",
+                            "precision": "DAY"
+                          }
+                        },
+                        "uri": "spotify:album:6ikKNy64oat903y40BvADC"
+                      },
+                      "contributors": {
+                        "items": [
+                          {
+                            "name": "Against The Current",
+                            "uri": "spotify:artist:6yhD1KjhLxIETFF7vIRf8B"
+                          }
+                        ],
+                        "totalCount": 1
+                      },
+                      "description": "",
+                      "name": "Dead Man Walking",
+                      "type": "Brano"
+                    },
+                    "playability": {
+                      "playable": true,
+                      "reason": "PLAYABLE"
+                    },
+                    "uri": "spotify:track:2lEQYDMTLgAjt515NG9Bh6",
+                    "visualIdentityTrait": {
+                      "__typename": "VisualIdentityTrait",
+                      "sixteenByNineCoverImage": {
+                        "image": {
+                          "data": {
+                            "__typename": "ImageV2",
+                            "sources": [
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 360,
+                                "maxWidth": 640,
+                                "url": "https://image-cdn-ak.spotifycdn.com/image/ab6742d3000052b677dd3fdddf9ce3f0cd4b8b47"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 720,
+                                "maxWidth": 1280,
+                                "url": "https://image-cdn-ak.spotifycdn.com/image/ab6742d3000053b677dd3fdddf9ce3f0cd4b8b47"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "squareCoverImage": {
+                        "extractedColorSet": {
+                          "encoreBaseSetTextColor": {
+                            "alpha": 255,
+                            "blue": 184,
+                            "green": 176,
+                            "red": 219
+                          },
+                          "highContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 32,
+                              "green": 24,
+                              "red": 56
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 73,
+                              "green": 65,
+                              "red": 102
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 203,
+                              "green": 194,
+                              "red": 239
+                            }
+                          },
+                          "higherContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 32,
+                              "green": 24,
+                              "red": 56
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 73,
+                              "green": 65,
+                              "red": 102
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 96,
+                              "green": 215,
+                              "red": 30
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 203,
+                              "green": 194,
+                              "red": 239
+                            }
+                          },
+                          "minContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 32,
+                              "green": 24,
+                              "red": 56
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 73,
+                              "green": 65,
+                              "red": 102
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            }
+                          }
+                        },
+                        "image": {
+                          "data": {
+                            "__typename": "ImageV2",
+                            "sources": [
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 640,
+                                "maxWidth": 640,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d000075a099889a577c515b4eb88cf2ba"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 64,
+                                "maxWidth": 64,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d000090d599889a577c515b4eb88cf2ba"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 300,
+                                "maxWidth": 300,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d0000ab8799889a577c515b4eb88cf2ba"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "uid": "22413ef60284c49fc175"
+              },
+              {
+                "addedAt": {
+                  "isoString": "2026-08-04T20:21:30Z"
+                },
+                "addedBy": {
+                  "data": {
+                    "__typename": "User",
+                    "avatar": {
+                      "sources": [
+                        {
+                          "height": 64,
+                          "url": "<redacted>",
+                          "width": 64
+                        },
+                        {
+                          "height": 300,
+                          "url": "<redacted>",
+                          "width": 300
+                        }
+                      ]
+                    },
+                    "name": "<redacted>",
+                    "socialHandle": null,
+                    "uri": "<redacted>",
+                    "username": "<redacted>"
+                  }
+                },
+                "attributes": [],
+                "itemV2": {
+                  "__typename": "TrackResponseWrapper",
+                  "data": {
+                    "__typename": "Track",
+                    "albumOfTrack": {
+                      "artists": {
+                        "items": [
+                          {
+                            "profile": {
+                              "name": "Muse"
+                            },
+                            "uri": "spotify:artist:12Chz98pHFMPJEknJQMWvI"
+                          }
+                        ]
+                      },
+                      "coverArt": {
+                        "sources": [
+                          {
+                            "height": 300,
+                            "url": "https://i.scdn.co/image/ab67616d00001e0228933b808bfb4cbbd0385400",
+                            "width": 300
+                          },
+                          {
+                            "height": 64,
+                            "url": "https://i.scdn.co/image/ab67616d0000485128933b808bfb4cbbd0385400",
+                            "width": 64
+                          },
+                          {
+                            "height": 640,
+                            "url": "https://i.scdn.co/image/ab67616d0000b27328933b808bfb4cbbd0385400",
+                            "width": 640
+                          }
+                        ]
+                      },
+                      "date": {
+                        "isoString": "2006-06-28T00:00:00Z",
+                        "precision": "DAY"
+                      },
+                      "name": "Black Holes and Revelations",
+                      "uri": "spotify:album:0lw68yx3MhKflWFqCsGkIs"
+                    },
+                    "artists": {
+                      "items": [
+                        {
+                          "profile": {
+                            "name": "Muse"
+                          },
+                          "uri": "spotify:artist:12Chz98pHFMPJEknJQMWvI"
+                        }
+                      ]
+                    },
+                    "associationsV3": {
+                      "audioAssociations": {
+                        "__typename": "TrackAudioAssociationPage",
+                        "items": []
+                      },
+                      "videoAssociations": {
+                        "totalCount": 0
+                      }
+                    },
+                    "contentRating": {
+                      "label": "NONE"
+                    },
+                    "discNumber": 1,
+                    "trackDuration": {
+                      "totalMilliseconds": 281026
+                    },
+                    "mediaType": "AUDIO",
+                    "name": "Glorious",
+                    "playability": {
+                      "playable": true,
+                      "reason": "PLAYABLE"
+                    },
+                    "playcount": "26510151",
+                    "playlistAudioAttributes": {
+                      "bpm": 122.279,
+                      "key": {
+                        "camelotKey": {
+                          "color": "#04ebeb",
+                          "value": "12B"
+                        },
+                        "key": "E",
+                        "mode": "MODE_MAJOR"
+                      }
+                    },
+                    "trackNumber": 12,
+                    "uri": "spotify:track:6IfitwQQ1Gu9g9QnLWDHRY"
+                  }
+                },
+                "itemV3": {
+                  "__typename": "EntityResponseWrapper",
+                  "data": {
+                    "__typename": "Entity",
+                    "consumptionExperienceTrait": {
+                      "__typename": "ConsumptionExperienceTrait",
+                      "contentRatings": [],
+                      "duration": {
+                        "nanoSeconds": 0,
+                        "seconds": 281
+                      },
+                      "formats": [
+                        "FORMAT_AUDIO",
+                        "FORMAT_LOSSLESS"
+                      ]
+                    },
+                    "identityTrait": {
+                      "__typename": "IdentityTrait",
+                      "contentHierarchyParent": {
+                        "__typename": "Entity",
+                        "identityTrait": {
+                          "__typename": "IdentityTrait",
+                          "name": "Black Holes and Revelations"
+                        },
+                        "publishingMetadataTrait": {
+                          "__typename": "PublishingMetadataTrait",
+                          "firstPublishedAt": {
+                            "isoString": "2006-06-28",
+                            "precision": "DAY"
+                          }
+                        },
+                        "uri": "spotify:album:0lw68yx3MhKflWFqCsGkIs"
+                      },
+                      "contributors": {
+                        "items": [
+                          {
+                            "name": "Muse",
+                            "uri": "spotify:artist:12Chz98pHFMPJEknJQMWvI"
+                          }
+                        ],
+                        "totalCount": 1
+                      },
+                      "description": "",
+                      "name": "Glorious",
+                      "type": "Brano"
+                    },
+                    "playability": {
+                      "playable": true,
+                      "reason": "PLAYABLE"
+                    },
+                    "uri": "spotify:track:6IfitwQQ1Gu9g9QnLWDHRY",
+                    "visualIdentityTrait": {
+                      "__typename": "VisualIdentityTrait",
+                      "sixteenByNineCoverImage": null,
+                      "squareCoverImage": {
+                        "extractedColorSet": {
+                          "encoreBaseSetTextColor": {
+                            "alpha": 255,
+                            "blue": 144,
+                            "green": 162,
+                            "red": 255
+                          },
+                          "highContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 17,
+                              "green": 33,
+                              "red": 153
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 0,
+                              "green": 0,
+                              "red": 97
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 175,
+                              "green": 190,
+                              "red": 255
+                            }
+                          },
+                          "higherContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 0,
+                              "green": 0,
+                              "red": 101
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 41,
+                              "green": 52,
+                              "red": 147
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 96,
+                              "green": 215,
+                              "red": 30
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 175,
+                              "green": 190,
+                              "red": 255
+                            }
+                          },
+                          "minContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 24,
+                              "green": 40,
+                              "red": 160
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 0,
+                              "green": 0,
+                              "red": 108
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            }
+                          }
+                        },
+                        "image": {
+                          "data": {
+                            "__typename": "ImageV2",
+                            "sources": [
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 640,
+                                "maxWidth": 640,
+                                "url": "https://image-cdn-ak.spotifycdn.com/image/ab67616d000075a028933b808bfb4cbbd0385400"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 64,
+                                "maxWidth": 64,
+                                "url": "https://image-cdn-ak.spotifycdn.com/image/ab67616d000090d528933b808bfb4cbbd0385400"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 300,
+                                "maxWidth": 300,
+                                "url": "https://image-cdn-ak.spotifycdn.com/image/ab67616d0000ab8728933b808bfb4cbbd0385400"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "uid": "dac4b036231cf7c4aaa4"
+              },
+              {
+                "addedAt": {
+                  "isoString": "2026-07-30T15:05:25Z"
+                },
+                "addedBy": {
+                  "data": {
+                    "__typename": "User",
+                    "avatar": {
+                      "sources": [
+                        {
+                          "height": 64,
+                          "url": "<redacted>",
+                          "width": 64
+                        },
+                        {
+                          "height": 300,
+                          "url": "<redacted>",
+                          "width": 300
+                        }
+                      ]
+                    },
+                    "name": "<redacted>",
+                    "socialHandle": null,
+                    "uri": "<redacted>",
+                    "username": "<redacted>"
+                  }
+                },
+                "attributes": [],
+                "itemV2": {
+                  "__typename": "TrackResponseWrapper",
+                  "data": {
+                    "__typename": "Track",
+                    "albumOfTrack": {
+                      "artists": {
+                        "items": [
+                          {
+                            "profile": {
+                              "name": "883"
+                            },
+                            "uri": "spotify:artist:6bMul6rmRS03x38tWKYifO"
+                          }
+                        ]
+                      },
+                      "coverArt": {
+                        "sources": [
+                          {
+                            "height": 300,
+                            "url": "https://i.scdn.co/image/ab67616d00001e02614dc9aef84fd4a89932f1c6",
+                            "width": 300
+                          },
+                          {
+                            "height": 64,
+                            "url": "https://i.scdn.co/image/ab67616d00004851614dc9aef84fd4a89932f1c6",
+                            "width": 64
+                          },
+                          {
+                            "height": 640,
+                            "url": "https://i.scdn.co/image/ab67616d0000b273614dc9aef84fd4a89932f1c6",
+                            "width": 640
+                          }
+                        ]
+                      },
+                      "date": {
+                        "isoString": "1995-01-01T00:00:00Z",
+                        "precision": "YEAR"
+                      },
+                      "name": "La donna il sogno & il grande incubo",
+                      "uri": "spotify:album:6bAhKdhqjEGIvoa0YEoNXC"
+                    },
+                    "artists": {
+                      "items": [
+                        {
+                          "profile": {
+                            "name": "883"
+                          },
+                          "uri": "spotify:artist:6bMul6rmRS03x38tWKYifO"
+                        }
+                      ]
+                    },
+                    "associationsV3": {
+                      "audioAssociations": {
+                        "__typename": "TrackAudioAssociationPage",
+                        "items": []
+                      },
+                      "videoAssociations": {
+                        "totalCount": 1
+                      }
+                    },
+                    "contentRating": {
+                      "label": "NONE"
+                    },
+                    "discNumber": 1,
+                    "trackDuration": {
+                      "totalMilliseconds": 234106
+                    },
+                    "mediaType": "AUDIO",
+                    "name": "Ti sento vivere",
+                    "playability": {
+                      "playable": true,
+                      "reason": "PLAYABLE"
+                    },
+                    "playcount": "20312426",
+                    "playlistAudioAttributes": {
+                      "bpm": 120,
+                      "key": {
+                        "camelotKey": {
+                          "color": "#ff80b4",
+                          "value": "7B"
+                        },
+                        "key": "F",
+                        "mode": "MODE_MAJOR"
+                      }
+                    },
+                    "trackNumber": 3,
+                    "uri": "spotify:track:5gYPkFvKanAyNkCanut5Po"
+                  }
+                },
+                "itemV3": {
+                  "__typename": "EntityResponseWrapper",
+                  "data": {
+                    "__typename": "Entity",
+                    "consumptionExperienceTrait": {
+                      "__typename": "ConsumptionExperienceTrait",
+                      "contentRatings": [],
+                      "duration": {
+                        "nanoSeconds": 0,
+                        "seconds": 234
+                      },
+                      "formats": [
+                        "FORMAT_AUDIO",
+                        "FORMAT_VIDEO",
+                        "FORMAT_LOSSLESS"
+                      ]
+                    },
+                    "identityTrait": {
+                      "__typename": "IdentityTrait",
+                      "contentHierarchyParent": {
+                        "__typename": "Entity",
+                        "identityTrait": {
+                          "__typename": "IdentityTrait",
+                          "name": "La donna il sogno & il grande incubo"
+                        },
+                        "publishingMetadataTrait": {
+                          "__typename": "PublishingMetadataTrait",
+                          "firstPublishedAt": {
+                            "isoString": "1995",
+                            "precision": "YEAR"
+                          }
+                        },
+                        "uri": "spotify:album:6bAhKdhqjEGIvoa0YEoNXC"
+                      },
+                      "contributors": {
+                        "items": [
+                          {
+                            "name": "883",
+                            "uri": "spotify:artist:6bMul6rmRS03x38tWKYifO"
+                          }
+                        ],
+                        "totalCount": 1
+                      },
+                      "description": "",
+                      "name": "Ti sento vivere",
+                      "type": "Brano"
+                    },
+                    "playability": {
+                      "playable": true,
+                      "reason": "PLAYABLE"
+                    },
+                    "uri": "spotify:track:5gYPkFvKanAyNkCanut5Po",
+                    "visualIdentityTrait": {
+                      "__typename": "VisualIdentityTrait",
+                      "sixteenByNineCoverImage": {
+                        "image": {
+                          "data": {
+                            "__typename": "ImageV2",
+                            "sources": [
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 360,
+                                "maxWidth": 640,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab6742d3000052b6530c9f4542d7be6725677d04"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 720,
+                                "maxWidth": 1280,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab6742d3000053b6530c9f4542d7be6725677d04"
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      "squareCoverImage": {
+                        "extractedColorSet": {
+                          "encoreBaseSetTextColor": {
+                            "alpha": 255,
+                            "blue": 142,
+                            "green": 163,
+                            "red": 255
+                          },
+                          "highContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 0,
+                              "green": 0,
+                              "red": 159
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 0,
+                              "green": 0,
+                              "red": 97
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 174,
+                              "green": 190,
+                              "red": 255
+                            }
+                          },
+                          "higherContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 0,
+                              "green": 0,
+                              "red": 101
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 41,
+                              "green": 52,
+                              "red": 147
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 96,
+                              "green": 215,
+                              "red": 30
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 174,
+                              "green": 190,
+                              "red": 255
+                            }
+                          },
+                          "minContrast": {
+                            "backgroundBase": {
+                              "alpha": 255,
+                              "blue": 32,
+                              "green": 56,
+                              "red": 208
+                            },
+                            "backgroundTintedBase": {
+                              "alpha": 255,
+                              "blue": 0,
+                              "green": 0,
+                              "red": 168
+                            },
+                            "textBase": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textBrightAccent": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            },
+                            "textSubdued": {
+                              "alpha": 255,
+                              "blue": 255,
+                              "green": 255,
+                              "red": 255
+                            }
+                          }
+                        },
+                        "image": {
+                          "data": {
+                            "__typename": "ImageV2",
+                            "sources": [
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 640,
+                                "maxWidth": 640,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d000075a0614dc9aef84fd4a89932f1c6"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 64,
+                                "maxWidth": 64,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d000090d5614dc9aef84fd4a89932f1c6"
+                              },
+                              {
+                                "imageFormat": "WEBP",
+                                "maxHeight": 300,
+                                "maxWidth": 300,
+                                "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d0000ab87614dc9aef84fd4a89932f1c6"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "uid": "4ddb13c5d7fd5635e7d8"
+              }
+            ],
+            "pagingInfo": {
+              "limit": 50,
+              "offset": 25
+            },
+            "totalCount": 1218
+          }
+        }
+      }
+    }
+  }
+}

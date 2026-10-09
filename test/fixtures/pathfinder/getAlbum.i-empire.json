@@ -1,0 +1,1146 @@
+{
+  "format": "sfe-fixture/v1",
+  "capturedOn": "2026-10-09",
+  "request": {
+    "transport": "fetch",
+    "kind": "pathfinder",
+    "method": "POST",
+    "endpoint": "api-partner.spotify.com/pathfinder/v2/query",
+    "pathfinderVersion": 2,
+    "operationName": "getAlbum",
+    "hash": "11c9cad9cb24c4f9e25ef9456f68621cfd6006a90f679e729c1d2f2fd70dfe16",
+    "variables": {
+      "uri": "spotify:album:1SJtjjKkFn4x6cfRXfALB9",
+      "locale": "intl-it",
+      "offset": 0,
+      "limit": 50
+    },
+    "requestHeaderNames": [
+      "accept",
+      "accept-language",
+      "app-platform",
+      "authorization",
+      "client-token",
+      "content-type",
+      "spotify-app-version"
+    ]
+  },
+  "response": {
+    "status": 200,
+    "contentType": "application/json",
+    "responseHeaderNames": [
+      "cache-control",
+      "content-length",
+      "content-type"
+    ],
+    "json": {
+      "data": {
+        "albumUnion": {
+          "__typename": "Album",
+          "copyright": {
+            "items": [
+              {
+                "text": "© 2007 Geffen Records",
+                "type": "C"
+              },
+              {
+                "text": "℗ 2007 Geffen Records",
+                "type": "P"
+              }
+            ],
+            "totalCount": 2
+          },
+          "courtesyLine": "",
+          "date": {
+            "isoString": "2007-01-01T00:00:00Z",
+            "precision": "DAY"
+          },
+          "isPreRelease": false,
+          "label": "Geffen",
+          "name": "I-Empire",
+          "playability": {
+            "playable": true,
+            "reason": "PLAYABLE"
+          },
+          "preReleaseEndDateTime": null,
+          "saved": false,
+          "sharingInfo": {
+            "shareId": "<redacted>",
+            "shareUrl": "https://open.spotify.com/intl-it/album/1SJtjjKkFn4x6cfRXfALB9?si=<redacted>"
+          },
+          "tracksV2": {
+            "items": [
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 305320
+                  },
+                  "name": "Call To Arms",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "16578691",
+                  "relinkingInformation": null,
+                  "saved": true,
+                  "trackNumber": 1,
+                  "uri": "spotify:track:3lGUSc1x03KLsxKuyIEYf1"
+                },
+                "uid": "0c1dde1cc5c13a5a6b03"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 231413
+                  },
+                  "name": "Everything's Magic",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "56480454",
+                  "relinkingInformation": null,
+                  "saved": true,
+                  "trackNumber": 2,
+                  "uri": "spotify:track:4eC8Cq2Q6zIelJgF4nC2DK"
+                },
+                "uid": "b1bc108e829f3e74d244"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 333533
+                  },
+                  "name": "Breathe",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "9654551",
+                  "relinkingInformation": null,
+                  "saved": false,
+                  "trackNumber": 3,
+                  "uri": "spotify:track:13GGf9FYOVVmKuudG0Kqhy"
+                },
+                "uid": "1ac22689cab4d997f5ea"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 290493
+                  },
+                  "name": "Love Like Rockets",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "6967115",
+                  "relinkingInformation": null,
+                  "saved": true,
+                  "trackNumber": 4,
+                  "uri": "spotify:track:4UhzOFoAENgWKOq1vgP9a3"
+                },
+                "uid": "aedf9597302f4ffa1ea1"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 259413
+                  },
+                  "name": "Sirens",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "27686646",
+                  "relinkingInformation": null,
+                  "saved": true,
+                  "trackNumber": 5,
+                  "uri": "spotify:track:7lfBmHA5nHb29ruTJ7ujdc"
+                },
+                "uid": "8bdd10f1f5e96c35ac20"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 302800
+                  },
+                  "name": "Secret Crowds",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "29032183",
+                  "relinkingInformation": null,
+                  "saved": true,
+                  "trackNumber": 6,
+                  "uri": "spotify:track:5tz7UrfFRduRbQgrn91B6Y"
+                },
+                "uid": "4c84e5b88b230e0c2c3e"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 127533
+                  },
+                  "name": "Star Of Bethlehem",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "3696109",
+                  "relinkingInformation": null,
+                  "saved": false,
+                  "trackNumber": 7,
+                  "uri": "spotify:track:4MmOpEMaZApII6H3aTCwKp"
+                },
+                "uid": "939c051f05be2fb94159"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 368160
+                  },
+                  "name": "True Love",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "6647386",
+                  "relinkingInformation": null,
+                  "saved": false,
+                  "trackNumber": 8,
+                  "uri": "spotify:track:6SzjXcc5UjmMP1Fzj15tYm"
+                },
+                "uid": "0d8a52447775ed495389"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 255880
+                  },
+                  "name": "Lifeline",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "8556621",
+                  "relinkingInformation": null,
+                  "saved": false,
+                  "trackNumber": 9,
+                  "uri": "spotify:track:7uWrPy2dJyRNkA1xnfjNW3"
+                },
+                "uid": "afe0eb68006d9f217dd5"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 44626
+                  },
+                  "name": "Jumping Rooftops",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "2832735",
+                  "relinkingInformation": null,
+                  "saved": false,
+                  "trackNumber": 10,
+                  "uri": "spotify:track:4Do8KN9ZnVM93nJcpX0vok"
+                },
+                "uid": "7f1741f3f294e9bd11d3"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "EXPLICIT"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 262120
+                  },
+                  "name": "Rite Of Spring",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "14156629",
+                  "relinkingInformation": null,
+                  "saved": true,
+                  "trackNumber": 11,
+                  "uri": "spotify:track:0c6bSEn6CebqsXJYBdMpjT"
+                },
+                "uid": "a1e2290c202a41a17c1b"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 398333
+                  },
+                  "name": "Heaven",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "9137864",
+                  "relinkingInformation": null,
+                  "saved": true,
+                  "trackNumber": 12,
+                  "uri": "spotify:track:7AG0FCEVrD0FxfxVzNaxI6"
+                },
+                "uid": "a2c48ebe9de028119104"
+              },
+              {
+                "track": {
+                  "artists": {
+                    "items": [
+                      {
+                        "profile": {
+                          "name": "Angels & Airwaves"
+                        },
+                        "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp"
+                      }
+                    ]
+                  },
+                  "associationsV3": {
+                    "videoAssociations": {
+                      "totalCount": 0
+                    }
+                  },
+                  "contentRating": {
+                    "label": "NONE"
+                  },
+                  "discNumber": 1,
+                  "duration": {
+                    "totalMilliseconds": 228586
+                  },
+                  "name": "The Gift - Acoustic",
+                  "playability": {
+                    "playable": true
+                  },
+                  "playcount": "721845",
+                  "relinkingInformation": null,
+                  "saved": false,
+                  "trackNumber": 13,
+                  "uri": "spotify:track:6yRz6Bh5WfjMxa1qJFjS63"
+                },
+                "uid": "4c3b960399534b12411c"
+              }
+            ],
+            "totalCount": 13
+          },
+          "type": "ALBUM",
+          "uri": "spotify:album:1SJtjjKkFn4x6cfRXfALB9",
+          "visualIdentity": {
+            "squareCoverImage": {
+              "__typename": "VisualIdentityImage",
+              "extractedColorSet": {
+                "encoreBaseSetTextColor": {
+                  "alpha": 255,
+                  "blue": 149,
+                  "green": 162,
+                  "red": 255
+                },
+                "highContrast": {
+                  "backgroundBase": {
+                    "alpha": 255,
+                    "blue": 33,
+                    "green": 39,
+                    "red": 150
+                  },
+                  "backgroundTintedBase": {
+                    "alpha": 255,
+                    "blue": 0,
+                    "green": 0,
+                    "red": 97
+                  },
+                  "textBase": {
+                    "alpha": 255,
+                    "blue": 255,
+                    "green": 255,
+                    "red": 255
+                  },
+                  "textBrightAccent": {
+                    "alpha": 255,
+                    "blue": 255,
+                    "green": 255,
+                    "red": 255
+                  },
+                  "textSubdued": {
+                    "alpha": 255,
+                    "blue": 179,
+                    "green": 190,
+                    "red": 255
+                  }
+                },
+                "higherContrast": {
+                  "backgroundBase": {
+                    "alpha": 255,
+                    "blue": 0,
+                    "green": 0,
+                    "red": 102
+                  },
+                  "backgroundTintedBase": {
+                    "alpha": 255,
+                    "blue": 41,
+                    "green": 52,
+                    "red": 147
+                  },
+                  "textBase": {
+                    "alpha": 255,
+                    "blue": 255,
+                    "green": 255,
+                    "red": 255
+                  },
+                  "textBrightAccent": {
+                    "alpha": 255,
+                    "blue": 96,
+                    "green": 215,
+                    "red": 30
+                  },
+                  "textSubdued": {
+                    "alpha": 255,
+                    "blue": 179,
+                    "green": 190,
+                    "red": 255
+                  }
+                },
+                "minContrast": {
+                  "backgroundBase": {
+                    "alpha": 255,
+                    "blue": 48,
+                    "green": 56,
+                    "red": 168
+                  },
+                  "backgroundTintedBase": {
+                    "alpha": 255,
+                    "blue": 12,
+                    "green": 10,
+                    "red": 128
+                  },
+                  "textBase": {
+                    "alpha": 255,
+                    "blue": 255,
+                    "green": 255,
+                    "red": 255
+                  },
+                  "textBrightAccent": {
+                    "alpha": 255,
+                    "blue": 255,
+                    "green": 255,
+                    "red": 255
+                  },
+                  "textSubdued": {
+                    "alpha": 255,
+                    "blue": 255,
+                    "green": 255,
+                    "red": 255
+                  }
+                }
+              }
+            }
+          },
+          "watchFeedEntrypoint": {
+            "entrypointUri": "spotify:watch-feed:album:1SJtjjKkFn4x6cfRXfALB9?itemId=c3BvdGlmeTp0cmFjazozbEdVU2MxeDAzS0xzeEt1eUlFWWYx",
+            "thumbnailImage": {
+              "data": {
+                "__typename": "ImageV2",
+                "imageId": "https://i.scdn.co/image/ab67616d0000485140f9a1328ceb7252193cae93",
+                "imageIdType": "IMAGE_URL",
+                "sources": [
+                  {
+                    "imageFormat": "WEBP",
+                    "maxHeight": 640,
+                    "maxWidth": 640,
+                    "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d000075a040f9a1328ceb7252193cae93"
+                  },
+                  {
+                    "imageFormat": "WEBP",
+                    "maxHeight": 64,
+                    "maxWidth": 64,
+                    "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d000090d540f9a1328ceb7252193cae93"
+                  },
+                  {
+                    "imageFormat": "WEBP",
+                    "maxHeight": 300,
+                    "maxWidth": 300,
+                    "url": "https://image-cdn-fa.spotifycdn.com/image/ab67616d0000ab8740f9a1328ceb7252193cae93"
+                  }
+                ]
+              }
+            },
+            "video": null
+          },
+          "artists": {
+            "items": [
+              {
+                "id": "7xklw3WodFZiNNmQt3DIgp",
+                "profile": {
+                  "name": "Angels & Airwaves"
+                },
+                "sharingInfo": {
+                  "shareUrl": "https://open.spotify.com/intl-it/artist/7xklw3WodFZiNNmQt3DIgp?si=<redacted>"
+                },
+                "uri": "spotify:artist:7xklw3WodFZiNNmQt3DIgp",
+                "visuals": {
+                  "avatarImage": {
+                    "sources": [
+                      {
+                        "height": 640,
+                        "url": "https://i.scdn.co/image/ab6761610000e5eb9bf03fdd68eecd329f9fde6e",
+                        "width": 640
+                      },
+                      {
+                        "height": 160,
+                        "url": "https://i.scdn.co/image/ab6761610000f1789bf03fdd68eecd329f9fde6e",
+                        "width": 160
+                      },
+                      {
+                        "height": 320,
+                        "url": "https://i.scdn.co/image/ab676161000051749bf03fdd68eecd329f9fde6e",
+                        "width": 320
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "totalCount": 1
+          },
+          "coverArt": {
+            "extractedColors": {
+              "colorDark": {
+                "hex": "#A83830"
+              },
+              "colorLight": {
+                "hex": "#D1463C"
+              },
+              "colorRaw": {
+                "hex": "#A83830"
+              }
+            },
+            "sources": [
+              {
+                "height": 300,
+                "url": "https://i.scdn.co/image/ab67616d00001e0240f9a1328ceb7252193cae93",
+                "width": 300
+              },
+              {
+                "height": 64,
+                "url": "https://i.scdn.co/image/ab67616d0000485140f9a1328ceb7252193cae93",
+                "width": 64
+              },
+              {
+                "height": 640,
+                "url": "https://i.scdn.co/image/ab67616d0000b27340f9a1328ceb7252193cae93",
+                "width": 640
+              }
+            ]
+          },
+          "discs": {
+            "items": [
+              {
+                "number": 1,
+                "tracks": {
+                  "totalCount": 13
+                }
+              }
+            ],
+            "totalCount": 1
+          },
+          "releases": {
+            "items": [],
+            "totalCount": 0
+          },
+          "moreAlbumsByArtist": {
+            "items": [
+              {
+                "discography": {
+                  "popularReleasesAlbums": {
+                    "items": [
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e022171565945b4a3c912d11673",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d000048512171565945b4a3c912d11673",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b2732171565945b4a3c912d11673",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2011
+                        },
+                        "id": "3iapX57CaPsHR75N7abv1O",
+                        "name": "Love, Pt. 1 & 2",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/3iapX57CaPsHR75N7abv1O?si=<redacted>"
+                        },
+                        "type": "ALBUM",
+                        "uri": "spotify:album:3iapX57CaPsHR75N7abv1O"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e0240f9a1328ceb7252193cae93",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d0000485140f9a1328ceb7252193cae93",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b27340f9a1328ceb7252193cae93",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2007
+                        },
+                        "id": "1SJtjjKkFn4x6cfRXfALB9",
+                        "name": "I-Empire",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/1SJtjjKkFn4x6cfRXfALB9?si=<redacted>"
+                        },
+                        "type": "ALBUM",
+                        "uri": "spotify:album:1SJtjjKkFn4x6cfRXfALB9"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e028803d5c289ccf6c092aa1a68",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d000048518803d5c289ccf6c092aa1a68",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b2738803d5c289ccf6c092aa1a68",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2006
+                        },
+                        "id": "6E3jsbFuGHYFoDx5zcMYV6",
+                        "name": "We Don't Need To Whisper",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/6E3jsbFuGHYFoDx5zcMYV6?si=<redacted>"
+                        },
+                        "type": "ALBUM",
+                        "uri": "spotify:album:6E3jsbFuGHYFoDx5zcMYV6"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e025608adea4db9f4af523f8658",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d000048515608adea4db9f4af523f8658",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b2735608adea4db9f4af523f8658",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2021
+                        },
+                        "id": "5Wue0xL8fMZn3PdsNWItfG",
+                        "name": "Timebomb",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/5Wue0xL8fMZn3PdsNWItfG?si=<redacted>"
+                        },
+                        "type": "ALBUM",
+                        "uri": "spotify:album:5Wue0xL8fMZn3PdsNWItfG"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e0263e4c5d13f95071cc47eb47f",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d0000485163e4c5d13f95071cc47eb47f",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b27363e4c5d13f95071cc47eb47f",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2014
+                        },
+                        "id": "2PPoHqgJW5LMSoXbMVpVYj",
+                        "name": "The Dream Walker",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/2PPoHqgJW5LMSoXbMVpVYj?si=<redacted>"
+                        },
+                        "type": "ALBUM",
+                        "uri": "spotify:album:2PPoHqgJW5LMSoXbMVpVYj"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e02d206c58383f2e361dc034210",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d00004851d206c58383f2e361dc034210",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b273d206c58383f2e361dc034210",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2021
+                        },
+                        "id": "1L2WMscEtaCxbbyFP8LbEu",
+                        "name": "Lifeforms",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/1L2WMscEtaCxbbyFP8LbEu?si=<redacted>"
+                        },
+                        "type": "ALBUM",
+                        "uri": "spotify:album:1L2WMscEtaCxbbyFP8LbEu"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e024a8eaa7c7ce6377636a28cd0",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d000048514a8eaa7c7ce6377636a28cd0",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b2734a8eaa7c7ce6377636a28cd0",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2016
+                        },
+                        "id": "6lsMIJkOyFP3oDVPXlVJ5W",
+                        "name": "Chasing Shadows",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/6lsMIJkOyFP3oDVPXlVJ5W?si=<redacted>"
+                        },
+                        "type": "EP",
+                        "uri": "spotify:album:6lsMIJkOyFP3oDVPXlVJ5W"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e0224bedd42ac9f2e5ee1e3de5a",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d0000485124bedd42ac9f2e5ee1e3de5a",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b27324bedd42ac9f2e5ee1e3de5a",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2020
+                        },
+                        "id": "0bOFeg0VbNsscC0Kq4Ca5r",
+                        "name": "Paper Thin (Headhunterz Remix)",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/0bOFeg0VbNsscC0Kq4Ca5r?si=<redacted>"
+                        },
+                        "type": "SINGLE",
+                        "uri": "spotify:album:0bOFeg0VbNsscC0Kq4Ca5r"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e021037b4eefdf12ba8107882e9",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d000048511037b4eefdf12ba8107882e9",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b2731037b4eefdf12ba8107882e9",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2020
+                        },
+                        "id": "1URt4b8uzVuqXU7R9H4EXA",
+                        "name": "Paper Thin",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/1URt4b8uzVuqXU7R9H4EXA?si=<redacted>"
+                        },
+                        "type": "SINGLE",
+                        "uri": "spotify:album:1URt4b8uzVuqXU7R9H4EXA"
+                      },
+                      {
+                        "coverArt": {
+                          "sources": [
+                            {
+                              "height": 300,
+                              "url": "https://i.scdn.co/image/ab67616d00001e02ee08105a641df8bcb2c1eb86",
+                              "width": 300
+                            },
+                            {
+                              "height": 64,
+                              "url": "https://i.scdn.co/image/ab67616d00004851ee08105a641df8bcb2c1eb86",
+                              "width": 64
+                            },
+                            {
+                              "height": 640,
+                              "url": "https://i.scdn.co/image/ab67616d0000b273ee08105a641df8bcb2c1eb86",
+                              "width": 640
+                            }
+                          ]
+                        },
+                        "date": {
+                          "year": 2017
+                        },
+                        "id": "2gYfh3tLK0eV3Ziu3mtY3J",
+                        "name": "We Don't Need To Whisper (Acoustic Version)",
+                        "playability": {
+                          "playable": true,
+                          "reason": "PLAYABLE"
+                        },
+                        "sharingInfo": {
+                          "shareId": "<redacted>",
+                          "shareUrl": "https://open.spotify.com/intl-it/album/2gYfh3tLK0eV3Ziu3mtY3J?si=<redacted>"
+                        },
+                        "type": "EP",
+                        "uri": "spotify:album:2gYfh3tLK0eV3Ziu3mtY3J"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "meV2": {
+          "ianaTimezoneId": "Europe/Rome"
+        }
+      }
+    }
+  }
+}
