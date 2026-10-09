@@ -49,10 +49,15 @@ Observed on live traffic. Operation names, hashes and DOM change with player rel
 - Also present: `itemV2.data.playcount`, and `itemV3.data.identityTrait.contributors.items[].uri`.
 - Sidebar library: `libraryV3` (hash `390c78e5…`) with `$.data.me.libraryV3.items[]` and `totalCount`; variables include `textFilter`, `limit`, `offset`.
 
-## 4. Like / unlike (partial)
+## 4. Like / unlike ✅ (row button path)
 
-- From the user's manual run (remove then re-add a liked track): `applyCurations` then `addToLibrary`, each followed by `libraryV3` refetches.
-- Probable: `applyCurations` = remove (via the "saved in" dialog), `addToLibrary` = add. To confirm by expanding those requests.
+Tested on an album row: like, then unlike through the same button.
+
+- **Add** (row button "Aggiungi a Brani che ti piacciono"): `addToLibrary`, hash `896ebcb47815681340860d121cb5d494e157e2a78d3950385cd54e0393c67148`, variables `libraryItemUris: array`, `interactionId: string`. Response has no useful fields.
+- **Remove** (same button, now "Aggiungi alla playlist", opens the "saved in" dialog → uncheck Liked Songs → "Fatto"): first `editablePlaylists` (opening the dialog), then `applyCurations`, hash `05b739a3a73091c213385233b9d3ed8a857c2ca29d2eebadb3d04ed12e288697`, variables `input: object` (inner shape still unknown).
+- Both are followed by a `libraryV3` refetch.
+- Other remove paths (context menu, Liked Songs page) not tested: they may use a different operation (e.g. a dedicated remove).
+- Like state in the DOM: the row button has `aria-checked="true"` / `"false"`.
 - Other library checks: `areEntitiesInLibrary` (hash `134337999…`, `uris: array`), `isCurated` (hash `e4ed1f91…`, `uris: array`).
 
 ## 5. DOM structure ✅
@@ -86,7 +91,7 @@ Header row: `div[role=row][aria-rowindex=1]` (itself a grid with the same column
 ## Open questions
 
 - `limit` values used by `getAlbum` and `fetchPlaylistContents`, and the maximum accepted limit.
-- Confirm add/remove operations and their variables (`applyCurations`, `addToLibrary`; is there a `removeFromLibrary`?).
+- Inner shape of `applyCurations.variables.input`, and which operations the other remove paths use (context menu, Liked Songs page).
 - Body shape of the `pathfinder/v1` request without `operationName`.
 - Is `artists.items[0]` always the primary artist? (`getTrack` exposes `firstArtist` / `otherArtists` separately, which can be used as a cross-check.)
 - Debug highlighting is noisy: `uri` also matches keys like `featuringV2`. Match whole keys instead of substrings.
