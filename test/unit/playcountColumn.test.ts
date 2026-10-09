@@ -98,6 +98,9 @@ describe('PlaycountColumn', () => {
     const cells = [...rows[0]!.querySelectorAll(':scope > [role="gridcell"]')];
     expect(cells.map((c) => c.getAttribute('aria-colindex'))).toEqual(['1', '2', '3', '4']);
     expect(cells[2]!.className).toBe('duration-cell');
+    // The copied class places the duration with grid-column: last; ours must stay in var1.
+    expect((cells[2] as HTMLElement).style.gridColumn).toBe('var1');
+    expect((headers[2] as HTMLElement).style.gridColumn).toBe('var1');
     expect(cells[2]!.firstElementChild!.className).toBe('duration-text');
   });
 

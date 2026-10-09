@@ -23,6 +23,11 @@ export const CSS_VARS = {
 const VAR1_COLUMN = '[var1] minmax(var(--var1-min-width), var(--var1-max-width, 2fr))';
 /** Same minimum width the player uses for the play count column on artist pages. */
 export const VAR1_MIN_WIDTH = '120px';
+/**
+ * Explicit placement for our cells: the classes we copy from the duration cell place it
+ * with `grid-column: last`, which would stack our cell on top of the duration.
+ */
+export const VAR1_GRID_COLUMN = 'var1';
 
 /**
  * Adds the `var1` column before `[last]` in the player's grid template.

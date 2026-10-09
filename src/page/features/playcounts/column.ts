@@ -1,6 +1,14 @@
 // Renders a real grid column in a track list ("strategy A"): the same var1 column the player
 // uses for play counts on artist pages. Every change is reversible by hide().
-import { CSS_VARS, SELECTORS, VAR1_MIN_WIDTH, cellsOf, trackIdOfRow, withVar1Column } from '../../adapters/spotifyDom';
+import {
+  CSS_VARS,
+  SELECTORS,
+  VAR1_GRID_COLUMN,
+  VAR1_MIN_WIDTH,
+  cellsOf,
+  trackIdOfRow,
+  withVar1Column,
+} from '../../adapters/spotifyDom';
 import { setAttr, setText } from '../../core/dom';
 
 /** data-* markers: our cells, and cells whose aria-colindex we shifted (original value kept). */
@@ -125,6 +133,7 @@ export class PlaycountColumn {
     cell.setAttribute('role', 'gridcell');
     cell.setAttribute(OWN_CELL, '');
     cell.className = durationCell.className;
+    cell.style.gridColumn = VAR1_GRID_COLUMN;
     const text = document.createElement('div');
     text.setAttribute(`${OWN_CELL}-text`, '');
     const durationText = [...durationCell.querySelectorAll('*')].find(
@@ -151,6 +160,7 @@ export class PlaycountColumn {
     const leaves = [...cell.querySelectorAll('*')].filter((el) => el.children.length === 0 && el.textContent?.trim());
     const text = leaves.at(-1) ?? cell;
     text.setAttribute(`${OWN_CELL}-text`, '');
+    cell.style.gridColumn = VAR1_GRID_COLUMN;
     cell.style.justifyContent = 'flex-end';
     for (const el of cell.querySelectorAll<HTMLElement>('div')) el.style.justifyContent = 'flex-end';
     return cell;
