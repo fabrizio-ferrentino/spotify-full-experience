@@ -12,6 +12,9 @@ const DENY_KEYS = new Set([
   'phonenumber',
   'postalcode',
   'zip',
+  'interactionid',
+  'shareid',
+  'revisionid',
 ]);
 
 /** Keys kept even inside user objects: they describe the schema, not the person. */
@@ -23,6 +26,8 @@ const STRING_RULES: ReadonlyArray<[RegExp, string]> = [
   [/\bsp_[a-z]+=[^;\s"]*/gi, '<cookie>'],
   [/spotify:user:[^:\s"'<>]+/gi, '<user-uri>'],
   [/\/user\/[^\s"/?#<]+/gi, `/user/${REDACTED}`],
+  // Share links carry a per-share tracking id tied to the sharing session.
+  [/([?&])si=[^&#\s"]*/g, `$1si=${REDACTED}`],
   [/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '<email>'],
 ];
 

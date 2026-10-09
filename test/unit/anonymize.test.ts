@@ -13,9 +13,20 @@ describe('anonymizeString', () => {
     expect(anonymizeString(FAKE_JWT)).toBe('<jwt>');
     expect(anonymizeString('a=1; sp_dc=xyz; b=2')).toBe('a=1; <cookie>; b=2');
     expect(anonymizeString('spotify:user:fakeuser123:collection')).toBe('<user-uri>:collection');
-    expect(anonymizeString('https://open.spotify.com/user/fakeuser?si=1')).toBe(`https://open.spotify.com/user/${REDACTED}?si=1`);
+    expect(anonymizeString('https://open.spotify.com/user/fakeuser?si=1')).toBe(`https://open.spotify.com/user/${REDACTED}?si=${REDACTED}`);
     expect(anonymizeString('write to someone@example.com')).toBe('write to <email>');
     expect(anonymizeString('A'.repeat(120))).toBe('<opaque>');
+    expect(anonymizeString('https://open.spotify.com/album/abc?si=Xy_z-123&nd=1')).toBe(
+      `https://open.spotify.com/album/abc?si=${REDACTED}&nd=1`,
+    );
+  });
+
+  it('drops per-interaction ids', () => {
+    expect(anonymize({ interactionId: 'eefe63d6-99c9-43b3-9fa7-3603c94f66d6' })).toEqual({ interactionId: REDACTED });
+    expect(anonymize({ sharingInfo: { shareId: 'abc' }, revisionId: 'xyz' })).toEqual({
+      sharingInfo: { shareId: REDACTED },
+      revisionId: REDACTED,
+    });
   });
 
   it('keeps catalog data', () => {
@@ -52,6 +63,7 @@ describe('anonymize', () => {
       link: 'https://open.spotify.com/user/abc',
       contact: 'x@y.com',
       token: FAKE_JWT,
+      share: 'https://open.spotify.com/track/x?si=abcdef',
     };
     expect(findSensitivePatterns(JSON.stringify(dirty)).length).toBeGreaterThan(0);
     expect(findSensitivePatterns(JSON.stringify(anonymize(dirty)))).toEqual([]);

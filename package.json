@@ -11,7 +11,8 @@
     "watch": "node scripts/build.mjs --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "fixture:sanitize": "node scripts/sanitize-fixture.mjs"
   },
   "engines": {
     "node": ">=20"

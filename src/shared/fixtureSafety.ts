@@ -7,6 +7,7 @@ export const SENSITIVE_PATTERNS: ReadonlyArray<{ name: string; pattern: RegExp }
   { name: 'sp_key cookie', pattern: /sp_key/i },
   { name: 'user URI', pattern: /spotify:user:/i },
   { name: 'user URL', pattern: /\/user\/(?!<redacted>)[^\s"/?#<]+/i },
+  { name: 'share tracking id', pattern: /[?&]si=(?!<redacted>)[^&#\s"]+/ },
   { name: 'email address', pattern: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/ },
   { name: 'JWT', pattern: /eyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{8,}/ },
 ];

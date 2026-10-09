@@ -37,6 +37,10 @@ On each page change the console shows a `──── page: … ────` se
 For each relevant request:
 
 - Copy the collapsed group content (operation, hash, variable keys, header names, highlighted paths) into `docs/phase0-findings.md`.
-- Open the **SFE** panel (bottom right), find the request and click **Export**. Move the downloaded file into `test/fixtures/`, **open it and review it**, then run `npm test` (the fixtures safety test must pass).
+- Open the **SFE** panel (bottom right), find the request and click **Export**.
+- Pass the downloaded file through the sanitizer, which applies the current anonymization rules:
+  `npm run fixture:sanitize -- --out test/fixtures/pathfinder [--max-items 3] [--redact <personal id>] <file>`.
+  Use `--max-items` for personal lists (Liked Songs) and `--redact` for IDs the generic rules cannot recognise (the per-account Liked Songs playlist ID).
+- **Open and review** the result, then run `npm test` (the fixtures safety test must pass).
 
 If the coverage line turns into a warning (`seen` much higher than `captured`), some requests bypass our wrappers: note on which page it happens.
