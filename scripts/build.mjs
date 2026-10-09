@@ -11,8 +11,8 @@ const watch = args.has('--watch');
 const dev = watch || args.has('--dev');
 
 const TARGETS = {
-  chrome: ['chrome120'],
-  firefox: ['firefox128'],
+  chrome: { esbuildTarget: ['chrome120'], injectPageScript: false },
+  firefox: { esbuildTarget: ['firefox128'], injectPageScript: true },
 };
 
 const ENTRY_POINTS = {
@@ -61,7 +61,9 @@ async function buildTarget(target) {
     outdir,
     bundle: true,
     format: 'iife',
-    target: TARGETS[target],
+    target: TARGETS[target].esbuildTarget,
+    // Chromium runs page.js as a MAIN-world content script; Firefox gets it via <script src>.
+    define: { __INJECT_PAGE_SCRIPT__: JSON.stringify(TARGETS[target].injectPageScript) },
     sourcemap: dev ? 'inline' : false,
     minify: false,
     legalComments: 'none',

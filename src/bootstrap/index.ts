@@ -1,5 +1,6 @@
 // Isolated content script, runs at document_start.
-// Injects page.js into the page context and serves settings over the bridge.
+// Serves settings to page.js over the bridge. On Chromium page.js is declared as a MAIN-world
+// content script in the manifest; on Firefox this script injects it with a <script src> tag.
 import { ext } from '../shared/ext';
 import {
   envelopeToPage,
@@ -8,6 +9,9 @@ import {
   type ContentToPageMessage,
 } from '../shared/protocol';
 import { DEFAULT_SETTINGS, parseSettings, SETTINGS_STORAGE_KEY, type Settings } from '../shared/settings';
+
+/** Set per build target by scripts/build.mjs. */
+declare const __INJECT_PAGE_SCRIPT__: boolean;
 
 function postToPage(msg: ContentToPageMessage): void {
   window.postMessage(envelopeToPage(msg), window.location.origin);
@@ -38,19 +42,21 @@ function injectPageScript(): void {
 function main(): void {
   const settingsReady = loadSettings();
 
-  // Listen before injecting, so the page script's first "hello" is never missed.
+  // The two scripts may start in either order, so the handshake goes both ways:
+  // answer the page's "hello", and also push the settings once they are loaded.
   window.addEventListener('message', (event) => {
     if (!isOwnWindowMessage(event)) return;
     const msg = parsePageToContent(event.data);
     if (msg?.type === 'hello') void settingsReady.then(sendSettings);
   });
+  void settingsReady.then(sendSettings);
 
   ext.storage.onChanged.addListener((changes, area) => {
     const change = changes[SETTINGS_STORAGE_KEY];
     if (area === 'local' && change) sendSettings(parseSettings(change.newValue));
   });
 
-  injectPageScript();
+  if (__INJECT_PAGE_SCRIPT__) injectPageScript();
 }
 
 try {

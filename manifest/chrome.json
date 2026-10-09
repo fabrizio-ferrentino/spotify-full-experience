@@ -1,3 +1,18 @@
 {
-  "minimum_chrome_version": "120"
+  "minimum_chrome_version": "120",
+  "content_scripts": [
+    {
+      "matches": ["https://open.spotify.com/*"],
+      "js": ["bootstrap.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    },
+    {
+      "matches": ["https://open.spotify.com/*"],
+      "js": ["page.js"],
+      "run_at": "document_start",
+      "all_frames": false,
+      "world": "MAIN"
+    }
+  ]
 }

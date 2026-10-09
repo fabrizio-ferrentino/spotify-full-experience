@@ -11,12 +11,6 @@
       "all_frames": false
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": ["page.js"],
-      "matches": ["https://open.spotify.com/*"]
-    }
-  ],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false
