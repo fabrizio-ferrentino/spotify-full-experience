@@ -27,7 +27,8 @@ export class LikedSongsCard {
     onOpen: () => void,
   ) {
     this.typography = borrowTypography(block);
-    this.root = el('section', 'margin-top: 32px');
+    // The Popular block's parent is a grid of cards: span the whole row.
+    this.root = el('section', 'margin-top: 32px; grid-column: 1 / -1');
     this.root.setAttribute(OWN, '');
     this.heading = el('h2', 'margin: 0 0 16px', this.typography.heading);
 
