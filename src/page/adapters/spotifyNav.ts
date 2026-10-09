@@ -9,3 +9,16 @@ export function navigateTo(path: string): void {
 export function trackPath(trackId: string): string {
   return `/track/${trackId}`;
 }
+
+export function albumPath(albumId: string): string {
+  return `/album/${albumId}`;
+}
+
+export function artistPath(artistId: string): string {
+  return `/artist/${artistId}`;
+}
+
+/** Public share link of a track (the same URL the player copies). */
+export function trackShareUrl(trackId: string): string {
+  return `https://open.spotify.com/track/${trackId}`;
+}

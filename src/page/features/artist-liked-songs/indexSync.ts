@@ -24,7 +24,7 @@ export async function buildIndex(fetchPage: FetchPage, now: number): Promise<Lik
     offset += result.itemCount;
     if (result.itemCount === 0 || offset >= total) break;
   }
-  return { v: 2, checkedAt: now, total, tracks };
+  return { v: 3, checkedAt: now, total, tracks };
 }
 
 export function isStale(index: LikedIndex, now: number): boolean {

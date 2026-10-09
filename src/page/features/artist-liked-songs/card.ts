@@ -33,7 +33,8 @@ export class LikedSongsCard {
 
     const button = el(
       'button',
-      'display: flex; align-items: center; gap: 16px; padding: 8px; margin-inline-start: -8px; border: 0; border-radius: 6px; background: transparent; color: inherit; text-align: start; cursor: pointer; font: inherit; max-width: 100%',
+      // Like the player's cards: generous padding, rounded corners, a soft highlight on hover.
+      'display: flex; align-items: center; gap: 16px; padding: 12px 24px 12px 12px; margin-inline-start: -12px; border: 0; border-radius: 8px; background: transparent; color: inherit; text-align: start; cursor: pointer; font: inherit; max-width: 100%; transition: background-color 0.2s',
     );
     button.type = 'button';
     hoverable(button);

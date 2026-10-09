@@ -13,6 +13,8 @@ export interface LikedTrack {
   n: string;
   /** All artist names, primary first. */
   ar: string[];
+  /** Artist IDs matching `ar` (null when unknown). */
+  ad: (string | null)[];
   /** Album name and ID. */
   al: string;
   ai: string | null;
@@ -25,7 +27,7 @@ export interface LikedTrack {
 }
 
 export interface LikedIndex {
-  v: 2;
+  v: 3;
   /** When the index was last checked against the server (epoch ms). */
   checkedAt: number;
   /** Total number of liked songs reported by the server. */
@@ -67,6 +69,7 @@ function parseTrack(value: unknown): LikedTrack | null {
     d: r['d'],
     n: text(r['n']),
     ar: Array.isArray(r['ar']) ? r['ar'].slice(0, MAX_ARTISTS).map(text) : [],
+    ad: Array.isArray(r['ad']) ? r['ad'].slice(0, MAX_ARTISTS).map((v) => optionalId(v) ?? null) : [],
     al: text(r['al']),
     ai: album,
     c: cover.startsWith('https://') ? cover : '',
@@ -79,7 +82,7 @@ function parseTrack(value: unknown): LikedTrack | null {
 export function parseLikedIndex(value: unknown): LikedIndex | null {
   if (typeof value !== 'object' || value === null) return null;
   const r = value as Record<string, unknown>;
-  if (r['v'] !== 2 || !Array.isArray(r['tracks']) || r['tracks'].length > MAX_INDEX_TRACKS) return null;
+  if (r['v'] !== 3 || !Array.isArray(r['tracks']) || r['tracks'].length > MAX_INDEX_TRACKS) return null;
   if (typeof r['checkedAt'] !== 'number' || !Number.isFinite(r['checkedAt'])) return null;
   if (typeof r['total'] !== 'number' || !Number.isInteger(r['total']) || r['total'] < 0) return null;
   const tracks: LikedTrack[] = [];
@@ -88,5 +91,5 @@ export function parseLikedIndex(value: unknown): LikedIndex | null {
     if (!track) return null;
     tracks.push(track);
   }
-  return { v: 2, checkedAt: r['checkedAt'], total: r['total'], tracks };
+  return { v: 3, checkedAt: r['checkedAt'], total: r['total'], tracks };
 }

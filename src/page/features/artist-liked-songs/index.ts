@@ -222,6 +222,7 @@ export class ArtistLikedSongsFeature {
 
   private viewModel(artistId: string, name: string): ViewModel {
     return {
+      artistId,
       artistName: name,
       imageUrl: this.artists.get(artistId)?.imageUrl ?? null,
       tracks: this.index ? tracksByArtist(this.index, artistId) : [],

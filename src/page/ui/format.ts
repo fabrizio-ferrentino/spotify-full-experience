@@ -142,20 +142,49 @@ export function relativeTime(timestamp: number, now: number, lang = pageLanguage
   return format.format(0, 'minute');
 }
 
-type ColumnLabels = { title: string; album: string; added: string; back: string; explicit: string };
-
-const COLUMN_LABELS: Record<string, ColumnLabels> = {
-  it: { title: 'Titolo', album: 'Album', added: 'Aggiunto il giorno', back: 'Indietro', explicit: 'Esplicito' },
-  en: { title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit' },
-  es: { title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito' },
-  fr: { title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite' },
-  de: { title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit' },
-  pt: { title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito' },
+type ViewLabels = {
+  title: string;
+  album: string;
+  added: string;
+  back: string;
+  explicit: string;
+  more: (track: string) => string;
+  goToArtist: string;
+  goToAlbum: string;
+  goToSong: string;
+  copyLink: string;
 };
 
-export function columnLabels(lang = pageLanguage()): ColumnLabels {
+const VIEW_LABELS: Record<string, ViewLabels> = {
+  it: {
+    title: 'Titolo', album: 'Album', added: 'Aggiunto il giorno', back: 'Indietro', explicit: 'Esplicito',
+    more: (t) => `Altre opzioni per ${t}`, goToArtist: "Vai all'artista", goToAlbum: "Vai all'album", goToSong: 'Vai al brano', copyLink: 'Copia link del brano',
+  },
+  en: {
+    title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit',
+    more: (t) => `More options for ${t}`, goToArtist: 'Go to artist', goToAlbum: 'Go to album', goToSong: 'Go to song', copyLink: 'Copy song link',
+  },
+  es: {
+    title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito',
+    more: (t) => `Más opciones para ${t}`, goToArtist: 'Ir al artista', goToAlbum: 'Ir al álbum', goToSong: 'Ir a la canción', copyLink: 'Copiar enlace de la canción',
+  },
+  fr: {
+    title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite',
+    more: (t) => `Plus d’options pour ${t}`, goToArtist: 'Accéder à l’artiste', goToAlbum: 'Accéder à l’album', goToSong: 'Accéder au titre', copyLink: 'Copier le lien du titre',
+  },
+  de: {
+    title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit',
+    more: (t) => `Weitere Optionen für ${t}`, goToArtist: 'Zum Künstler', goToAlbum: 'Zum Album', goToSong: 'Zum Song', copyLink: 'Songlink kopieren',
+  },
+  pt: {
+    title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito',
+    more: (t) => `Mais opções para ${t}`, goToArtist: 'Ir para o artista', goToAlbum: 'Ir para o álbum', goToSong: 'Ir para a música', copyLink: 'Copiar link da música',
+  },
+};
+
+export function viewLabels(lang = pageLanguage()): ViewLabels {
   const base = lang.toLowerCase().split('-')[0] ?? 'en';
-  return COLUMN_LABELS[base] ?? COLUMN_LABELS['en']!;
+  return VIEW_LABELS[base] ?? VIEW_LABELS['en']!;
 }
 
 const MONTH_MS = 30 * 24 * 3600_000;
