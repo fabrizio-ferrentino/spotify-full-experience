@@ -72,3 +72,57 @@ export function formatCount(value: number, lang = pageLanguage()): string {
   }
   return formatter.format(value);
 }
+
+type CountMessages = { one: (n: string) => string; other: (n: string) => string; by: (name: string) => string };
+
+/**
+ * Artist card texts. Italian and English follow the desktop app; the others are reasonable
+ * translations. Languages without an entry fall back to English.
+ */
+const LIKED_MESSAGES: Record<string, CountMessages> = {
+  it: { one: () => 'Hai messo Mi piace a 1 brano', other: (n) => `Hai messo Mi piace a ${n} brani`, by: (a) => `Di ${a}` },
+  en: { one: () => "You've liked 1 song", other: (n) => `You've liked ${n} songs`, by: (a) => `By ${a}` },
+  es: { one: () => 'Te gusta 1 canción', other: (n) => `Te gustan ${n} canciones`, by: (a) => `De ${a}` },
+  fr: { one: () => 'Vous aimez 1 titre', other: (n) => `Vous aimez ${n} titres`, by: (a) => `De ${a}` },
+  de: { one: () => 'Dir gefällt 1 Song', other: (n) => `Dir gefallen ${n} Songs`, by: (a) => `Von ${a}` },
+  pt: { one: () => 'Você curtiu 1 música', other: (n) => `Você curtiu ${n} músicas`, by: (a) => `De ${a}` },
+};
+
+function likedMessages(lang: string): CountMessages {
+  const base = lang.toLowerCase().split('-')[0] ?? 'en';
+  return LIKED_MESSAGES[base] ?? LIKED_MESSAGES['en']!;
+}
+
+/** "You've liked 12 songs", with the number formatted for the page locale. */
+export function likedCountText(count: number, lang = pageLanguage()): string {
+  const messages = likedMessages(lang);
+  return count === 1 ? messages.one('1') : messages.other(formatCount(count, lang));
+}
+
+export function byArtistText(name: string, lang = pageLanguage()): string {
+  return likedMessages(lang).by(name);
+}
+
+const RELATIVE_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['year', 365 * 24 * 3600_000],
+  ['month', 30 * 24 * 3600_000],
+  ['week', 7 * 24 * 3600_000],
+  ['day', 24 * 3600_000],
+  ['hour', 3600_000],
+  ['minute', 60_000],
+];
+
+/** "3 days ago" in the page locale. */
+export function relativeTime(timestamp: number, now: number, lang = pageLanguage()): string {
+  let format: Intl.RelativeTimeFormat;
+  try {
+    format = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+  } catch {
+    format = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  }
+  const elapsed = now - timestamp;
+  for (const [unit, size] of RELATIVE_STEPS) {
+    if (Math.abs(elapsed) >= size) return format.format(-Math.round(elapsed / size), unit);
+  }
+  return format.format(0, 'minute');
+}

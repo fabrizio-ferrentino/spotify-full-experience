@@ -13,7 +13,25 @@ export const SELECTORS = {
   trackLink: 'a[data-testid="internal-track-link"]',
   /** Column resize handle, a direct child of the resizable header cell. */
   resizeHandle: '[role="separator"]',
+  /** Artist and album page header. */
+  entityHeader: '[data-testid="entity-header"]',
 } as const;
+
+/**
+ * The artist "Popular" block: `div > [h2, div > track-list, button]` (docs/phase2-findings.md).
+ * Returns null when the structure is not the one observed.
+ */
+export function popularBlockOf(root: ParentNode): HTMLElement | null {
+  const list = root.querySelector(SELECTORS.trackList);
+  const block = list?.parentElement?.parentElement ?? null;
+  if (!block || ![...block.children].some((child) => child.tagName === 'H2')) return null;
+  return block;
+}
+
+/** Artist name shown in the page header (fallback when the response was not captured). */
+export function headerTitleOf(root: ParentNode): string | null {
+  return root.querySelector(`${SELECTORS.entityHeader} h1`)?.textContent?.trim() || null;
+}
 
 const TRACK_HREF = /\/track\/([A-Za-z0-9]{22})(?:[/?#]|$)/;
 

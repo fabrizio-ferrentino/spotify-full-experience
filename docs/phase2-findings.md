@@ -1,7 +1,7 @@
 # Phase 2 reconnaissance
 
 Live checks on 2026-10-10, web player `1.3.5.316.gd873ee9db135` (Chrome, free account).
-4 active queries in total, through the extension's rate-limited client (`sfeDebug`).
+5 active queries in total, through the extension's rate-limited client (`sfeDebug`).
 
 ## Liked songs source: `fetchLibraryTracks` ✅
 
@@ -19,6 +19,10 @@ The Liked Songs *playlist* operations (`fetchPlaylist` / `fetchPlaylistContents`
 ## Primary artist ✅
 
 For "Paper Thin" (`spotify:track:33LQdszht4rDfgmOSth8W0`), `artists.items` is ILLENIUM, Tom DeLonge, Angels & Airwaves, and `getTrack` gives `firstArtist` = ILLENIUM, `otherArtists` = the other two. **The first item of `artists.items` is the primary artist.**
+
+## User identity for the per-user index key
+
+`profileAttributes` (called by the player at every start, variables `{}`) returns `$.me.profile.uri` (`spotify:user:<id>`), `username`, `accountId`, `name`, `avatar`. The index key is a SHA-256 of the profile URI, never the URI itself.
 
 ## Hashes
 
