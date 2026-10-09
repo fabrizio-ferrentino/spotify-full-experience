@@ -141,3 +141,38 @@ export function relativeTime(timestamp: number, now: number, lang = pageLanguage
   }
   return format.format(0, 'minute');
 }
+
+type ColumnLabels = { title: string; album: string; added: string; back: string; explicit: string };
+
+const COLUMN_LABELS: Record<string, ColumnLabels> = {
+  it: { title: 'Titolo', album: 'Album', added: 'Aggiunto il giorno', back: 'Indietro', explicit: 'Esplicito' },
+  en: { title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit' },
+  es: { title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito' },
+  fr: { title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite' },
+  de: { title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit' },
+  pt: { title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito' },
+};
+
+export function columnLabels(lang = pageLanguage()): ColumnLabels {
+  const base = lang.toLowerCase().split('-')[0] ?? 'en';
+  return COLUMN_LABELS[base] ?? COLUMN_LABELS['en']!;
+}
+
+const MONTH_MS = 30 * 24 * 3600_000;
+
+/** Like the desktop "Date added" column: relative for the last month, then a short date. */
+export function addedDate(timestamp: number, now: number, lang = pageLanguage()): string {
+  if (now - timestamp < MONTH_MS) return relativeTime(timestamp, now, lang);
+  try {
+    return new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', year: 'numeric' }).format(timestamp);
+  } catch {
+    return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(timestamp);
+  }
+}
+
+/** 394653 → "6:34". */
+export function formatDuration(ms: number): string {
+  if (!(ms > 0)) return '';
+  const seconds = Math.round(ms / 1000);
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}

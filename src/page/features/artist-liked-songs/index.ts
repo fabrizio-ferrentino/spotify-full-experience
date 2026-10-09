@@ -19,6 +19,7 @@ import type { CapturedRequest } from '../../core/interceptor';
 import type { PathfinderClient } from '../../core/pathfinderClient';
 import { debugLog, debugWarn } from '../../debug/log';
 import { LikedSongsCard } from './card';
+import { LikedSongsView, type ViewModel } from './view';
 import { buildIndex, isStale, refreshIndex, removeTracks, tracksByArtist, type FetchPage } from './indexSync';
 
 export interface LikedSongsDeps {
@@ -52,6 +53,7 @@ export class ArtistLikedSongsFeature {
   private profileWaiters: (() => void)[] = [];
   private readonly artists = new Map<string, ArtistInfo>();
   private card: LikedSongsCard | null = null;
+  private view: LikedSongsView | null = null;
   private mainObserver: MutationObserver | null = null;
   private cancelWait: (() => void) | null = null;
   private readonly scheduler = frameScheduler(() => this.render());
@@ -212,8 +214,33 @@ export class ArtistLikedSongsFeature {
     this.mainObserver?.disconnect();
     this.mainObserver = null;
     this.scheduler.cancel();
+    this.view?.close();
+    this.view = null;
     this.card?.remove();
     this.card = null;
+  }
+
+  private viewModel(artistId: string, name: string): ViewModel {
+    return { artistName: name, tracks: this.index ? tracksByArtist(this.index, artistId) : [], now: this.now() };
+  }
+
+  private artistName(artistId: string, main: HTMLElement | null): string | null {
+    return this.artists.get(artistId)?.name ?? (main ? headerTitleOf(main) : null);
+  }
+
+  /** Shows "Brani che ti piacciono di <artist>" in place of the artist page content. */
+  private openView(): void {
+    const artistId = this.artistId;
+    const card = this.card;
+    const main = document.querySelector<HTMLElement>(SELECTORS.main);
+    const page = main?.querySelector<HTMLElement>(SELECTORS.artistPage);
+    const name = artistId ? this.artistName(artistId, main ?? null) : null;
+    if (!artistId || !card || !page || !name) return;
+    // Same side margins as the Popular block.
+    const inset = Math.max(0, Math.round(card.block.getBoundingClientRect().left - page.getBoundingClientRect().left));
+    this.view?.close();
+    this.view = new LikedSongsView(page, card.typography, () => (this.view = null), inset);
+    this.view.open(this.viewModel(artistId, name));
   }
 
   private render(): void {
@@ -221,6 +248,7 @@ export class ArtistLikedSongsFeature {
     if (!this.enabled || !artistId || !this.index) return;
     const tracks = tracksByArtist(this.index, artistId);
     if (tracks.length === 0) {
+      this.view?.close();
       this.card?.remove();
       this.card = null;
       return;
@@ -230,12 +258,12 @@ export class ArtistLikedSongsFeature {
     if (!block) return;
     if (!this.card || !this.card.mounted) {
       this.card?.remove();
-      this.card = new LikedSongsCard(block);
+      this.card = new LikedSongsCard(block, () => this.openView());
     }
-    const artist = this.artists.get(artistId);
-    const name = artist?.name ?? (main ? headerTitleOf(main) : null);
+    const name = this.artistName(artistId, main);
     if (!name) return;
-    this.card.update({ artistName: name, imageUrl: artist?.imageUrl ?? null, tracks, now: this.now() });
+    this.card.update({ artistName: name, imageUrl: this.artists.get(artistId)?.imageUrl ?? null, count: tracks.length });
     this.card.mount();
+    if (this.view?.isOpen) this.view.update(this.viewModel(artistId, name));
   }
 }

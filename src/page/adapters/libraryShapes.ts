@@ -16,6 +16,7 @@ const LIKED_SONGS_CONTEXT = 'spotify:collection:tracks';
 
 const TRACK_URI = /^spotify:track:([A-Za-z0-9]{22})$/;
 const ARTIST_URI = /^spotify:artist:([A-Za-z0-9]{22})$/;
+const ALBUM_URI = /^spotify:album:([A-Za-z0-9]{22})$/;
 
 type Json = Record<string, unknown>;
 
@@ -31,6 +32,24 @@ function at(value: unknown, ...path: string[]): unknown {
 
 function idOf(uri: unknown, pattern: RegExp): string | null {
   return typeof uri === 'string' ? (pattern.exec(uri)?.[1] ?? null) : null;
+}
+
+/** Smallest https image of at least `min` px from a `sources` array, or null. */
+function smallestImage(sources: unknown, min: number): string | null {
+  if (!Array.isArray(sources)) return null;
+  let best: string | null = null;
+  let bestSize = Infinity;
+  for (const source of sources) {
+    const url = at(source, 'url');
+    const width = Number(at(source, 'width'));
+    if (typeof url !== 'string' || !url.startsWith('https://')) continue;
+    const size = Number.isFinite(width) && width >= min ? width : 10_000;
+    if (size < bestSize) {
+      bestSize = size;
+      best = url;
+    }
+  }
+  return best;
 }
 
 export interface LibraryPage {
@@ -53,10 +72,23 @@ export function parseLibraryPage(data: unknown): LibraryPage | null {
     if (!id || !Number.isFinite(added)) continue;
     const data = at(item, 'track', 'data');
     const artists = at(data, 'artists', 'items');
-    const primary = Array.isArray(artists) ? idOf(at(artists[0], 'uri'), ARTIST_URI) : null;
+    const artistList = Array.isArray(artists) ? artists : [];
     const name = at(data, 'name');
-    const album = at(data, 'albumOfTrack', 'name');
-    tracks.push({ t: id, a: primary, d: added, n: typeof name === 'string' ? name : '', al: typeof album === 'string' ? album : '' });
+    const album = at(data, 'albumOfTrack');
+    const albumName = at(album, 'name');
+    const duration = Number(at(data, 'duration', 'totalMilliseconds'));
+    tracks.push({
+      t: id,
+      a: idOf(at(artistList[0], 'uri'), ARTIST_URI),
+      d: added,
+      n: typeof name === 'string' ? name : '',
+      ar: artistList.map((artist) => at(artist, 'profile', 'name')).filter((n): n is string => typeof n === 'string'),
+      al: typeof albumName === 'string' ? albumName : '',
+      ai: idOf(at(album, 'uri'), ALBUM_URI),
+      c: smallestImage(at(album, 'coverArt', 'sources'), 40) ?? '',
+      ms: Number.isFinite(duration) && duration >= 0 ? duration : 0,
+      e: at(data, 'contentRating', 'label') === 'EXPLICIT',
+    });
   }
   return { total, itemCount: items.length, tracks };
 }
@@ -80,21 +112,7 @@ export function parseArtistOverview(json: unknown): ArtistInfo | null {
   const id = idOf(at(artist, 'uri'), ARTIST_URI);
   const name = at(artist, 'profile', 'name');
   if (!id || typeof name !== 'string') return null;
-  const sources = at(artist, 'visuals', 'avatarImage', 'sources');
-  let imageUrl: string | null = null;
-  let best = Infinity;
-  if (Array.isArray(sources)) {
-    for (const source of sources) {
-      const url = at(source, 'url');
-      const width = Number(at(source, 'width'));
-      if (typeof url !== 'string' || !url.startsWith('https://')) continue;
-      const size = Number.isFinite(width) && width >= 64 ? width : 10_000;
-      if (size < best) {
-        best = size;
-        imageUrl = url;
-      }
-    }
-  }
+  const imageUrl = smallestImage(at(artist, 'visuals', 'avatarImage', 'sources'), 64);
   return { id, name, imageUrl };
 }
 

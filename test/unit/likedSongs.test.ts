@@ -18,7 +18,13 @@ function libraryItem(n: number, artists: number[], addedAt: number) {
       data: {
         __typename: 'Track',
         name: `Song ${n}`,
-        albumOfTrack: { name: `Album ${n}`, uri: 'spotify:album:x' },
+        albumOfTrack: {
+          name: `Album ${n}`,
+          uri: `spotify:album:${id('L', n)}`,
+          coverArt: { sources: [{ url: 'https://i/300', width: 300 }, { url: 'https://i/64', width: 64 }] },
+        },
+        duration: { totalMilliseconds: 394653 },
+        contentRating: { label: n % 2 ? 'EXPLICIT' : 'NONE' },
         artists: { items: artists.map((a) => ({ uri: `spotify:artist:${ARTIST(a)}`, profile: { name: `Artist ${a}` } })) },
       },
     },
@@ -41,7 +47,9 @@ describe('library shapes', () => {
     const page = parseLibraryPage(libraryData([libraryItem(1, [2, 5], 1000), { track: { _uri: 'spotify:episode:x' } }], 40))!;
     expect(page.total).toBe(40);
     expect(page.itemCount).toBe(2);
-    expect(page.tracks).toEqual([{ t: TRACK(1), a: ARTIST(2), d: 1000, n: 'Song 1', al: 'Album 1' }]);
+    expect(page.tracks).toEqual([
+      { t: TRACK(1), a: ARTIST(2), d: 1000, n: 'Song 1', ar: ['Artist 2', 'Artist 5'], al: 'Album 1', ai: id('L', 1), c: 'https://i/64', ms: 394653, e: true },
+    ]);
     expect(parseLibraryPage({ me: {} })).toBeNull();
   });
 
@@ -77,7 +85,7 @@ describe('index sync', () => {
     const { fetchPage } = fakeLibrary(1220);
     const index = await buildIndex(fetchPage, 5);
     expect(fetchPage.mock.calls).toEqual([[0, 1000], [1000, 1000]]);
-    expect(index).toMatchObject({ v: 1, checkedAt: 5, total: 1220 });
+    expect(index).toMatchObject({ v: 2, checkedAt: 5, total: 1220 });
     expect(index.tracks).toHaveLength(1220);
     expect(index.tracks[0]!.t).toBe(TRACK(0));
   });
@@ -119,26 +127,28 @@ describe('index sync', () => {
   });
 
   it('considers an index stale after 10 minutes', () => {
-    const index: LikedIndex = { v: 1, checkedAt: 1000, total: 0, tracks: [] };
+    const index: LikedIndex = { v: 2, checkedAt: 1000, total: 0, tracks: [] };
     expect(isStale(index, 1000 + REFRESH_AFTER_MS)).toBe(false);
     expect(isStale(index, 1001 + REFRESH_AFTER_MS)).toBe(true);
   });
 });
 
 describe('stored index validation', () => {
-  const track: LikedTrack = { t: TRACK(1), a: ARTIST(1), d: 1, n: 'n', al: 'al' };
+  const track: LikedTrack = { t: TRACK(1), a: ARTIST(1), d: 1, n: 'n', ar: ['x'], al: 'al', ai: null, c: '', ms: 0, e: false };
 
   it('accepts a well-formed index and rejects anything else as a whole', () => {
-    expect(parseLikedIndex({ v: 1, checkedAt: 1, total: 1, tracks: [track] })).toEqual({ v: 1, checkedAt: 1, total: 1, tracks: [track] });
-    expect(parseLikedIndex({ v: 1, checkedAt: 1, total: 1, tracks: [{ ...track, a: null }] })?.tracks[0]?.a).toBeNull();
-    for (const bad of [null, {}, { v: 2, checkedAt: 1, total: 1, tracks: [] }, { v: 1, checkedAt: 1, total: -1, tracks: [] }, { v: 1, checkedAt: 1, total: 1, tracks: [{ ...track, t: 'short' }] }]) {
+    expect(parseLikedIndex({ v: 2, checkedAt: 1, total: 1, tracks: [track] })).toEqual({ v: 2, checkedAt: 1, total: 1, tracks: [track] });
+    expect(parseLikedIndex({ v: 2, checkedAt: 1, total: 1, tracks: [{ ...track, a: null }] })?.tracks[0]?.a).toBeNull();
+    // Insecure cover URLs are dropped, not trusted.
+    expect(parseLikedIndex({ v: 2, checkedAt: 1, total: 1, tracks: [{ ...track, c: 'http://x' }] })?.tracks[0]?.c).toBe('');
+    for (const bad of [null, {}, { v: 1, checkedAt: 1, total: 1, tracks: [] }, { v: 2, checkedAt: 1, total: -1, tracks: [] }, { v: 2, checkedAt: 1, total: 1, tracks: [{ ...track, t: 'short' }] }]) {
       expect(parseLikedIndex(bad)).toBeNull();
     }
   });
 
   it('travels on the bridge only with a hashed key', () => {
     const key = 'a'.repeat(64);
-    const index = { v: 1, checkedAt: 1, total: 1, tracks: [track] };
+    const index = { v: 2, checkedAt: 1, total: 1, tracks: [track] };
     expect(parsePageToContent({ ns: BRIDGE_NAMESPACE, dir: 'to-content', type: 'load-liked-index', key })).toEqual({ type: 'load-liked-index', key });
     expect(parsePageToContent({ ns: BRIDGE_NAMESPACE, dir: 'to-content', type: 'save-liked-index', key, index })).toEqual({ type: 'save-liked-index', key, index });
     expect(parsePageToContent({ ns: BRIDGE_NAMESPACE, dir: 'to-content', type: 'save-liked-index', key, index: { bad: true } })).toBeNull();
