@@ -1,14 +1,17 @@
 // Measures how late page.js started compared to the player's first requests.
 // Uses Resource Timing entries: only counts are reported, never URLs (they can carry variables).
+// Entries are created when a request completes, so requests still in flight are not counted;
+// the coverage report covers that gap.
 import { matchEndpoint } from '../adapters/endpoints';
-import { debugLog } from './log';
+import { consoleWasNativeAtStartup, debugLog, debugWarn, isNative } from './log';
 
 export interface StartupSnapshot {
   /** Milliseconds between navigation start and page.js execution. */
   startedAtMs: number;
   readyState: DocumentReadyState;
-  /** Endpoint requests already issued before page.js could intercept anything. */
+  /** Endpoint requests already completed before page.js could intercept anything. */
   missed: { pathfinder: number; spclient: number };
+  fetchWasNative: boolean;
 }
 
 export function takeStartupSnapshot(): StartupSnapshot {
@@ -21,12 +24,21 @@ export function takeStartupSnapshot(): StartupSnapshot {
   } catch {
     // Resource Timing unavailable: report zeros.
   }
-  return { startedAtMs: Math.round(performance.now()), readyState: document.readyState, missed };
+  return {
+    startedAtMs: Math.round(performance.now()),
+    readyState: document.readyState,
+    missed,
+    fetchWasNative: isNative(window.fetch),
+  };
 }
 
 export function logStartupReport(snapshot: StartupSnapshot): void {
   debugLog(
     `page script active ${snapshot.startedAtMs} ms after navigation start (readyState: ${snapshot.readyState}).`,
-    `Requests issued before injection: pathfinder=${snapshot.missed.pathfinder}, spclient=${snapshot.missed.spclient}.`,
+    `Requests completed before injection: pathfinder=${snapshot.missed.pathfinder}, spclient=${snapshot.missed.spclient}.`,
   );
+  if (!snapshot.fetchWasNative) debugWarn('window.fetch was already wrapped by someone else when page.js started.');
+  if (!consoleWasNativeAtStartup) {
+    debugWarn('console was already wrapped when page.js started: debug lines may reach the player telemetry.');
+  }
 }
