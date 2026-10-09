@@ -10,9 +10,13 @@ A browser extension (Chromium and Firefox, Manifest V3) that adds to the Spotify
 - It never blocks, hides or alters ads, and never unlocks Premium features.
 - It never creates its own tokens, has no backend and sends no telemetry. It only talks to the Spotify domains the web player already uses.
 
+## Features
+
+- **Play counts on album pages.** A "Plays" column after the title, as in the desktop app, with numbers formatted for the page language. The data comes from the responses the web player already receives: no extra requests. The edge between title and plays can be dragged (double click to reset). Can be turned off in the extension options.
+
 ## Status
 
-Early development (Phase 0: reconnaissance). There are no user-facing features yet.
+Phase 1 (play counts) is complete. Next: liked songs per artist on artist pages.
 
 ## Build
 
