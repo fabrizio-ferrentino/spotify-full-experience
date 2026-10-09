@@ -7,6 +7,7 @@ import { getSettings, onSettingsChange } from './core/settings';
 import { logCoverage, startCoverage, stopCoverage } from './debug/coverage';
 import { cancelDomProbe, scheduleDomProbe } from './debug/domProbe';
 import { debugLog, isDebugEnabled } from './debug/log';
+import { mountPanel, unmountPanel } from './debug/panel';
 import { clearRecords, flushBuffered, record } from './debug/recorder';
 import { logPageChange } from './debug/requestLog';
 import { logStartupReport, takeStartupSnapshot } from './debug/startupReport';
@@ -15,6 +16,7 @@ const LOADED = Symbol.for('spotify-full-experience.loaded');
 
 function enterDebug(): void {
   startCoverage();
+  mountPanel();
   logPageChange(currentPage());
   scheduleDomProbe(currentPage().kind);
 }
@@ -22,6 +24,7 @@ function enterDebug(): void {
 function leaveDebug(): void {
   stopCoverage();
   cancelDomProbe();
+  unmountPanel();
   clearRecords();
 }
 
