@@ -19,6 +19,20 @@ Run on **Chrome**, **Brave** and **Firefox**. Brave is not officially supported 
 - [ ] Playback, hover play button, context menu, keyboard navigation and likes work as without the extension.
 - [ ] No new errors in the console compared with the extension disabled.
 
+## Play counts (Phase 1)
+
+Run with the "Play counts on album pages" option enabled.
+
+- [ ] Album page: a "Riproduzioni" / "Plays" column between title and duration, numbers in the page locale (`2.441.116` in Italian), aligned with the duration column.
+- [ ] Numbers match the desktop app on 3 albums.
+- [ ] Album with more than 50 tracks: scroll to the end, every row has a number (later pages come from `queryAlbumTracks`).
+- [ ] SPA navigation album → album → artist → playlist → album: column only on albums, no duplicates, no number on the wrong row.
+- [ ] Artist page: no extra column (the player already shows play counts in "Popular").
+- [ ] Hover play button, double-click play, context menu, click and shift-click selection, arrow keys work as without the extension.
+- [ ] Narrow the window (or open the "Now playing" panel): below ~560 px of list width the column disappears.
+- [ ] Option disabled (reload the tab): album pages identical to the original.
+- [ ] No new errors in the console.
+
 ## Phase 0 reconnaissance
 
 Navigate **inside the app** (click links) rather than reloading a URL: requests issued before the page script starts cannot be captured.

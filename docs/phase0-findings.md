@@ -11,7 +11,8 @@ Observed on live traffic. Operation names, hashes and DOM change with player rel
 
 | Browser | Page script start (ms) | readyState | Completed before injection | Coverage gaps |
 |---|---|---|---|---|
-| Chrome | 924–1094 | interactive | 0 / 0 | none (pathfinder 32/32, spclient 76/76) |
+| Chrome (`<script src>`) | 924–1094 | interactive | 0 / 0 | none (pathfinder 32/32, spclient 76/76) |
+| Chrome (`world: "MAIN"`) | 173 | loading | 0 / 0 | not measured; console and fetch native at start |
 | Brave | 348 | loading | 0 / 0 | not measured |
 | Firefox | 608 | interactive | 0 / 0 | not measured |
 
@@ -27,7 +28,8 @@ Observed on live traffic. Operation names, hashes and DOM change with player rel
 - Play count: `$.data.albumUnion.tracksV2.items[].track.playcount` (string)
 - Track URI: `$.data.albumUnion.tracksV2.items[].track.uri`; total: `$.data.albumUnion.tracksV2.totalCount`
 - Each track also has `saved` (boolean: in the user's Liked Songs), `trackNumber`, `discNumber`.
-- **Phase 1 can be passive** for albums with up to 50 tracks (one page).
+- **Phase 1 is fully passive**: albums with more than 50 tracks load the next pages with `queryAlbumTracks` (observed on a 100-track album while scrolling), which also carries `playcount`.
+- The player refetches `getAlbum` on every visit, including back/forward navigation: no persistent cache is needed.
 - Fixture: `getAlbum.i-empire.json`.
 
 ## 2. Artist: "Popular" section ✅
