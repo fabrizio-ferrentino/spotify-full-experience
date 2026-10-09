@@ -1,5 +1,6 @@
 // Entry point of the code running in the page's JS context (injected by bootstrap).
-// Phase 0: passive capture of internal requests, reported only in debug mode.
+// Passive capture of the player's internal requests, feeding the features and debug mode.
+import { DEFAULT_SETTINGS } from '../shared/settings';
 import { startBridge } from './core/bridge';
 import { installFetchInterceptor, installXhrInterceptor, type InterceptorHooks } from './core/interceptor';
 import { currentPage, onPageChange, startRouter } from './core/router';
@@ -11,6 +12,7 @@ import { mountPanel, unmountPanel } from './debug/panel';
 import { clearRecords, flushBuffered, record } from './debug/recorder';
 import { logPageChange } from './debug/requestLog';
 import { logStartupReport, takeStartupSnapshot } from './debug/startupReport';
+import { PlaycountsFeature } from './features/playcounts';
 
 const LOADED = Symbol.for('spotify-full-experience.loaded');
 
@@ -36,17 +38,32 @@ function main(): void {
   // Taken immediately: it must describe the moment the script started, not when settings arrive.
   const startup = takeStartupSnapshot();
 
-  // Until the settings arrive we capture into a small buffer, so early requests are not lost.
-  // Once they arrive with debug off, the wrappers become pure pass-through.
+  // Features start with their defaults; the settings arrive a few milliseconds later.
+  const playcounts = new PlaycountsFeature();
+  if (DEFAULT_SETTINGS.playcounts) playcounts.enable();
+
+  // Until the settings arrive, debug captures go into a small buffer so early requests are not lost.
+  // With debug off, only what an enabled feature needs is captured; otherwise the wrappers are pass-through.
+  const debugCapturing = () => getSettings()?.debug ?? true;
   const hooks: InterceptorHooks = {
-    shouldCapture: () => getSettings()?.debug ?? true,
-    onCapture: record,
+    shouldCapture: (kind) => debugCapturing() || (kind === 'pathfinder' && playcounts.isEnabled),
+    onCapture: (capture) => {
+      if (debugCapturing()) record(capture);
+      try {
+        playcounts.onCapture(capture);
+      } catch {
+        // A failing feature turns itself off silently.
+      }
+    },
   };
   installFetchInterceptor(window, hooks);
   installXhrInterceptor(window, hooks);
   startCoverage();
 
   onSettingsChange((settings, previous) => {
+    if (settings.playcounts) playcounts.enable();
+    else playcounts.disable();
+
     const wasDebug = previous?.debug ?? false;
     if (settings.debug && !wasDebug) {
       if (previous === null) logStartupReport(startup);
@@ -59,6 +76,7 @@ function main(): void {
   });
 
   onPageChange((page) => {
+    playcounts.onPageChange(page);
     if (!isDebugEnabled()) return;
     logCoverage();
     logPageChange(page);

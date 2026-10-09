@@ -26,7 +26,8 @@ export interface CapturedRequest {
 }
 
 export interface InterceptorHooks {
-  shouldCapture(): boolean;
+  /** Asked once per matching request, before anything is cloned or parsed. */
+  shouldCapture(kind: EndpointKind): boolean;
   onCapture(request: CapturedRequest): void;
 }
 
@@ -55,9 +56,14 @@ function baseUrl(): string | undefined {
   return globalThis.location?.href;
 }
 
-function beginRequest(transport: RequestPart['transport'], method: string, rawUrl: string): RequestPart | null {
+function beginRequest(
+  transport: RequestPart['transport'],
+  method: string,
+  rawUrl: string,
+  hooks: InterceptorHooks,
+): RequestPart | null {
   const match = matchEndpoint(rawUrl, baseUrl());
-  if (!match) return null;
+  if (!match || !hooks.shouldCapture(match.kind)) return null;
   return {
     transport,
     method: method.toUpperCase(),
@@ -114,14 +120,13 @@ function collectHeaderNames(target: Set<string>, init: HeadersInit | undefined):
 }
 
 function startFetchObservation(args: FetchArgs, hooks: InterceptorHooks) {
-  if (!hooks.shouldCapture()) return null;
   const [input, init] = args;
   const isRequest = typeof Request !== 'undefined' && input instanceof Request;
   const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : isRequest ? input.url : null;
   if (rawUrl === null) return null;
 
   const method = init?.method ?? (isRequest ? input.method : 'GET');
-  const req = beginRequest('fetch', method, rawUrl);
+  const req = beginRequest('fetch', method, rawUrl, hooks);
   if (!req) return null;
 
   if (isRequest) collectHeaderNames(req.requestHeaderNames, input.headers);
@@ -223,11 +228,9 @@ export function installXhrInterceptor(target: { XMLHttpRequest: typeof XMLHttpRe
     const result: void = Reflect.apply(originalOpen, this, args);
     try {
       states.delete(this);
-      if (hooks.shouldCapture()) {
-        const [method, url] = args;
-        const req = beginRequest('xhr', String(method), String(url));
-        if (req) states.set(this, req);
-      }
+      const [method, url] = args;
+      const req = beginRequest('xhr', String(method), String(url), hooks);
+      if (req) states.set(this, req);
     } catch {
       // Ignore.
     }
