@@ -94,7 +94,7 @@ describe('PlaycountColumn', () => {
     expect(rowsOf(list).map(countText)).toEqual([fmt(2441116), fmt(1000), '']);
     const node = titleCellOf(rowsOf(list)[0]!)!.lastElementChild as HTMLElement;
     expect(node.className).toBe('duration-text');
-    expect(node.style.marginLeft).toBe('auto');
+    expect(node.style.getPropertyValue('margin-inline-start')).toBe('auto');
 
     const titleHeader = list.querySelector('[role="columnheader"][aria-colindex="2"]')!;
     const ours = [...titleHeader.children].map((el) => el.getAttribute('data-sfe-playcount') ?? el.getAttribute('role') ?? 'player');
@@ -193,6 +193,24 @@ describe('title width', () => {
     column.render();
     expect(playsBasis(250)).toBe('calc(100% - 250px)');
     expect(rowNodes(list).every((n) => n.style.flexBasis === playsBasis(250))).toBe(true);
+  });
+
+  it('mirrors the drag in right-to-left languages', () => {
+    const list = buildList();
+    const prefs = { titleWidth: null as number | null, saved: [] as (number | null)[] };
+    columnFor(list, store, 800, prefs).render();
+    const header = list.querySelector<HTMLElement>('[role="columnheader"][aria-colindex="2"]')!;
+    const box = header.querySelector<HTMLElement>('[data-sfe-playcount="header"]')!;
+    const handle = box.querySelector<HTMLElement>('[data-sfe-playcount-handle]')!;
+    header.style.direction = 'rtl';
+    fakeRect(header, 100, 600); // cell spans 100..700, title starts on the right
+    fakeRect(box, 100, 352); // column start edge (right side) at 452
+    const pointer = (type: string, clientX: number) =>
+      handle.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, clientX, button: 0, pointerId: 1 }));
+    pointer('pointerdown', 450); // grabbed 2px before the edge
+    pointer('pointermove', 398); // edge moves to 400: title width 700 - 400 = 300
+    pointer('pointerup', 398);
+    expect(prefs.saved).toEqual([300]);
   });
 
   it('drags our handle to resize the title, clamps it, saves on release and never reaches the player', () => {

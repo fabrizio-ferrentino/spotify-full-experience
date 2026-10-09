@@ -26,33 +26,40 @@ const HANDLE_WIDTH = 8;
 /** Space between the column edge and the numbers, matching the label after the handle. */
 const INSET = 16;
 
-/** Same left edge in every row: pushed to the right end of the flex title cell. */
+/**
+ * Same start edge in every row: pushed to the end of the flex title cell. Logical properties
+ * keep the layout right in right-to-left languages, where the player mirrors the grid.
+ */
 const ROW_STYLE = [
-  'margin-left: auto',
+  'margin-inline-start: auto',
   'flex-grow: 0',
   'flex-shrink: 0',
   'box-sizing: border-box',
-  `padding: 0 ${INSET}px`,
+  `padding-inline: ${INSET}px`,
   // The duration class we copy is a flex box aligned to the end.
   'justify-content: flex-start',
-  'text-align: left',
+  'text-align: start',
   'white-space: nowrap',
   'overflow: hidden',
 ].join('; ');
-/** Takes the free space of the header cell (the player's resize handle also has margin-left: auto). */
+/** Takes the free space of the header cell (the player's resize handle also has an auto margin). */
 const SPACER_STYLE = 'flex: 1 1 auto; min-width: 0';
 const HEADER_BOX_STYLE = 'flex-grow: 0; flex-shrink: 0; display: flex; align-items: center; box-sizing: border-box; min-width: 0';
 const HEADER_LABEL_STYLE = [
   'flex: 1 1 auto',
   'min-width: 0',
-  'text-align: left',
-  `padding: 0 ${HANDLE_WIDTH}px 0 ${INSET - HANDLE_WIDTH}px`,
+  'text-align: start',
+  `padding-inline: ${INSET - HANDLE_WIDTH}px ${HANDLE_WIDTH}px`,
   'white-space: nowrap',
   'overflow: hidden',
   'text-overflow: ellipsis',
 ].join('; ');
 /** Attribute keeping the measured pixel offset of the header column. */
 const OFFSET_ATTR = 'data-sfe-offset';
+
+function isRtl(element: Element): boolean {
+  return getComputedStyle(element).direction === 'rtl';
+}
 
 /** Width of the play count column in a cell: what the title leaves, or the default share. */
 export function playsBasis(titleWidth: number | null): string {
@@ -174,7 +181,9 @@ export class PlaycountColumn {
       this.headerObserver.observe(titleHeader);
     }
     const boxRect = box.getBoundingClientRect();
-    const delta = Math.round(boxRect.left - firstNode.getBoundingClientRect().left);
+    const nodeRect = firstNode.getBoundingClientRect();
+    // Positive when the header column starts after the row column (it is too narrow).
+    const delta = Math.round(isRtl(titleHeader) ? nodeRect.right - boxRect.right : boxRect.left - nodeRect.left);
     if (delta === 0 || boxRect.width === 0) return;
     const offset = Number(box.getAttribute(OFFSET_ATTR) ?? HANDLE_WIDTH) - delta;
     box.setAttribute(OFFSET_ATTR, String(offset));
@@ -268,14 +277,18 @@ export class PlaycountColumn {
       if (event.button !== 0) return;
       isolate(event);
       const cell = header.getBoundingClientRect();
-      // Keep the grab point under the pointer: the column edge is the left edge of our box.
-      const edge = handle.parentElement?.getBoundingClientRect().left ?? event.clientX;
+      const rtl = isRtl(header);
+      // Keep the grab point under the pointer: the column edge is the start edge of our box.
+      const box = handle.parentElement?.getBoundingClientRect();
+      const edge = box ? (rtl ? box.right : box.left) : event.clientX;
       const grab = event.clientX - edge;
       handle.setPointerCapture?.(event.pointerId);
 
       const move = (moveEvent: PointerEvent) => {
         isolate(moveEvent);
-        this.dragWidth = clampTitleWidth(Math.round(moveEvent.clientX - grab - cell.left), cell.width);
+        const edgeX = moveEvent.clientX - grab;
+        const width = rtl ? cell.right - edgeX : edgeX - cell.left;
+        this.dragWidth = clampTitleWidth(Math.round(width), cell.width);
         this.applyTitleWidth(this.dragWidth);
       };
       const end = (endEvent: PointerEvent) => {

@@ -18,7 +18,15 @@ describe('label', () => {
     expect(label('playcounts', 'it')).toBe('Riproduzioni');
     expect(label('playcounts', 'it-IT')).toBe('Riproduzioni');
     expect(label('playcounts', 'en')).toBe('Plays');
-    expect(label('playcounts', 'de')).toBe('Plays');
+    expect(label('playcounts', 'xx')).toBe('Plays');
+  });
+
+  it('covers the main languages and prefers a full tag over its base language', () => {
+    expect(label('playcounts', 'es-419')).toBe('Reproducciones');
+    expect(label('playcounts', 'pt-BR')).toBe('Reproduções');
+    expect(label('playcounts', 'de')).toBe('Wiedergaben');
+    expect(label('playcounts', 'zh-CN')).toBe('播放次数');
+    expect(label('playcounts', 'zh-TW')).toBe('播放次數');
   });
 
   it('reads the page language', () => {
