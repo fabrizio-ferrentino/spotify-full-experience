@@ -35,8 +35,15 @@ const ROW_STYLE = [
 ].join('; ');
 /** Takes the free space of the header cell (the player's resize handle also has margin-left: auto). */
 const SPACER_STYLE = 'flex: 1 1 auto; min-width: 0';
-/** Ends where the resize handle starts, so its left edge lines up with the row column. */
-const HEADER_BOX_STYLE = `flex: 0 0 calc(${PLAYS_SHARE}% - ${HANDLE_WIDTH}px); display: flex; align-items: center; box-sizing: border-box; min-width: 0`;
+/** The flex-basis is set separately (see headerBasis): a share of the cell minus a measured offset. */
+const HEADER_BOX_STYLE = 'flex-grow: 0; flex-shrink: 0; display: flex; align-items: center; box-sizing: border-box; min-width: 0';
+/** Attribute keeping the measured pixel offset of the header column. */
+const OFFSET_ATTR = 'data-sfe-offset';
+
+/** Same share as the rows, minus what sits between our column and the cell edge (handle, margins). */
+function headerBasis(offset: number): string {
+  return `calc(${PLAYS_SHARE}% - ${offset}px)`;
+}
 const HEADER_LABEL_STYLE = [
   'flex: 1 1 auto',
   'min-width: 0',
@@ -55,11 +62,14 @@ export interface ColumnSource {
 
 export class PlaycountColumn {
   private visible = false;
+  /** Follows the title header width, which changes when the user drags a column edge. */
+  private headerObserver: ResizeObserver | null = null;
 
   constructor(
     readonly list: HTMLElement,
     private readonly source: ColumnSource,
     private readonly measureWidth: () => number = () => list.clientWidth,
+    private readonly onLayoutChange: () => void = () => {},
   ) {}
 
   get shown(): boolean {
@@ -103,19 +113,28 @@ export class PlaycountColumn {
   /**
    * Lines the header column up with the row column by measuring both: the header cell's own
    * flex layout (resize handle with an auto margin) makes a computed width unreliable.
-   * Runs on every render, so window and column resizes are followed too.
+   * Only the pixel offset is measured; the width stays a share of the cell, so column and
+   * window resizes keep the alignment, and every resize of the header re-checks it.
    */
   private alignHeader(titleHeader: HTMLElement, firstNode: HTMLElement | null): void {
     const box = titleHeader.querySelector<HTMLElement>(`:scope > [${OWN}="header"]`);
     if (!box || !firstNode) return;
+    if (!this.headerObserver && typeof ResizeObserver !== 'undefined') {
+      this.headerObserver = new ResizeObserver(() => this.onLayoutChange());
+      this.headerObserver.observe(titleHeader);
+    }
     const boxRect = box.getBoundingClientRect();
     const delta = Math.round(boxRect.left - firstNode.getBoundingClientRect().left);
     if (delta === 0 || boxRect.width === 0) return;
-    box.style.flexBasis = `${Math.max(0, Math.round(boxRect.width + delta))}px`;
+    const offset = Number(box.getAttribute(OFFSET_ATTR) ?? HANDLE_WIDTH) - delta;
+    box.setAttribute(OFFSET_ATTR, String(offset));
+    box.style.flexBasis = headerBasis(offset);
   }
 
   /** Removes every node we added; the player's markup is otherwise untouched. */
   hide(): void {
+    this.headerObserver?.disconnect();
+    this.headerObserver = null;
     for (const node of this.list.querySelectorAll(`[${OWN}]`)) node.remove();
     this.visible = false;
   }
@@ -167,6 +186,7 @@ export class PlaycountColumn {
     const box = document.createElement('div');
     box.setAttribute(OWN, 'header');
     box.style.cssText = HEADER_BOX_STYLE;
+    box.style.flexBasis = headerBasis(HANDLE_WIDTH);
     if (handle) {
       const divider = document.createElement('div');
       divider.className = handle.className;

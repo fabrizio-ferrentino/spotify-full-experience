@@ -95,11 +95,16 @@ export class PlaycountsFeature {
     if (list !== this.column?.list) {
       this.detachColumn();
       if (!list) return;
-      this.column = new PlaycountColumn(list, {
-        lookup: (id) => this.store.get(id),
-        label: () => label('playcounts'),
-        format: (value) => formatCount(value),
-      });
+      this.column = new PlaycountColumn(
+        list,
+        {
+          lookup: (id) => this.store.get(id),
+          label: () => label('playcounts'),
+          format: (value) => formatCount(value),
+        },
+        undefined,
+        () => this.scheduler.schedule(),
+      );
       if (typeof ResizeObserver !== 'undefined') {
         this.resizeObserver = new ResizeObserver(() => this.scheduler.schedule());
         this.resizeObserver.observe(list);
