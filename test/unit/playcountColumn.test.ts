@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest';
-import { trackIdOfRow, withVar1Column } from '../../src/page/adapters/spotifyDom';
+import { titleCellOf, trackIdOfRow } from '../../src/page/adapters/spotifyDom';
 import { MIN_LIST_WIDTH, PlaycountColumn } from '../../src/page/features/playcounts/column';
 import { PlaycountStore } from '../../src/page/features/playcounts/store';
 
@@ -15,7 +15,7 @@ function row(index: number, id: string | null): string {
     <div role="row" aria-rowindex="${index + 2}">
       <div role="presentation" data-testid="tracklist-row">
         <div role="gridcell" aria-colindex="1">${index + 1}</div>
-        <div role="gridcell" aria-colindex="2">${link}</div>
+        <div role="gridcell" aria-colindex="2"><div class="title-block">${link}<span>artist</span></div></div>
         <div role="gridcell" aria-colindex="3" class="duration-cell"><button>+</button><div class="duration-text">3:53</div></div>
       </div>
     </div>`;
@@ -28,7 +28,7 @@ function buildList(ids: (string | null)[] = IDS): HTMLElement {
         <div role="presentation">
           <div role="row" aria-rowindex="1">
             <div role="columnheader" aria-colindex="1">#</div>
-            <div role="columnheader" aria-colindex="2" aria-sort="none" tabindex="-1">
+            <div role="columnheader" aria-colindex="2">
               <div data-testid="column-header-context-menu"><div class="hdr"><span class="hdr-text">Titolo</span></div></div>
               <div role="separator"></div>
             </div>
@@ -40,31 +40,24 @@ function buildList(ids: (string | null)[] = IDS): HTMLElement {
     </main>`;
   const list = document.querySelector<HTMLElement>('[data-testid="track-list"]')!;
   list.style.setProperty('--grid-template-columns', ALBUM_TEMPLATE);
-  list.style.setProperty('--first-min-width', '180px');
   return list;
 }
 
 const fmt = (value: number) => value.toLocaleString('it');
 
 function columnFor(list: HTMLElement, store: PlaycountStore, width = 800) {
-  return new PlaycountColumn(
-    list,
-    { lookup: (id) => store.get(id), label: () => 'Riproduzioni', format: fmt },
-    () => width,
-  );
+  return new PlaycountColumn(list, { lookup: (id) => store.get(id), label: () => 'Riproduzioni', format: fmt }, () => width);
 }
 
-describe('spotifyDom helpers', () => {
-  it('adds the var1 column before [last] once', () => {
-    const next = withVar1Column(ALBUM_TEMPLATE);
-    expect(next).toContain('[var1] minmax(var(--var1-min-width), var(--var1-max-width, 2fr)) [last]');
-    expect(withVar1Column(next!)).toBeNull();
-    expect(withVar1Column('1fr 1fr')).toBeNull();
-  });
+const rowsOf = (list: HTMLElement) => [...list.querySelectorAll<HTMLElement>('[data-testid="tracklist-row"]')];
+const countText = (row: HTMLElement) => titleCellOf(row)?.querySelector(':scope > [data-sfe-playcount]')?.textContent;
 
-  it('reads the track id of a row', () => {
+describe('spotifyDom helpers', () => {
+  it('reads the track id and title cell of a row', () => {
     buildList();
-    expect(trackIdOfRow(document.querySelector('[data-testid="tracklist-row"]')!)).toBe(IDS[0]);
+    const first = rowsOf(document.querySelector('[data-testid="track-list"]')!)[0]!;
+    expect(trackIdOfRow(first)).toBe(IDS[0]);
+    expect(titleCellOf(first)?.getAttribute('aria-colindex')).toBe('2');
   });
 });
 
@@ -75,33 +68,32 @@ describe('PlaycountColumn', () => {
     store.ingest(new Map([[IDS[0]!, 2441116], [IDS[1]!, 1000]]));
   });
 
-  it('adds header and cells as a real grid column', () => {
+  it('adds a right-aligned count to every title cell and a label to the title header', () => {
     const list = buildList();
     const column = columnFor(list, store);
     column.render();
-
     expect(column.shown).toBe(true);
-    expect(list.getAttribute('aria-colcount')).toBe('4');
-    expect(list.style.getPropertyValue('--grid-template-columns')).toContain('[var1]');
-    expect(list.style.getPropertyValue('--var1-min-width')).toBe('120px');
 
-    const header = list.querySelector('[role="row"][aria-rowindex="1"]')!;
-    const headers = [...header.querySelectorAll(':scope > [role="columnheader"]')];
-    expect(headers.map((h) => h.getAttribute('aria-colindex'))).toEqual(['1', '2', '3', '4']);
-    expect(headers[2]!.textContent!.trim()).toBe('Riproduzioni');
-    expect(headers[2]!.querySelector('[data-testid], [role="separator"]')).toBeNull();
-    expect(headers[2]!.hasAttribute('aria-sort')).toBe(false);
+    expect(rowsOf(list).map(countText)).toEqual([fmt(2441116), fmt(1000), '']);
+    const node = titleCellOf(rowsOf(list)[0]!)!.lastElementChild as HTMLElement;
+    expect(node.className).toBe('duration-text');
+    expect(node.style.marginLeft).toBe('auto');
 
-    const rows = [...list.querySelectorAll('[data-testid="tracklist-row"]')];
-    const texts = rows.map((r) => r.querySelector('[data-sfe-playcount]')!.textContent);
-    expect(texts).toEqual([fmt(2441116), fmt(1000), '']);
-    const cells = [...rows[0]!.querySelectorAll(':scope > [role="gridcell"]')];
-    expect(cells.map((c) => c.getAttribute('aria-colindex'))).toEqual(['1', '2', '3', '4']);
-    expect(cells[2]!.className).toBe('duration-cell');
-    // The copied class places the duration with grid-column: last; ours must stay in var1.
-    expect((cells[2] as HTMLElement).style.gridColumn).toBe('var1');
-    expect((headers[2] as HTMLElement).style.gridColumn).toBe('var1');
-    expect(cells[2]!.firstElementChild!.className).toBe('duration-text');
+    const titleHeader = list.querySelector('[role="columnheader"][aria-colindex="2"]')!;
+    const label = titleHeader.querySelector(':scope > [data-sfe-playcount]')!;
+    expect(label.textContent).toBe('Riproduzioni');
+    expect(label.className).toBe('hdr-text');
+    expect(label.nextElementSibling?.getAttribute('role')).toBe('separator');
+  });
+
+  it('never touches the grid: template, column count and column indexes stay the same', () => {
+    const list = buildList();
+    const style = list.getAttribute('style');
+    columnFor(list, store).render();
+    expect(list.getAttribute('style')).toBe(style);
+    expect(list.getAttribute('aria-colcount')).toBe('3');
+    const indexes = [...list.querySelectorAll('[aria-colindex]')].map((el) => el.getAttribute('aria-colindex'));
+    expect(indexes.filter((i) => i === '4')).toEqual([]);
   });
 
   it('is idempotent', () => {
@@ -125,21 +117,13 @@ describe('PlaycountColumn', () => {
     expect(column.shown).toBe(false);
   });
 
-  it('stays hidden without data, on narrow lists, or with an unknown layout', () => {
-    const empty = new PlaycountStore();
+  it('stays hidden without data or on narrow lists', () => {
     const list = buildList();
     const original = list.outerHTML;
-
-    columnFor(list, empty).render();
+    columnFor(list, new PlaycountStore()).render();
     expect(list.outerHTML).toBe(original);
-
     columnFor(list, store, MIN_LIST_WIDTH - 1).render();
     expect(list.outerHTML).toBe(original);
-
-    list.style.setProperty('--grid-template-columns', '1fr 2fr');
-    const unknown = list.outerHTML;
-    columnFor(list, store).render();
-    expect(list.outerHTML).toBe(unknown);
   });
 
   it('follows data that arrives later and rows added by the player', () => {
@@ -147,25 +131,20 @@ describe('PlaycountColumn', () => {
     const column = columnFor(list, store);
     column.render();
     store.ingest(new Map([[IDS[2]!, 7]]));
-    const container = list.querySelector('[role="presentation"]')!;
-    container.insertAdjacentHTML('beforeend', row(3, IDS[0]!));
+    list.querySelector('[role="presentation"]')!.insertAdjacentHTML('beforeend', row(3, IDS[0]!));
     column.render();
-    const texts = [...list.querySelectorAll('[data-sfe-playcount-text], [data-sfe-playcount]:not([role="columnheader"])')]
-      .filter((el) => el.hasAttribute('data-sfe-playcount-text'))
-      .map((el) => el.textContent);
-    expect(texts.slice(1)).toEqual([fmt(2441116), fmt(1000), '7', fmt(2441116)]);
+    expect(rowsOf(list).map(countText)).toEqual([fmt(2441116), fmt(1000), '7', fmt(2441116)]);
   });
 
-  it('re-applies the layout if the player rewrites the template', () => {
+  it('stays the last child when the player appends to the title cell', () => {
     const list = buildList();
     const column = columnFor(list, store);
     column.render();
-    list.style.setProperty('--grid-template-columns', ALBUM_TEMPLATE);
+    const cell = titleCellOf(rowsOf(list)[0]!)!;
+    cell.append(document.createElement('i'));
     column.render();
-    expect(list.style.getPropertyValue('--grid-template-columns')).toContain('[var1]');
-    column.hide();
-    expect(list.style.getPropertyValue('--grid-template-columns')).toBe(ALBUM_TEMPLATE);
-    expect(list.getAttribute('aria-colcount')).toBe('3');
+    expect(cell.lastElementChild?.hasAttribute('data-sfe-playcount')).toBe(true);
+    expect(cell.querySelectorAll('[data-sfe-playcount]').length).toBe(1);
   });
 });
 

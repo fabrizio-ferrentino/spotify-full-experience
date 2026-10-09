@@ -11,32 +11,9 @@ export const SELECTORS = {
   /** Header row of the grid (album pages; absent on artist "Popular"). */
   headerRow: '[role="row"][aria-rowindex="1"]',
   trackLink: 'a[data-testid="internal-track-link"]',
+  /** Column resize handle, a direct child of the resizable header cell. */
+  resizeHandle: '[role="separator"]',
 } as const;
-
-/** Inline custom properties set by the player on the track list element. */
-export const CSS_VARS = {
-  gridTemplateColumns: '--grid-template-columns',
-  var1MinWidth: '--var1-min-width',
-} as const;
-
-/** The artist "Popular" list uses this column for play counts; album lists do not have it. */
-const VAR1_COLUMN = '[var1] minmax(var(--var1-min-width), var(--var1-max-width, 2fr))';
-/** Same minimum width the player uses for the play count column on artist pages. */
-export const VAR1_MIN_WIDTH = '120px';
-/**
- * Explicit placement for our cells: the classes we copy from the duration cell place it
- * with `grid-column: last`, which would stack our cell on top of the duration.
- */
-export const VAR1_GRID_COLUMN = 'var1';
-
-/**
- * Adds the `var1` column before `[last]` in the player's grid template.
- * Returns null when the template is not the one observed (feature must stay off).
- */
-export function withVar1Column(template: string): string | null {
-  if (!template.includes('[first]') || !template.includes('[last]') || template.includes('[var1]')) return null;
-  return template.replace('[last]', `${VAR1_COLUMN} [last]`);
-}
 
 const TRACK_HREF = /\/track\/([A-Za-z0-9]{22})(?:[/?#]|$)/;
 
@@ -51,4 +28,14 @@ export function cellsOf(rowGrid: Element, role: 'gridcell' | 'columnheader'): HT
   return [...rowGrid.children].filter(
     (child): child is HTMLElement => child instanceof HTMLElement && child.getAttribute('role') === role,
   );
+}
+
+/** The title cell of a track row: the grid cell holding the track link (a flex row). */
+export function titleCellOf(rowGrid: Element): HTMLElement | null {
+  return cellsOf(rowGrid, 'gridcell').find((cell) => cell.querySelector(SELECTORS.trackLink)) ?? null;
+}
+
+/** The header cell above the title cells, matched by aria-colindex. */
+export function titleHeaderOf(headerRow: Element, titleColindex: string): HTMLElement | null {
+  return cellsOf(headerRow, 'columnheader').find((cell) => cell.getAttribute('aria-colindex') === titleColindex) ?? null;
 }

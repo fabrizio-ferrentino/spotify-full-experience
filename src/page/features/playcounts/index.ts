@@ -15,7 +15,6 @@ export class PlaycountsFeature {
   private readonly store = new PlaycountStore();
   private column: PlaycountColumn | null = null;
   private mainObserver: MutationObserver | null = null;
-  private listObserver: MutationObserver | null = null;
   private resizeObserver: ResizeObserver | null = null;
   private cancelWait: (() => void) | null = null;
   private warnedLayout = false;
@@ -83,8 +82,6 @@ export class PlaycountsFeature {
   }
 
   private detachColumn(): void {
-    this.listObserver?.disconnect();
-    this.listObserver = null;
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.column?.hide();
@@ -103,8 +100,6 @@ export class PlaycountsFeature {
         label: () => label('playcounts'),
         format: (value) => formatCount(value),
       });
-      this.listObserver = new MutationObserver(() => this.scheduler.schedule());
-      this.listObserver.observe(list, { attributes: true, attributeFilter: ['style', 'aria-colcount'] });
       if (typeof ResizeObserver !== 'undefined') {
         this.resizeObserver = new ResizeObserver(() => this.scheduler.schedule());
         this.resizeObserver.observe(list);
@@ -118,7 +113,7 @@ export class PlaycountsFeature {
     if (!column.shown && !this.warnedLayout && list?.querySelector(SELECTORS.trackRow) && this.store.size) {
       // Rows and data exist but the column stays hidden: narrow window, or the layout changed.
       this.warnedLayout = true;
-      debugWarn('playcounts: column hidden (narrow list, no data for these rows, or unrecognised layout)');
+      debugWarn('playcounts: column hidden (narrow list or no data for these rows)');
     }
   }
 }
