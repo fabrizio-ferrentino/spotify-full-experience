@@ -2,9 +2,13 @@
 // Passive capture of the player's internal requests, feeding the features and debug mode.
 import { DEFAULT_SETTINGS } from '../shared/settings';
 import { sendToContent, startBridge } from './core/bridge';
+import { HashRegistry } from './core/hashRegistry';
 import { installFetchInterceptor, installXhrInterceptor, type InterceptorHooks } from './core/interceptor';
+import { PathfinderClient } from './core/pathfinderClient';
 import { currentPage, onPageChange, startRouter } from './core/router';
+import { Session } from './core/session';
 import { getSettings, onSettingsChange } from './core/settings';
+import { installDebugConsole, removeDebugConsole, type DebugConsoleDeps } from './debug/console';
 import { logCoverage, startCoverage, stopCoverage } from './debug/coverage';
 import { cancelDomProbe, scheduleDomProbe } from './debug/domProbe';
 import { debugLog, isDebugEnabled } from './debug/log';
@@ -16,14 +20,16 @@ import { PlaycountsFeature } from './features/playcounts';
 
 const LOADED = Symbol.for('spotify-full-experience.loaded');
 
-function enterDebug(): void {
+function enterDebug(services: DebugConsoleDeps | null): void {
   startCoverage();
   mountPanel();
+  if (services) installDebugConsole(services);
   logPageChange(currentPage());
   scheduleDomProbe(currentPage().kind);
 }
 
 function leaveDebug(): void {
+  removeDebugConsole();
   stopCoverage();
   cancelDomProbe();
   unmountPanel();
@@ -45,7 +51,14 @@ function main(): void {
   // Until the settings arrive, debug captures go into a small buffer so early requests are not lost.
   // With debug off, only what an enabled feature needs is captured; otherwise the wrappers are pass-through.
   const debugCapturing = () => getSettings()?.debug ?? true;
+  // Session headers and hashes are taken from every Pathfinder request of the player.
+  const session = new Session();
+  const registry = new HashRegistry();
   const hooks: InterceptorHooks = {
+    onPathfinderRequest: ({ operationName, hash, headers }) => {
+      session.observe(headers);
+      registry.observe(operationName, hash);
+    },
     shouldCapture: (kind) => debugCapturing() || (kind === 'pathfinder' && playcounts.isEnabled),
     onCapture: (capture) => {
       if (debugCapturing()) record(capture);
@@ -56,8 +69,11 @@ function main(): void {
       }
     },
   };
-  installFetchInterceptor(window, hooks);
+  const nativeFetch = installFetchInterceptor(window, hooks);
   installXhrInterceptor(window, hooks);
+  // Our own queries use the unwrapped fetch: they are never mistaken for the player's traffic.
+  const client = nativeFetch ? new PathfinderClient(nativeFetch, session, registry) : null;
+  const services = client ? { session, registry, client } : null;
   startCoverage();
 
   onSettingsChange((settings, previous) => {
@@ -69,7 +85,7 @@ function main(): void {
     if (settings.debug && !wasDebug) {
       if (previous === null) logStartupReport(startup);
       else debugLog('debug mode enabled');
-      enterDebug();
+      enterDebug(services);
       if (previous === null) flushBuffered();
     } else if (!settings.debug && (wasDebug || previous === null)) {
       leaveDebug();

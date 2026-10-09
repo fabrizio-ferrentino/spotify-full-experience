@@ -1,7 +1,9 @@
-// URL patterns of Spotify internal endpoints.
-// Source: project research (CLAUDE.md §1), NOT yet verified on live traffic (Phase 0).
+// URL patterns of Spotify internal endpoints, verified on live traffic in Phase 0
+// (docs/phase0-findings.md): the player uses POST /pathfinder/v2/query.
 
 const PATHFINDER_HOST = 'api-partner.spotify.com';
+/** Endpoint used for our own (fallback) queries, the same the player uses. */
+export const PATHFINDER_V2_URL = 'https://api-partner.spotify.com/pathfinder/v2/query';
 const PATHFINDER_PATH = /^\/pathfinder\/v(\d+)\/query$/;
 const SPCLIENT_HOST = /(^|[.-])spclient\.(wg\.)?spotify\.com$/;
 
