@@ -13,12 +13,12 @@ describe('bridge protocol', () => {
   });
 
   it('round-trips a settings message', () => {
-    const envelope = envelopeToPage({ type: 'settings', settings: { debug: true } });
-    expect(parseContentToPage(envelope)).toEqual({ type: 'settings', settings: { debug: true } });
+    const envelope = envelopeToPage({ type: 'settings', settings: { debug: true, playcounts: false } });
+    expect(parseContentToPage(envelope)).toEqual({ type: 'settings', settings: { debug: true, playcounts: false } });
   });
 
   it('rejects messages with the wrong direction', () => {
-    const envelope = envelopeToPage({ type: 'settings', settings: { debug: true } });
+    const envelope = envelopeToPage({ type: 'settings', settings: { debug: true, playcounts: true } });
     expect(parsePageToContent(envelope)).toBeNull();
     expect(parseContentToPage(envelopeToContent({ type: 'hello' }))).toBeNull();
   });
@@ -40,6 +40,6 @@ describe('bridge protocol', () => {
       type: 'settings',
       settings: { debug: 'yes', token: 'Bearer abc' },
     });
-    expect(msg).toEqual({ type: 'settings', settings: { debug: false } });
+    expect(msg).toEqual({ type: 'settings', settings: { debug: false, playcounts: true } });
   });
 });
