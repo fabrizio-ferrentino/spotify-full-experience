@@ -1,7 +1,9 @@
-// Renders play counts as a fixed-width, right-aligned column at the end of the title cell of
-// each row, with "| label |" at the end of the title header, like the desktop app. The player's grid is left untouched on purpose: an extra grid
-// track is measured by the player's column resizer and persisted in its saved column widths,
-// which would outlive the extension. hide() removes every node we added.
+// Renders play counts like the desktop app: a left-aligned "| Plays" column right after the
+// title text, drawn inside the title cell of each row and of the header, so the title cell
+// reads [title] [| plays .......] and the player's own resize handle closes it on the right.
+// The player's grid is left untouched on purpose: an extra grid track is measured by the
+// player's column resizer and persisted in its saved column widths, which would outlive the
+// extension. hide() removes every node we added.
 import { SELECTORS, titleCellOf, titleHeaderOf, trackIdOfRow } from '../../adapters/spotifyDom';
 import { setText } from '../../core/dom';
 
@@ -12,31 +14,32 @@ const OWN = 'data-sfe-playcount';
 export const MIN_LIST_WIDTH = 560;
 
 const DURATION_TEXT = /^\d+:\d{2}$/;
-/** Width of the play count column, in rows and header alike. */
-const COLUMN_WIDTH = 140;
-/** Gap between the numbers and the next column; the header label stops before the resize handle. */
-const ROW_PADDING_RIGHT = 16;
+/** Share of the title cell given to the play count column (the desktop app keeps the title narrow). */
+const PLAYS_SHARE = 60;
+/** Width of the player's resize handle; our leading divider copies it. */
 const HANDLE_WIDTH = 8;
+/** Space between the column edge and the numbers, matching the label after the divider. */
+const INSET = 16;
 
-/** Pushed to the right edge of the flex title cell; the title text keeps its own ellipsis. */
+/** Same left edge in every row: a percentage of the title cell, pushed to its right end. */
 const ROW_STYLE = [
   'margin-left: auto',
-  `flex: 0 0 ${COLUMN_WIDTH}px`,
+  `flex: 0 0 ${PLAYS_SHARE}%`,
   'box-sizing: border-box',
-  `padding-right: ${ROW_PADDING_RIGHT}px`,
-  'text-align: right',
+  `padding: 0 ${INSET}px`,
+  'text-align: left',
   'white-space: nowrap',
   'overflow: hidden',
 ].join('; ');
 /** Takes the free space of the header cell (the player's resize handle also has margin-left: auto). */
 const SPACER_STYLE = 'flex: 1 1 auto; min-width: 0';
 /** Ends where the resize handle starts, so its left edge lines up with the row column. */
-const HEADER_BOX_STYLE = `flex: 0 0 ${COLUMN_WIDTH - HANDLE_WIDTH}px; display: flex; align-items: center; box-sizing: border-box; min-width: 0`;
+const HEADER_BOX_STYLE = `flex: 0 0 calc(${PLAYS_SHARE}% - ${HANDLE_WIDTH}px); display: flex; align-items: center; box-sizing: border-box; min-width: 0`;
 const HEADER_LABEL_STYLE = [
   'flex: 1 1 auto',
   'min-width: 0',
-  'text-align: right',
-  `padding-right: ${ROW_PADDING_RIGHT - HANDLE_WIDTH}px`,
+  'text-align: left',
+  `padding: 0 ${HANDLE_WIDTH}px 0 ${INSET - HANDLE_WIDTH}px`,
   'white-space: nowrap',
   'overflow: hidden',
   'text-overflow: ellipsis',
