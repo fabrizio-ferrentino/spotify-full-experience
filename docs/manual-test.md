@@ -8,7 +8,7 @@ Run on **Chrome**, **Brave** and **Firefox**. Brave is not officially supported 
 2. Load the extension:
    - Chrome / Brave: `chrome://extensions` → Developer mode → "Load unpacked" → `dist/chrome`.
    - Firefox: `about:debugging#/runtime/this-firefox` → "Load Temporary Add-on" → `dist/firefox/manifest.json`. In `about:addons`, allow the extension on `open.spotify.com`.
-3. Open the extension options and enable **Debug mode**.
+3. Click the extension icon in the toolbar and enable **Debug mode** (under Advanced).
 4. Open `https://open.spotify.com`, then the DevTools console. Debug lines start with a green `[SFE]`.
 
 ## Smoke test (every release)
@@ -62,6 +62,14 @@ Run with the "Search and sort in playlists" option enabled.
 - [ ] Navigate playlist → playlist, Home → playlist, playlist → Liked Songs: the controls are always there, no leftovers on other pages.
 - [ ] A playlist longer than 1000 songs loads with one extra request per 1000 songs, only when searching or sorting.
 - [ ] Option disabled (reload the tab): playlist pages identical to the original.
+
+## Toolbar popup
+
+- [ ] The toolbar shows the blue "FE" icon; clicking it opens the popup with name, version and the switches, in the browser's language (Italian or English).
+- [ ] The switches show the stored settings; changing one shows "Saved." and the open Spotify tab follows without a reload (debug excepted).
+- [ ] Master switch off: the feature switches turn grey but keep their state; on the open Spotify tab the play counts, the liked songs section and the playlist controls disappear. Back on: they come back.
+- [ ] Master switch off and reload the tab: the page is identical to the original.
+- [ ] The extension's options page (`chrome://extensions` → Details → Extension options; `about:addons` on Firefox) shows the same panel.
 
 ## Phase 0 reconnaissance
 

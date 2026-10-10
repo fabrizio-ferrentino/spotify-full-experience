@@ -12,13 +12,19 @@ A browser extension (Chromium and Firefox, Manifest V3) that adds to the Spotify
 
 ## Features
 
-- **Play counts on album pages.** A "Plays" column after the title, as in the desktop app, with numbers formatted for the page language. The data comes from the responses the web player already receives: no extra requests. The edge between title and plays can be dragged (double click to reset). Can be turned off in the extension options.
+- **Play counts on album pages.** A "Plays" column after the title, as in the desktop app, with numbers formatted for the page language. The data comes from the responses the web player already receives: no extra requests. The edge between title and plays can be dragged (double click to reset). Can be turned off from the toolbar popup.
 
-- **Liked songs on artist pages.** A section under Popular showing how many of the artist's songs you liked (primary artist only, as in the desktop app). It opens a "liked songs by <artist>" list that works like the desktop one: play from a row, add to the queue, save to playlists or remove from liked songs, share. These actions run only when you click them. Uses a local index of your liked songs, stored only in the extension's storage under a hashed key. Can be turned off in the extension options.
+- **Liked songs on artist pages.** A section under Popular showing how many of the artist's songs you liked (primary artist only, as in the desktop app). It opens a "liked songs by <artist>" list that works like the desktop one: play from a row, add to the queue, save to playlists or remove from liked songs, share. These actions run only when you click them. Uses a local index of your liked songs, stored only in the extension's storage under a hashed key. Can be turned off from the toolbar popup.
+
+- **Search and sort in playlists.** A "search in playlist" box and a "sort by" menu in playlists and Liked Songs, as in the desktop app. A playlist's songs are loaded (usually one request) only when you search or sort it. Can be turned off from the toolbar popup.
+
+## Settings
+
+Click the extension icon in the browser toolbar: a master switch turns the whole extension off (the web player then works as usual, no reload needed), and each feature has its own switch. The same panel is the extension's options page. English and Italian.
 
 ## Status
 
-Phase 1 (play counts) is complete. Phase 2 (liked songs per artist) is being validated.
+Phase 1 (play counts) and Phase 2 (liked songs per artist) are complete. Version 2026.10.10.
 
 ## Build
 
