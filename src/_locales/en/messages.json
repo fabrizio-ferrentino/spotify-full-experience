@@ -1,0 +1,50 @@
+{
+  "masterLabel": {
+    "message": "Extension active"
+  },
+  "masterOn": {
+    "message": "Features below are applied to the web player."
+  },
+  "masterOff": {
+    "message": "Everything is off: the web player works as usual."
+  },
+  "featuresHeading": {
+    "message": "Features"
+  },
+  "playcountsTitle": {
+    "message": "Play counts on album pages"
+  },
+  "playcountsDesc": {
+    "message": "A play count for each song, as in the desktop app."
+  },
+  "likedSongsTitle": {
+    "message": "Liked songs on artist pages"
+  },
+  "likedSongsDesc": {
+    "message": "How many of the artist's songs you liked, with the list. Keeps a local index of your liked songs."
+  },
+  "playlistToolsTitle": {
+    "message": "Search and sort in playlists"
+  },
+  "playlistToolsDesc": {
+    "message": "Search in playlist and sort by, in playlists and Liked Songs."
+  },
+  "advancedHeading": {
+    "message": "Advanced"
+  },
+  "debugTitle": {
+    "message": "Debug mode"
+  },
+  "debugDesc": {
+    "message": "Logs the web player's internal requests to the page console. Reload the Spotify tab after changing it."
+  },
+  "saved": {
+    "message": "Saved."
+  },
+  "saveFailed": {
+    "message": "Could not save the setting."
+  },
+  "disclaimer": {
+    "message": "Unofficial project, not affiliated with or endorsed by Spotify."
+  }
+}

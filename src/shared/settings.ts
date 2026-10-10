@@ -1,4 +1,6 @@
 export interface Settings {
+  /** Master switch: when off, every feature and debug mode are off. */
+  enabled: boolean;
   debug: boolean;
   /** Feature: play counts column on album pages. */
   playcounts: boolean;
@@ -10,9 +12,10 @@ export interface Settings {
   playcountsTitleWidth: number | null;
 }
 
-export type ToggleKey = 'debug' | 'playcounts' | 'likedSongs' | 'playlistTools';
+export type ToggleKey = 'enabled' | 'debug' | 'playcounts' | 'likedSongs' | 'playlistTools';
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
+  enabled: true,
   debug: false,
   playcounts: true,
   likedSongs: true,
@@ -37,10 +40,17 @@ export function parseSettings(value: unknown): Settings {
   const source = typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
   const flag = (key: ToggleKey) => (typeof source[key] === 'boolean' ? (source[key] as boolean) : DEFAULT_SETTINGS[key]);
   return {
+    enabled: flag('enabled'),
     debug: flag('debug'),
     playcounts: flag('playcounts'),
     likedSongs: flag('likedSongs'),
     playlistTools: flag('playlistTools'),
     playcountsTitleWidth: parseTitleWidth(source['playcountsTitleWidth']),
   };
+}
+
+/** Settings as the page applies them: with the master switch off, every toggle is off. */
+export function effectiveSettings(settings: Settings): Settings {
+  if (settings.enabled) return settings;
+  return { ...settings, debug: false, playcounts: false, likedSongs: false, playlistTools: false };
 }

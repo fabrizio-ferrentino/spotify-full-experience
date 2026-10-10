@@ -1,0 +1,50 @@
+{
+  "masterLabel": {
+    "message": "Estensione attiva"
+  },
+  "masterOn": {
+    "message": "Le funzioni qui sotto sono applicate al web player."
+  },
+  "masterOff": {
+    "message": "Tutto spento: il web player funziona come sempre."
+  },
+  "featuresHeading": {
+    "message": "Funzioni"
+  },
+  "playcountsTitle": {
+    "message": "Riproduzioni nelle pagine album"
+  },
+  "playcountsDesc": {
+    "message": "Il numero di riproduzioni di ogni brano, come nell'app desktop."
+  },
+  "likedSongsTitle": {
+    "message": "Brani piaciuti nelle pagine artista"
+  },
+  "likedSongsDesc": {
+    "message": "Quanti brani dell'artista ti piacciono, con la lista. Tiene un indice locale dei tuoi brani piaciuti."
+  },
+  "playlistToolsTitle": {
+    "message": "Cerca e ordina nelle playlist"
+  },
+  "playlistToolsDesc": {
+    "message": "Cerca nella playlist e ordina per, nelle playlist e nei Brani che ti piacciono."
+  },
+  "advancedHeading": {
+    "message": "Avanzate"
+  },
+  "debugTitle": {
+    "message": "Modalità debug"
+  },
+  "debugDesc": {
+    "message": "Scrive nella console della pagina le richieste interne del web player. Ricarica la scheda di Spotify dopo averla cambiata."
+  },
+  "saved": {
+    "message": "Salvato."
+  },
+  "saveFailed": {
+    "message": "Impossibile salvare l'impostazione."
+  },
+  "disclaimer": {
+    "message": "Progetto non ufficiale, non affiliato a Spotify né approvato da Spotify."
+  }
+}

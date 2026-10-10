@@ -1,5 +1,5 @@
 // In-page copy of the user settings, fed by the bridge.
-import { DEFAULT_SETTINGS, type Settings } from '../../shared/settings';
+import { DEFAULT_SETTINGS, effectiveSettings, type Settings } from '../../shared/settings';
 
 type Listener = (settings: Settings, previous: Settings | null) => void;
 
@@ -15,8 +15,10 @@ export function getSettingsOrDefault(): Settings {
   return current ?? { ...DEFAULT_SETTINGS };
 }
 
-export function setSettings(next: Settings): void {
+/** Stores the settings as applied: with the master switch off, every feature reads as off. */
+export function setSettings(received: Settings): void {
   const previous = current;
+  const next = effectiveSettings(received);
   current = next;
   for (const listener of listeners) {
     try {

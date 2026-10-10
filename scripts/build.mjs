@@ -1,7 +1,7 @@
 // Builds the extension for each browser target into dist/<target>/.
 // Usage: node scripts/build.mjs [--dev] [--watch]
 import * as esbuild from 'esbuild';
-import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,10 +18,12 @@ const TARGETS = {
 const ENTRY_POINTS = {
   bootstrap: 'src/bootstrap/index.ts',
   page: 'src/page/index.ts',
-  options: 'src/options/options.ts',
+  popup: 'src/popup/popup.ts',
 };
 
-const STATIC_FILES = ['src/options/options.html', 'src/options/options.css'];
+const STATIC_FILES = ['src/popup/popup.html', 'src/popup/popup.css'];
+// Copied as folders: source → name inside dist/<target>/.
+const STATIC_DIRS = { 'assets/icons': 'icons', 'src/_locales': '_locales' };
 
 const readJson = async (file) => JSON.parse(await readFile(path.join(root, file), 'utf8'));
 
@@ -45,7 +47,12 @@ async function writeManifest(target, outdir) {
 }
 
 async function copyStatic(outdir) {
-  await Promise.all(STATIC_FILES.map((file) => copyFile(path.join(root, file), path.join(outdir, path.basename(file)))));
+  await Promise.all([
+    ...STATIC_FILES.map((file) => copyFile(path.join(root, file), path.join(outdir, path.basename(file)))),
+    ...Object.entries(STATIC_DIRS).map(([from, to]) =>
+      cp(path.join(root, from), path.join(outdir, to), { recursive: true, filter: (src) => !src.endsWith('.svg') }),
+    ),
+  ]);
 }
 
 async function buildTarget(target) {

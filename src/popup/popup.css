@@ -1,0 +1,166 @@
+:root {
+  color-scheme: dark;
+  --bg: #121212;
+  --surface: #1f1f1f;
+  --line: #2a2a2a;
+  --fg: #ffffff;
+  --muted: #a7a7a7;
+  --accent: #0184fc;
+  --off: #535353;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+main {
+  width: 320px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+
+.titles {
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.version {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.master,
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.master {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.text {
+  min-width: 0;
+  cursor: pointer;
+}
+
+.text strong {
+  display: block;
+  font-weight: 600;
+}
+
+.text small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.group {
+  margin-top: 16px;
+}
+
+.group h2 {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.off .group .text {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* A checkbox drawn as a switch. */
+.switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--off);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.switch:checked {
+  background: var(--accent);
+}
+
+.switch:checked::after {
+  transform: translateX(16px);
+}
+
+.switch:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.status {
+  min-height: 1.4em;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.footer {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
