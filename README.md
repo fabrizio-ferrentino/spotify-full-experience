@@ -75,6 +75,12 @@ npm run typecheck
 
 Found a bug? [Open an issue](https://github.com/fabrizio-ferrentino/spotify-full-experience/issues/new).
 
+## Like it?
+
+If it is useful to you, a star helps other people find it.
+
+[![GitHub stars](https://img.shields.io/github/stars/fabrizio-ferrentino/spotify-full-experience?style=social)](https://github.com/fabrizio-ferrentino/spotify-full-experience/stargazers)
+
 ## License
 
 [MIT](LICENSE)
