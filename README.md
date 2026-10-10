@@ -8,7 +8,7 @@
 
 ## Features
 
-The screenshots come from the Italian web player. I blurred my own songs.
+I blurred my own songs in the screenshots.
 
 ### Play counts on album pages
 
