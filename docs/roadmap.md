@@ -1,0 +1,31 @@
+# Roadmap: desktop features missing from the web player
+
+Candidates after Phases 0–2 (2026-10-10). ✅ = checked on the live web player; the others need a check first.
+
+## Feasible (information and UI)
+
+1. **Search and sort in Liked Songs and playlists.** ✅ On the web, neither Liked Songs nor regular playlists have a "search in playlist" field or a sort menu: the action bar only offers "Visualizza come" (compact / list), and the column headers have `aria-sort="none"` without buttons (checked on 2026-10-10). The desktop app has both. *In progress.*
+2. **Play counts on the track page and in the "now playing" bar.** Check first what the web player already shows.
+3. **Sort album track lists by plays.** Builds on Phase 1.
+4. **The menu entries left out of our "liked songs by artist" view:**
+   - View credits;
+   - Go to song radio;
+   - Exclude from your taste profile;
+   - Sleep timer (a pause command on an explicit user action, CLAUDE.md §2.10).
+
+   Their operations have not been observed yet.
+5. **Extended credits** (engineers, mixers, session musicians). Check whether the credits endpoint returns them to the web session.
+6. **"Lossless" label, information only.** Only if the metadata reachable from the web exposes the audio file formats (`FLAC_FLAC`, `FLAC_FLAC_24BIT`). Playback quality is never changed.
+
+## To evaluate carefully
+
+- **SongDNA / "About the song":** Premium features on mobile today. Showing them to free accounts would unlock Premium features, which is excluded.
+- **Settings missing on the web** (e.g. volume normalization): case by case, without touching the audio stream.
+
+## Out of scope
+
+Lossless playback, local files, offline downloads, equalizer, crossfade, gapless, Smart Shuffle, AI DJ: they need the native audio engine or are excluded by principle.
+
+## Known limits
+
+- After a library change made from our views, the player's own green ticks on album rows update only after a reload (the player's curation cache, see `phase2-findings.md`).
