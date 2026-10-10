@@ -1,48 +1,79 @@
-# Spotify Full Experience
+<p align="center"><img src="assets/icons/icon-128.png" width="96" alt=""></p>
 
-A browser extension (Chromium and Firefox, Manifest V3) that adds to the Spotify web player (`open.spotify.com`) some information that the desktop app shows and the web player does not, such as per-track play counts and liked songs per artist.
+<h1 align="center">Spotify Full Experience</h1>
 
-> **Disclaimer.** This is an unofficial, personal-use project. It is **not affiliated with, endorsed by, or sponsored by Spotify**. "Spotify" is a trademark of Spotify AB. The extension relies on undocumented internal APIs of the web player that may change or disappear at any time.
+<p align="center">Brings to the Spotify web player a few things that only the desktop app has.<br>Chrome, Brave, Edge and Firefox.</p>
 
-## What it does not do
-
-- It never touches audio playback, DRM or licensing.
-- It never blocks, hides or alters ads, and never unlocks Premium features.
-- It never creates its own tokens, has no backend and sends no telemetry. It only talks to the Spotify domains the web player already uses.
+> **Unofficial.** A personal-use project, not affiliated with, endorsed by or sponsored by Spotify. "Spotify" is a trademark of Spotify AB. It relies on undocumented internals of the web player, which may change at any time.
 
 ## Features
 
-- **Play counts on album pages.** A "Plays" column after the title, as in the desktop app, with numbers formatted for the page language. The data comes from the responses the web player already receives: no extra requests. The edge between title and plays can be dragged (double click to reset). Can be turned off from the toolbar popup.
+Screenshots of the web player in Italian. Personal data is blurred.
 
-- **Liked songs on artist pages.** A section under Popular showing how many of the artist's songs you liked (primary artist only, as in the desktop app). It opens a "liked songs by <artist>" list that works like the desktop one: play from a row, add to the queue, save to playlists or remove from liked songs, share. These actions run only when you click them. Uses a local index of your liked songs, stored only in the extension's storage under a hashed key. Can be turned off from the toolbar popup.
+### Play counts on album pages
 
-- **Search and sort in playlists.** A "search in playlist" box and a "sort by" menu in playlists and Liked Songs, as in the desktop app. A playlist's songs are loaded (usually one request) only when you search or sort it. Can be turned off from the toolbar popup.
+| Before | After |
+| --- | --- |
+| ![Album page without play counts](docs/images/album-before.jpg) | ![Album page with a play count column](docs/images/album-after.jpg) |
 
-## Settings
+### Liked songs on artist pages
 
-Click the extension icon in the browser toolbar: a master switch turns the whole extension off (the web player then works as usual, no reload needed), and each feature has its own switch. The same panel is the extension's options page. English and Italian.
+How many of the artist's songs you liked (as primary artist, like the desktop app), and their list.
 
-## Status
+| Before | After |
+| --- | --- |
+| ![Artist page without liked songs](docs/images/artist-before.jpg) | ![Artist page with a liked songs section](docs/images/artist-after.jpg) |
 
-Phase 1 (play counts) and Phase 2 (liked songs per artist) are complete. Version 2026.10.10.
+The list plays on double click and has the desktop's row menu: add to playlist, remove from liked songs, add to queue, go to artist or album, share.
 
-## Build
+![Liked songs of an artist, with the row menu](docs/images/liked-by-artist.jpg)
 
-Requires Node.js 20 or newer.
+### Search and sort in playlists
+
+Search in a playlist or in Liked Songs, and sort by title, artist, album, date added or duration.
+
+| Before | After |
+| --- | --- |
+| ![Playlist without search](docs/images/playlist-before.jpg) | ![Playlist searched for "love"](docs/images/playlist-search.jpg) |
+
+### Settings
+
+<img src="docs/images/popup.png" width="320" align="right" alt="Settings popup">
+
+Click the extension icon: one switch turns the whole extension off, and each feature has its own. Changes apply at once.
+
+The popup also links to the source code and to the issue tracker.
+
+<br clear="right">
+
+## Install
+
+Not on the stores yet. Build it and load it unpacked (Node.js 20+):
 
 ```sh
 npm install
-npm run build       # production build into dist/chrome and dist/firefox
-npm run build:dev   # same, with inline source maps
+npm run build
+```
+
+- **Chrome / Brave / Edge:** `chrome://extensions` → Developer mode → "Load unpacked" → `dist/chrome`.
+- **Firefox:** `about:debugging#/runtime/this-firefox` → "Load Temporary Add-on" → `dist/firefox/manifest.json` (removed when Firefox restarts).
+
+## Privacy
+
+- Reads what the web player already receives. When it needs more, it asks Spotify with the player's own session, rate limited.
+- No backend, no telemetry, no other domains. Tokens stay in memory and are never stored.
+- Never touches audio, DRM or ads, and never unlocks Premium features.
+- Playback and library actions (play, queue, playlists, likes) run only when you click them.
+
+## Development
+
+```sh
 npm run watch       # rebuild on change
 npm test
 npm run typecheck
 ```
 
-## Load the extension
-
-- **Chrome / Brave / Edge:** open `chrome://extensions`, enable Developer mode, click "Load unpacked" and select `dist/chrome`.
-- **Firefox:** open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on" and select `dist/firefox/manifest.json`. The add-on is removed when Firefox restarts. In `about:addons`, make sure the extension is allowed to run on `open.spotify.com`.
+Found a bug? [Open an issue](https://github.com/fabrizio-ferrentino/spotify-full-experience/issues/new).
 
 ## License
 
