@@ -16,6 +16,7 @@ export interface CapturedRequest {
   pathfinderVersion: number | null;
   operationName: string | null;
   hash: string | null;
+  /** Pathfinder: the query variables. spclient: the JSON request body (e.g. Connect commands). */
   variables: unknown;
   requestHeaderNames: string[];
   status: number;
@@ -87,11 +88,20 @@ function beginRequest(
   };
 }
 
+function parseJsonBody(body: string | null): unknown {
+  if (body === null) return undefined;
+  try {
+    return JSON.parse(body);
+  } catch {
+    return undefined;
+  }
+}
+
 function buildCapture(req: RequestPart, body: string | null, res: ResponsePart): CapturedRequest {
   const query =
     req.kind === 'pathfinder'
       ? parsePathfinderRequest(req.url, body)
-      : { operationName: null, hash: null, variables: undefined };
+      : { operationName: null, hash: null, variables: parseJsonBody(body) };
   return {
     id: nextId++,
     transport: req.transport,
