@@ -65,7 +65,7 @@ Run with the "Search and sort in playlists" option enabled.
 
 ## Toolbar popup
 
-- [ ] The toolbar shows the blue "FE" icon; clicking it opens the popup with name, version and the switches, in the browser's language (Italian or English).
+- [ ] The toolbar shows the green "FE" icon; clicking it opens the popup with name, version and the switches, in the browser's language (Italian or English).
 - [ ] The switches show the stored settings; changing one shows "Saved." and the open Spotify tab follows without a reload (debug excepted).
 - [ ] Master switch off: the feature switches turn grey but keep their state; on the open Spotify tab the play counts, the liked songs section and the playlist controls disappear. Back on: they come back.
 - [ ] Master switch off and reload the tab: the page is identical to the original.
