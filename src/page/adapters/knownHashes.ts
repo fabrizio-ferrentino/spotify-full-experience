@@ -5,6 +5,8 @@
 export const KNOWN_HASHES_DATE = '2026-10-10';
 
 export const KNOWN_HASHES: Readonly<Record<string, string>> = {
+  applyCurations: '05b739a3a73091c213385233b9d3ed8a857c2ca29d2eebadb3d04ed12e288697',
+  editablePlaylists: 'd5c4b8096437dcc2ac9528c91dfcd299e35b747cda2f8f75d28f41f49c5092ba',
   fetchLibraryTracks: '087278b20b743578a6262c2b0b4bcd20d879c503cc359a2285baf083ef944240',
   fetchPlaylist: '8964e8eafb21aa992a7d951d256d83285c04be2105d209262901de70cb97584a',
   fetchPlaylistContents: '8964e8eafb21aa992a7d951d256d83285c04be2105d209262901de70cb97584a',

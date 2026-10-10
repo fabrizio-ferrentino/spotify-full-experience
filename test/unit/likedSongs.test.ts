@@ -1,5 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
-import { parseLibraryChange, parseLibraryPage, parseArtistOverview, parseProfileUri } from '../../src/page/adapters/libraryShapes';
+import {
+  curationVariables,
+  parseArtistOverview,
+  parseCurationResult,
+  parseEditablePlaylists,
+  parseLibraryChange,
+  parseLibraryPage,
+  parseProfileUri,
+} from '../../src/page/adapters/libraryShapes';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildIndex, CHECK_PAGE_SIZE, isStale, refreshIndex, removeTracks, tracksByArtist, REFRESH_AFTER_MS, type FetchPage } from '../../src/page/features/artist-liked-songs/indexSync';
 import { parseLikedIndex, type LikedIndex, type LikedTrack } from '../../src/shared/likedIndex';
 import { BRIDGE_NAMESPACE, parseContentToPage, parsePageToContent } from '../../src/shared/protocol';
@@ -154,5 +165,65 @@ describe('stored index validation', () => {
     expect(parsePageToContent({ ns: BRIDGE_NAMESPACE, dir: 'to-content', type: 'save-liked-index', key, index: { bad: true } })).toBeNull();
     expect(parsePageToContent({ ns: BRIDGE_NAMESPACE, dir: 'to-content', type: 'load-liked-index', key: 'spotify:user:abc' })).toBeNull();
     expect(parseContentToPage({ ns: BRIDGE_NAMESPACE, dir: 'to-page', type: 'liked-index', key, index: null })).toEqual({ type: 'liked-index', key, index: null });
+  });
+});
+
+describe('library writes', () => {
+  const fixturePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../fixtures/pathfinder/applyCurations.uncurate-liked-track.json');
+  const curationFixture = JSON.parse(readFileSync(fixturePath, 'utf8')) as {
+    request: { variables: { input: { curations: { contextUri: string }[]; itemUris: string[] } } };
+    response: { json: { data: unknown } };
+  };
+  it('builds applyCurations variables exactly like the player', () => {
+    const { request } = curationFixture;
+    const curation = request.variables.input.curations[0]!;
+    expect(curationVariables(request.variables.input.itemUris, [{ contextUri: curation.contextUri, curationType: 'UNCURATE' }])).toEqual(request.variables);
+    expect(parseLibraryChange('applyCurations', curationVariables([`spotify:track:${TRACK(1)}`], [{ contextUri: 'spotify:collection:tracks', curationType: 'UNCURATE' }]))).toEqual({
+      kind: 'removed',
+      trackIds: [TRACK(1)],
+    });
+  });
+
+  it('accepts the applyCurations response', () => {
+    expect(parseCurationResult(curationFixture.response.json.data)).toBe(true);
+    expect(parseCurationResult({ applyCurations: [] })).toBe(false);
+    expect(parseCurationResult(null)).toBe(false);
+  });
+
+  it('parses editable playlists, liked songs first', () => {
+    const page = parseEditablePlaylists({
+      me: {
+        editablePlaylists: {
+          totalCount: 3,
+          pagingInfo: { offset: 0, limit: 50 },
+          items: [
+            {
+              curates: true,
+              pinned: true,
+              item: { __typename: 'LibraryPseudoPlaylistResponseWrapper', _uri: 'spotify:collection:tracks', data: { __typename: 'PseudoPlaylist', name: 'Brani che ti piacciono', uri: 'spotify:collection:tracks', image: { sources: [] } } },
+            },
+            {
+              curates: false,
+              pinned: false,
+              item: {
+                __typename: 'PlaylistResponseWrapper',
+                _uri: `spotify:playlist:${'P'.repeat(22)}`,
+                data: { __typename: 'Playlist', name: 'Road trip', uri: `spotify:playlist:${'P'.repeat(22)}`, images: { items: [{ sources: [{ url: 'https://i/p', width: null, height: null }] }] } },
+              },
+            },
+            { curates: false, pinned: false, item: { __typename: 'NotFound', _uri: 'spotify:folder:x', data: { name: 'Folder' } } },
+          ],
+        },
+      },
+    });
+    expect(page).toEqual({
+      total: 3,
+      itemCount: 3,
+      playlists: [
+        { uri: 'spotify:collection:tracks', name: 'Brani che ti piacciono', imageUrl: null, curates: true, liked: true },
+        { uri: `spotify:playlist:${'P'.repeat(22)}`, name: 'Road trip', imageUrl: 'https://i/p', curates: false, liked: false },
+      ],
+    });
+    expect(parseEditablePlaylists({ me: {} })).toBeNull();
   });
 });

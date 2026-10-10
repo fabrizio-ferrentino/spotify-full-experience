@@ -7,12 +7,15 @@ export const OPERATIONS = {
   artistOverview: 'queryArtistOverview',
   addToLibrary: 'addToLibrary',
   applyCurations: 'applyCurations',
+  editablePlaylists: 'editablePlaylists',
 } as const;
 
 /** Largest page accepted by fetchLibraryTracks (checked live: 1000). */
 export const LIBRARY_PAGE_MAX = 1000;
 /** Context of the liked songs in curation requests. */
-const LIKED_SONGS_CONTEXT = 'spotify:collection:tracks';
+export const LIKED_SONGS_CONTEXT = 'spotify:collection:tracks';
+/** Page size of our editablePlaylists requests. */
+export const EDITABLE_PAGE_SIZE = 50;
 
 const TRACK_URI = /^spotify:track:([A-Za-z0-9]{22})$/;
 const ARTIST_URI = /^spotify:artist:([A-Za-z0-9]{22})$/;
@@ -141,4 +144,65 @@ export function parseLibraryChange(operationName: string | null, variables: unkn
     if (type === 'CURATE') return { kind: 'added', trackIds };
   }
   return null;
+}
+
+export interface EditablePlaylist {
+  /** spotify:playlist:<id>, or spotify:collection:tracks for the liked songs. */
+  uri: string;
+  name: string;
+  imageUrl: string | null;
+  /** The playlist already contains the items asked about. */
+  curates: boolean;
+  liked: boolean;
+}
+
+export interface EditablePlaylistsPage {
+  total: number;
+  itemCount: number;
+  playlists: EditablePlaylist[];
+}
+
+/**
+ * `data` of editablePlaylists (variables `{ offset, limit, textFilter, uris }`, checked live on
+ * 2026-10-10): `me.editablePlaylists { totalCount, items[] { curates, pinned, item { _uri,
+ * data { __typename: PseudoPlaylist | Playlist, name, uri, image | images } } } }`. The liked
+ * songs come first, as a PseudoPlaylist with `spotify:collection:tracks`.
+ */
+export function parseEditablePlaylists(data: unknown): EditablePlaylistsPage | null {
+  const page = at(data, 'me', 'editablePlaylists');
+  const total = at(page, 'totalCount');
+  const items = at(page, 'items');
+  if (typeof total !== 'number' || !Array.isArray(items)) return null;
+  const playlists: EditablePlaylist[] = [];
+  for (const item of items) {
+    const data = at(item, 'item', 'data');
+    const uri = at(item, 'item', '_uri') ?? at(data, 'uri');
+    const name = at(data, 'name');
+    if (typeof uri !== 'string' || typeof name !== 'string') continue;
+    const liked = uri === LIKED_SONGS_CONTEXT;
+    if (!liked && !/^spotify:playlist:[A-Za-z0-9]{22}$/.test(uri)) continue;
+    const images = at(data, 'images', 'items');
+    const sources = at(data, 'image', 'sources') ?? (Array.isArray(images) ? at(images[0], 'sources') : null);
+    playlists.push({ uri, name, imageUrl: smallestImage(sources, 40), curates: at(item, 'curates') === true, liked });
+  }
+  return { total, itemCount: items.length, playlists };
+}
+
+/** `data` of applyCurations: one entry per item (`[{ data: { isCurated } }]`), null if unexpected. */
+export function parseCurationResult(data: unknown): boolean {
+  const results = at(data, 'applyCurations');
+  return Array.isArray(results) && results.length > 0;
+}
+
+export type CurationType = 'CURATE' | 'UNCURATE';
+
+/**
+ * Variables of applyCurations, as the player sends them from its "saved in" dialog
+ * (docs/phase0-findings.md): `{ input: { curations: [{ contextUri, curationType }], itemUris } }`.
+ */
+export function curationVariables(
+  itemUris: string[],
+  curations: { contextUri: string; curationType: CurationType }[],
+): Record<string, unknown> {
+  return { input: { curations: curations.map(({ contextUri, curationType }) => ({ contextUri, curationType })), itemUris } };
 }

@@ -153,8 +153,7 @@ describe('LikedSongsView', () => {
     expect([...menu()!.querySelectorAll('button')].map((b) => b.textContent)).toEqual([
       "Vai all'artista",
       "Vai all'album",
-      'Vai al brano',
-      'Copia link del brano',
+      'Condividi',
     ]);
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(menu()).toBeNull();

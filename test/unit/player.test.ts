@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   buildPlayCommand,
+  buildQueueCommand,
   commandUrl,
   likedByArtistContext,
   parseConnectUrl,
   parsePlayParams,
+  parseQueueTemplate,
 } from '../../src/page/adapters/connectShapes';
 import { PlayerCommands } from '../../src/page/core/player';
 import { Session } from '../../src/page/core/session';
@@ -23,14 +25,16 @@ const playBody = JSON.stringify({
 });
 
 describe('connect shapes', () => {
-  it('reads the device from commands and from the startup registration', () => {
+  it('reads the device from commands and from the local playback device', () => {
     expect(parseConnectUrl(COMMAND)).toEqual({ origin: 'https://gew4-spclient.spotify.com', deviceId: DEVICE, fromCommand: true });
-    expect(parseConnectUrl(`https://gew4-spclient.spotify.com/connect-state/v1/devices/hobs_${OTHER}`)).toEqual({
+    // The observer registration carries a truncated ID: never used.
+    expect(parseConnectUrl(`https://gew4-spclient.spotify.com/connect-state/v1/devices/hobs_${OTHER.slice(0, 35)}`)).toBeNull();
+    expect(parseConnectUrl(`https://gew4-spclient.spotify.com/track-playback/v1/devices/${OTHER}/volume`)).toEqual({
       origin: 'https://gew4-spclient.spotify.com',
       deviceId: OTHER,
       fromCommand: false,
     });
-    expect(parseConnectUrl('https://evil.example/connect-state/v1/devices/hobs_' + OTHER)).toBeNull();
+    expect(parseConnectUrl(`https://evil.example/track-playback/v1/devices/${OTHER}/state`)).toBeNull();
     expect(parseConnectUrl('https://gew4-spclient.spotify.com/track-playback/v1/x')).toBeNull();
   });
 
@@ -68,10 +72,10 @@ describe('PlayerCommands', () => {
 
   it('sends the command to the observed device with the observed parameters', async () => {
     const { player, fetchFn } = setup();
-    player.observe(`https://gew4-spclient.spotify.com/connect-state/v1/devices/hobs_${OTHER}`, null);
+    player.observe(`https://gew4-spclient.spotify.com/track-playback/v1/devices/${OTHER}/volume`, null);
     player.observe(COMMAND, playBody);
-    // A later registration does not replace the device seen on a command.
-    player.observe(`https://gew4-spclient.spotify.com/connect-state/v1/devices/hobs_${OTHER}`, null);
+    // A later playback request does not replace the device seen on a command.
+    player.observe(`https://gew4-spclient.spotify.com/track-playback/v1/devices/${OTHER}/state`, null);
     expect(player.ready).toBe(true);
     await expect(player.play('spotify:user:u:collection:artist:A', 'spotify:track:t')).resolves.toBe(true);
     const [url, init] = fetchFn.mock.calls[0] as unknown as [string, RequestInit];
@@ -87,5 +91,62 @@ describe('PlayerCommands', () => {
     const failing = new PlayerCommands((async () => new Response('', { status: 400 })) as unknown as typeof fetch, session);
     failing.observe(COMMAND, null);
     await expect(failing.play('ctx', 'spotify:track:t')).resolves.toBe(false);
+  });
+});
+
+describe('add to queue', () => {
+  const queueBody = JSON.stringify({
+    command: {
+      endpoint: 'add_to_queue',
+      track: { uri: 'spotify:track:old', uid: 'u1', metadata: { is_queued: 'true', extra: 'x' }, provider: 'queue' },
+      logging_params: { command_id: 'c', page_instance_ids: ['p'] },
+    },
+  });
+
+  it("takes the player's own command as a template, without per-command fields", () => {
+    expect(parseQueueTemplate(queueBody)).toEqual({ track: { metadata: { is_queued: 'true', extra: 'x' }, provider: 'queue' } });
+    expect(parseQueueTemplate(JSON.stringify({ command: { endpoint: 'play' } }))).toBeNull();
+    expect(parseQueueTemplate('not json')).toBeNull();
+  });
+
+  it('builds the command for a track, with or without a template', () => {
+    const fromTemplate = buildQueueCommand('spotify:track:new', parseQueueTemplate(queueBody), 'id') as { command: Record<string, unknown> };
+    expect(fromTemplate.command).toEqual({
+      endpoint: 'add_to_queue',
+      track: { uri: 'spotify:track:new', metadata: { is_queued: 'true', extra: 'x' }, provider: 'queue' },
+      logging_params: { command_id: 'id' },
+    });
+    expect(buildQueueCommand('spotify:track:new', null, 'id')).toEqual({
+      command: { track: { uri: 'spotify:track:new', metadata: { is_queued: 'true' } }, logging_params: { command_id: 'id' }, endpoint: 'add_to_queue' },
+    });
+  });
+
+  function queueSetup(cluster: unknown) {
+    const session = new Session();
+    session.observe(new Headers({ authorization: 'Bearer t' }));
+    const fetchFn = vi.fn(async (url: string) =>
+      url.endsWith('/cluster') ? new Response(JSON.stringify(cluster), { status: 200 }) : new Response('{}', { status: 200 }),
+    );
+    const player = new PlayerCommands(fetchFn as unknown as typeof fetch, session);
+    player.observe(COMMAND, queueBody);
+    return { player, fetchFn };
+  }
+
+  it('reads the active device and sends the command there, from this tab', async () => {
+    const { player, fetchFn } = queueSetup({ active_device_id: OTHER, player_state: { track: { uri: 'spotify:track:x' } } });
+    await expect(player.queue('spotify:track:new')).resolves.toBe(true);
+    const calls = fetchFn.mock.calls as unknown as [string, RequestInit][];
+    expect(calls[0]![0]).toBe('https://gew4-spclient.spotify.com/connect-state/v1/cluster');
+    expect(calls[0]![1].method).toBe('GET');
+    expect(calls[1]![0]).toBe(`https://gew4-spclient.spotify.com/connect-state/v1/player/command/from/${DEVICE}/to/${OTHER}`);
+    expect(JSON.parse(String(calls[1]![1].body)).command.track).toEqual({ uri: 'spotify:track:new', metadata: { is_queued: 'true', extra: 'x' }, provider: 'queue' });
+  });
+
+  it('sends nothing when no device is playing', async () => {
+    for (const cluster of [{}, { active_device_id: OTHER }, { active_device_id: 'not-an-id', player_state: { track: {} } }]) {
+      const { player, fetchFn } = queueSetup(cluster);
+      await expect(player.queue('spotify:track:new')).resolves.toBe(false);
+      expect(fetchFn).toHaveBeenCalledTimes(1);
+    }
   });
 });

@@ -148,37 +148,77 @@ type ViewLabels = {
   added: string;
   back: string;
   explicit: string;
+  play: (track: string) => string;
   more: (track: string) => string;
   goToArtist: string;
   goToAlbum: string;
-  goToSong: string;
   copyLink: string;
+  addToPlaylist: string;
+  removeFromLiked: string;
+  addToQueue: string;
+  share: string;
+  saveIn: string;
+  findPlaylist: string;
+  likedSongs: string;
+  noPlaylists: string;
+  cancel: string;
+  done: string;
+  addedToQueue: string;
+  removedFromLiked: string;
+  addedTo: (playlist: string) => string;
+  saved: string;
+  linkCopied: string;
+  failed: string;
 };
 
 const VIEW_LABELS: Record<string, ViewLabels> = {
   it: {
     title: 'Titolo', album: 'Album', added: 'Aggiunto il giorno', back: 'Indietro', explicit: 'Esplicito',
-    more: (t) => `Altre opzioni per ${t}`, goToArtist: "Vai all'artista", goToAlbum: "Vai all'album", goToSong: 'Vai al brano', copyLink: 'Copia link del brano',
+    play: (t) => `Riproduci ${t}`, more: (t) => `Altre opzioni per ${t}`, goToArtist: "Vai all'artista", goToAlbum: "Vai all'album", copyLink: 'Copia link del brano',
+    addToPlaylist: 'Aggiungi alla playlist', removeFromLiked: 'Rimuovi dai brani che ti piacciono', addToQueue: 'Aggiungi in coda', share: 'Condividi',
+    saveIn: 'Salva in', findPlaylist: 'Trova una playlist', likedSongs: 'Brani che ti piacciono', noPlaylists: 'Nessuna playlist', cancel: 'Annulla', done: 'Fatto',
+    addedToQueue: 'Aggiunto in coda', removedFromLiked: 'Rimosso dai brani che ti piacciono', addedTo: (p) => `Aggiunto a ${p}`, saved: 'Modifiche salvate',
+    linkCopied: 'Link copiato negli appunti', failed: "Non è stato possibile completare l'operazione",
   },
   en: {
     title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit',
-    more: (t) => `More options for ${t}`, goToArtist: 'Go to artist', goToAlbum: 'Go to album', goToSong: 'Go to song', copyLink: 'Copy song link',
+    play: (t) => `Play ${t}`, more: (t) => `More options for ${t}`, goToArtist: 'Go to artist', goToAlbum: 'Go to album', copyLink: 'Copy song link',
+    addToPlaylist: 'Add to playlist', removeFromLiked: 'Remove from your Liked Songs', addToQueue: 'Add to queue', share: 'Share',
+    saveIn: 'Save in', findPlaylist: 'Find a playlist', likedSongs: 'Liked Songs', noPlaylists: 'No playlists', cancel: 'Cancel', done: 'Done',
+    addedToQueue: 'Added to queue', removedFromLiked: 'Removed from Liked Songs', addedTo: (p) => `Added to ${p}`, saved: 'Changes saved',
+    linkCopied: 'Link copied to clipboard', failed: 'Something went wrong',
   },
   es: {
     title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito',
-    more: (t) => `Más opciones para ${t}`, goToArtist: 'Ir al artista', goToAlbum: 'Ir al álbum', goToSong: 'Ir a la canción', copyLink: 'Copiar enlace de la canción',
+    play: (t) => `Reproducir ${t}`, more: (t) => `Más opciones para ${t}`, goToArtist: 'Ir al artista', goToAlbum: 'Ir al álbum', copyLink: 'Copiar enlace de la canción',
+    addToPlaylist: 'Añadir a la playlist', removeFromLiked: 'Quitar de tus canciones que te gustan', addToQueue: 'Añadir a la cola', share: 'Compartir',
+    saveIn: 'Guardar en', findPlaylist: 'Buscar una playlist', likedSongs: 'Canciones que te gustan', noPlaylists: 'No hay playlists', cancel: 'Cancelar', done: 'Listo',
+    addedToQueue: 'Añadida a la cola', removedFromLiked: 'Quitada de Canciones que te gustan', addedTo: (p) => `Añadida a ${p}`, saved: 'Cambios guardados',
+    linkCopied: 'Enlace copiado al portapapeles', failed: 'Se ha producido un error',
   },
   fr: {
     title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite',
-    more: (t) => `Plus d’options pour ${t}`, goToArtist: 'Accéder à l’artiste', goToAlbum: 'Accéder à l’album', goToSong: 'Accéder au titre', copyLink: 'Copier le lien du titre',
+    play: (t) => `Lire ${t}`, more: (t) => `Plus d’options pour ${t}`, goToArtist: 'Accéder à l’artiste', goToAlbum: 'Accéder à l’album', copyLink: 'Copier le lien du titre',
+    addToPlaylist: 'Ajouter à la playlist', removeFromLiked: 'Retirer des Titres likés', addToQueue: 'Ajouter à la file d’attente', share: 'Partager',
+    saveIn: 'Enregistrer dans', findPlaylist: 'Rechercher une playlist', likedSongs: 'Titres likés', noPlaylists: 'Aucune playlist', cancel: 'Annuler', done: 'OK',
+    addedToQueue: 'Ajouté à la file d’attente', removedFromLiked: 'Retiré des Titres likés', addedTo: (p) => `Ajouté à ${p}`, saved: 'Modifications enregistrées',
+    linkCopied: 'Lien copié dans le presse-papiers', failed: 'Une erreur s’est produite',
   },
   de: {
     title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit',
-    more: (t) => `Weitere Optionen für ${t}`, goToArtist: 'Zum Künstler', goToAlbum: 'Zum Album', goToSong: 'Zum Song', copyLink: 'Songlink kopieren',
+    play: (t) => `${t} abspielen`, more: (t) => `Weitere Optionen für ${t}`, goToArtist: 'Zum Künstler', goToAlbum: 'Zum Album', copyLink: 'Songlink kopieren',
+    addToPlaylist: 'Zur Playlist hinzufügen', removeFromLiked: 'Aus Lieblingssongs entfernen', addToQueue: 'Zur Warteschlange hinzufügen', share: 'Teilen',
+    saveIn: 'Speichern in', findPlaylist: 'Playlist suchen', likedSongs: 'Lieblingssongs', noPlaylists: 'Keine Playlists', cancel: 'Abbrechen', done: 'Fertig',
+    addedToQueue: 'Zur Warteschlange hinzugefügt', removedFromLiked: 'Aus Lieblingssongs entfernt', addedTo: (p) => `Zu ${p} hinzugefügt`, saved: 'Änderungen gespeichert',
+    linkCopied: 'Link in die Zwischenablage kopiert', failed: 'Etwas ist schiefgelaufen',
   },
   pt: {
     title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito',
-    more: (t) => `Mais opções para ${t}`, goToArtist: 'Ir para o artista', goToAlbum: 'Ir para o álbum', goToSong: 'Ir para a música', copyLink: 'Copiar link da música',
+    play: (t) => `Tocar ${t}`, more: (t) => `Mais opções para ${t}`, goToArtist: 'Ir para o artista', goToAlbum: 'Ir para o álbum', copyLink: 'Copiar link da música',
+    addToPlaylist: 'Adicionar à playlist', removeFromLiked: 'Remover das Músicas Curtidas', addToQueue: 'Adicionar à fila', share: 'Compartilhar',
+    saveIn: 'Salvar em', findPlaylist: 'Encontrar uma playlist', likedSongs: 'Músicas Curtidas', noPlaylists: 'Nenhuma playlist', cancel: 'Cancelar', done: 'Concluir',
+    addedToQueue: 'Adicionada à fila', removedFromLiked: 'Removida das Músicas Curtidas', addedTo: (p) => `Adicionada a ${p}`, saved: 'Alterações salvas',
+    linkCopied: 'Link copiado para a área de transferência', failed: 'Algo deu errado',
   },
 };
 

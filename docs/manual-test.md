@@ -41,7 +41,11 @@ Run with the "Liked songs on artist pages" option enabled. Keep Spotify open in 
 - [ ] N matches the desktop app on 3 artists, at least one with collaborations (only the primary artist counts).
 - [ ] First visit: the index is built with 2 requests for ~1200 liked songs, no 429.
 - [ ] Click the section: the "Brani che ti piacciono di <artist>" view covers the main view; back button, Escape and any navigation restore the artist page.
-- [ ] Rows: hover shows "…"; click selects; double click plays the track and continues with the artist's liked songs; title, artists and album open their pages; right click opens the same menu as "…".
+- [ ] Rows: hover shows ▶ in place of the number, the green tick and "…"; click selects; double click or ▶ plays the track and continues with the artist's liked songs; the big green button plays from the first one; title, artists and album open their pages.
+- [ ] Right after a page load (no native command yet), "…" → "Aggiungi in coda" and a double click work at the first try.
+- [ ] "…" / right click: Aggiungi alla playlist ▸ (search, playlists), Rimuovi dai brani che ti piacciono (the row disappears, the count goes down), Aggiungi in coda (added to the queue of the device that is playing, also another tab or browser), Vai all'artista, Vai all'album, Condividi ▸ Copia link. Every action shows a toast.
+- [ ] Green tick → "Salva in": liked songs checked, playlists with their state; Annulla and Escape change nothing; Fatto sends only the changes.
+- [ ] Known limit: after a change made from our view, the player's own ticks on album rows update only after a reload.
 - [ ] Like a track of the artist elsewhere, come back: the count goes up. Unlike it: the count goes down.
 - [ ] Option disabled (reload the tab): no section, artist page identical to the original.
 

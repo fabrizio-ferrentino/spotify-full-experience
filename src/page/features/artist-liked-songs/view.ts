@@ -1,22 +1,32 @@
 // "Brani che ti piacciono di <artist>" view, like the desktop app's page. It is a panel laid
 // over the player's main view (same box, fixed to the viewport), appended to <body>: the
 // player's own DOM is never changed. Back button, Escape, the artist's name or any navigation
-// close it. Titles, artists and albums open their pages inside the app, where playback uses the
-// player's controls; the "…" button and right click open a small menu of our own.
+// close it. Titles, artists and albums open their pages inside the app. Rows behave like the
+// desktop app's: ▶ in place of the number, a green tick that opens "Save in", and a "…" menu
+// (also on right click) of our own; the player's native menus cannot be opened for our rows.
 import type { LikedTrack } from '../../../shared/likedIndex';
+import { LIKED_SONGS_CONTEXT, type EditablePlaylist } from '../../adapters/libraryShapes';
 import { albumPath, artistPath, navigateTo, trackPath, trackShareUrl } from '../../adapters/spotifyNav';
 import { setText } from '../../core/dom';
 import { addedDate, formatDuration, likedCountText, likedPageTitle, viewLabels } from '../../ui/format';
 import { ContextMenu, type MenuItem } from './menu';
-import { ACCENT, el, ELLIPSIS, HOVER, icon, ICONS, type Typography } from './typography';
+import { SaveDialog, type CurationChange } from './saveDialog';
+import { showToast } from './toast';
+import { ACCENT, checkIcon, el, ELLIPSIS, HOVER, icon, ICONS, type Typography } from './typography';
 
 const OWN = 'data-sfe-liked-view';
 const PADDING = 24;
 const COLUMNS =
-  'display: grid; grid-template-columns: 24px minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr) minmax(48px, 1fr) 32px; column-gap: 16px; align-items: center; padding: 0 8px 0 16px';
+  'display: grid; grid-template-columns: 24px minmax(0, 4fr) minmax(0, 2fr) minmax(0, 2fr) minmax(88px, 1fr) 32px; column-gap: 16px; align-items: center; padding: 0 8px 0 16px';
 const SELECTED = 'data-sfe-selected';
 const SELECTED_BACKGROUND = 'rgba(255, 255, 255, 0.2)';
+const ROUND_BUTTON =
+  'border: 0; border-radius: 50%; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0';
 const MORE = 'M3 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm6.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM16 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z';
+
+function copyText(text: string): Promise<boolean> {
+  return navigator.clipboard ? navigator.clipboard.writeText(text).then(() => true) : Promise.resolve(false);
+}
 
 export interface ViewModel {
   artistId: string;
@@ -24,6 +34,18 @@ export interface ViewModel {
   imageUrl: string | null;
   tracks: LikedTrack[];
   now: number;
+}
+
+/** What the rows can do; actions left out are not offered. */
+export interface RowActions {
+  /** Double click, ▶ (default: open the track page, which the player starts). */
+  play(track: LikedTrack): void;
+  /** Adds the track to the player's queue; false on failure. */
+  queue(track: LikedTrack): Promise<boolean>;
+  /** The liked songs and the editable playlists, with `curates` for this track. */
+  playlists(track: LikedTrack): Promise<EditablePlaylist[]>;
+  /** Saves or removes the track in the given contexts; false on failure. */
+  curate(track: LikedTrack, changes: CurationChange[]): Promise<boolean>;
 }
 
 export class LikedSongsView {
@@ -34,6 +56,9 @@ export class LikedSongsView {
   private readonly count: HTMLElement;
   private readonly list: HTMLOListElement;
   private readonly menu: ContextMenu;
+  private readonly saveDialog: SaveDialog;
+  private readonly actions: Partial<RowActions>;
+  private tracks: LikedTrack[] = [];
   private readonly resizeObserver: ResizeObserver | null;
   private readonly onKey = (event: KeyboardEvent) => {
     if (event.key === 'Escape') this.close();
@@ -47,17 +72,21 @@ export class LikedSongsView {
     private readonly anchor: HTMLElement,
     private readonly typography: Typography,
     private readonly onClose: () => void,
-    /** Double click on a row (default: open the track page, which the player starts). */
-    private readonly onPlay: (track: LikedTrack) => void = (track) => navigateTo(trackPath(track.t)),
+    actions: Partial<RowActions> = {},
   ) {
+    this.actions = actions;
     this.menu = new ContextMenu(typography.title);
+    this.saveDialog = new SaveDialog(typography.title);
     this.root = el(
       'section',
       'position: fixed; z-index: 20; overflow-y: auto; border-radius: 8px; color: var(--text-base, #fff); background: linear-gradient(rgba(255,255,255,0.12), rgba(255,255,255,0) 280px), var(--background-base, #121212)',
     );
     this.root.setAttribute(OWN, '');
     this.root.setAttribute('role', 'region');
-    this.root.addEventListener('scroll', () => this.menu.close());
+    this.root.addEventListener('scroll', () => {
+      this.menu.close();
+      this.saveDialog.close();
+    });
     this.resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(this.onResize) : null;
     const labels = viewLabels();
 
@@ -71,8 +100,19 @@ export class LikedSongsView {
     back.setAttribute('aria-label', labels.back);
     back.append(icon(ICONS.back, 16));
     back.addEventListener('click', () => this.close());
+    // Big green play: the artist's liked songs from the first one, like the desktop app.
+    const playAll = el('button', `${ROUND_BUTTON}; flex: 0 0 48px; width: 48px; height: 48px; background: ${ACCENT}; color: #000`);
+    playAll.type = 'button';
+    playAll.setAttribute('aria-label', labels.play(''));
+    playAll.append(icon(ICONS.play, 20));
+    playAll.addEventListener('click', () => {
+      const first = this.tracks[0];
+      if (first) this.play(first);
+    });
+    playAll.addEventListener('mouseenter', () => (playAll.style.transform = 'scale(1.04)'));
+    playAll.addEventListener('mouseleave', () => (playAll.style.transform = ''));
     this.barTitle = el('span', `${ELLIPSIS}; font-weight: 700; font-size: 20px`, typography.title);
-    bar.append(back, this.barTitle);
+    bar.append(back, playAll, this.barTitle);
 
     // Header: artist picture with the heart badge, big title, count.
     const header = el('div', `display: flex; align-items: flex-end; gap: 24px; padding: 16px ${PADDING}px 24px`);
@@ -117,6 +157,7 @@ export class LikedSongsView {
   /** Removes the panel; the player's page underneath was never touched. Safe to call twice. */
   close(): void {
     this.menu.close();
+    this.saveDialog.close();
     document.removeEventListener('keydown', this.onKey);
     window.removeEventListener('resize', this.onResize);
     this.resizeObserver?.disconnect();
@@ -137,6 +178,7 @@ export class LikedSongsView {
     setText(this.barTitle, pageTitle);
     this.renderTitle(pageTitle, model.artistName);
     setText(this.count, likedCountText(model.tracks.length));
+    this.tracks = model.tracks;
     this.renderPicture(model.imageUrl);
     const key = model.tracks.map((track) => track.t).join(',');
     if (key === this.renderedKey) return;
@@ -199,23 +241,100 @@ export class LikedSongsView {
     this.picture.replaceChildren(image, badge);
   }
 
+  private play(track: LikedTrack): void {
+    if (this.actions.play) this.actions.play(track);
+    else navigateTo(trackPath(track.t));
+  }
+
+  /** Runs a library or player action and reports the outcome in a toast. */
+  private report(action: Promise<boolean>, success: string): void {
+    void action.catch(() => false).then((ok) => showToast(ok ? success : viewLabels().failed, this.typography.title));
+  }
+
+  private openSaveDialog(track: LikedTrack, anchor: HTMLElement): void {
+    const { playlists, curate } = this.actions;
+    if (!playlists || !curate) return;
+    this.menu.close();
+    this.saveDialog.open(
+      anchor,
+      () => playlists(track),
+      (changes) => this.report(curate(track, changes), viewLabels().saved),
+      () => showToast(viewLabels().failed, this.typography.title),
+    );
+  }
+
   private menuItems(track: LikedTrack): MenuItem[] {
     const labels = viewLabels();
+    const { queue, playlists, curate } = this.actions;
     const items: MenuItem[] = [];
+    if (playlists && curate) {
+      items.push({
+        label: labels.addToPlaylist,
+        icon: () => icon(ICONS.plus, 16),
+        submenu: {
+          search: labels.findPlaylist,
+          empty: labels.noPlaylists,
+          items: async () =>
+            (await playlists(track))
+              .filter((playlist) => !playlist.liked)
+              .map((playlist) => ({
+                label: playlist.name,
+                action: () =>
+                  this.report(curate(track, [{ contextUri: playlist.uri, curationType: 'CURATE' }]), labels.addedTo(playlist.name)),
+              })),
+        },
+      });
+      items.push({
+        label: labels.removeFromLiked,
+        icon: () => checkIcon(16),
+        action: () =>
+          this.report(curate(track, [{ contextUri: LIKED_SONGS_CONTEXT, curationType: 'UNCURATE' }]), labels.removedFromLiked),
+      });
+    }
+    if (queue) {
+      items.push({ label: labels.addToQueue, icon: () => icon(ICONS.queue, 16), action: () => this.report(queue(track), labels.addedToQueue) });
+    }
+    const navigation: MenuItem[] = [];
     const artistId = track.ad[0] ?? track.a;
-    if (artistId) items.push({ label: labels.goToArtist, action: () => (artistId === this.artistId ? this.close() : navigateTo(artistPath(artistId))) });
-    if (track.ai) items.push({ label: labels.goToAlbum, action: () => navigateTo(albumPath(track.ai!)) });
-    items.push({ label: labels.goToSong, action: () => navigateTo(trackPath(track.t)) });
-    items.push({ label: labels.copyLink, action: () => void navigator.clipboard?.writeText(trackShareUrl(track.t)).catch(() => {}) });
-    return items;
+    if (artistId) {
+      navigation.push({
+        label: labels.goToArtist,
+        icon: () => icon(ICONS.artist, 16),
+        action: () => (artistId === this.artistId ? this.close() : navigateTo(artistPath(artistId))),
+      });
+    }
+    if (track.ai) navigation.push({ label: labels.goToAlbum, icon: () => icon(ICONS.album, 16), action: () => navigateTo(albumPath(track.ai!)) });
+    navigation.push({
+      label: labels.share,
+      icon: () => icon(ICONS.share, 16),
+      submenu: {
+        items: () => [
+          {
+            label: labels.copyLink,
+            icon: () => icon(ICONS.link, 16),
+            action: () => this.report(copyText(trackShareUrl(track.t)), labels.linkCopied),
+          },
+        ],
+      },
+    });
+    if (items.length) navigation[0]!.separator = true;
+    return [...items, ...navigation];
   }
 
   private row(track: LikedTrack, position: number, now: number): HTMLLIElement {
     const { title: titleClass, subdued } = this.typography;
     const row = el('li', `${COLUMNS}; height: 56px; border-radius: 4px`);
 
-    const index = el('span', `${subdued}; text-align: end; font-variant-numeric: tabular-nums`);
-    index.textContent = String(position);
+    // Number, or ▶ while the row is hovered or focused.
+    const index = el('span', `${subdued}; display: flex; justify-content: flex-end; align-items: center; font-variant-numeric: tabular-nums`);
+    const number = el('span');
+    number.textContent = String(position);
+    const play = el('button', `${ROUND_BUTTON}; width: 24px; height: 24px; color: #fff; display: none`);
+    play.type = 'button';
+    play.setAttribute('aria-label', viewLabels().play(track.n));
+    play.append(icon(ICONS.play, 14));
+    play.addEventListener('click', () => this.play(track));
+    index.append(number, play);
 
     const main = el('div', 'display: flex; align-items: center; gap: 12px; min-width: 0');
     const cover = el('div', 'flex: 0 0 40px; width: 40px; height: 40px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.1)');
@@ -250,11 +369,24 @@ export class LikedSongsView {
     album.textContent = track.al;
     const added = el('span', `${subdued}; ${ELLIPSIS}`);
     added.textContent = addedDate(track.d, now);
-    const duration = el('span', `${subdued}; justify-self: end; font-variant-numeric: tabular-nums`);
-    duration.textContent = formatDuration(track.ms);
+    // Green tick before the duration ("Save in"), shown on hover like on the desktop rows.
+    const duration = el('span', `${subdued}; justify-self: end; display: flex; align-items: center; gap: 16px; font-variant-numeric: tabular-nums`);
+    const time = el('span');
+    time.textContent = formatDuration(track.ms);
+    const saved = el('button', `${ROUND_BUTTON}; width: 24px; height: 24px; opacity: 0`);
+    saved.type = 'button';
+    saved.setAttribute('aria-label', viewLabels().saveIn);
+    saved.setAttribute('aria-haspopup', 'dialog');
+    saved.append(checkIcon(16));
+    saved.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.openSaveDialog(track, saved);
+    });
+    if (this.actions.playlists && this.actions.curate) duration.append(saved);
+    duration.append(time);
 
     // "…" button: visible on hover or focus, like the player's rows.
-    const more = el('button', 'justify-self: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0');
+    const more = el('button', `${ROUND_BUTTON}; justify-self: center; width: 32px; height: 32px; opacity: 0`);
     more.type = 'button';
     more.setAttribute('aria-label', viewLabels().more(track.n));
     more.setAttribute('aria-haspopup', 'menu');
@@ -264,21 +396,19 @@ export class LikedSongsView {
       const box = more.getBoundingClientRect();
       this.menu.open(this.menuItems(track), box.right - 240, box.bottom + 4);
     });
-    more.addEventListener('focus', () => (more.style.opacity = '1'));
-    more.addEventListener('blur', () => (more.style.opacity = row.matches(':hover') ? '1' : '0'));
 
     const paint = () => {
       const selected = row.hasAttribute(SELECTED);
-      row.style.background = selected ? SELECTED_BACKGROUND : row.matches(':hover') ? HOVER : 'transparent';
+      const active = row.matches(':hover') || row.contains(document.activeElement);
+      row.style.background = selected ? SELECTED_BACKGROUND : active ? HOVER : 'transparent';
+      for (const control of [saved, more]) control.style.opacity = active ? '1' : '0';
+      number.style.display = active ? 'none' : '';
+      play.style.display = active ? 'flex' : 'none';
     };
-    row.addEventListener('mouseenter', () => {
-      paint();
-      more.style.opacity = '1';
-    });
-    row.addEventListener('mouseleave', () => {
-      paint();
-      if (document.activeElement !== more) more.style.opacity = '0';
-    });
+    row.addEventListener('mouseenter', paint);
+    row.addEventListener('mouseleave', paint);
+    row.addEventListener('focusin', paint);
+    row.addEventListener('focusout', () => setTimeout(paint));
     // Like the player's rows: a click selects, a double click plays (see onPlay).
     const onRowControl = (event: Event) => (event.target as Element).closest('a, button') !== null;
     row.addEventListener('click', (event) => {
@@ -292,7 +422,7 @@ export class LikedSongsView {
     });
     row.addEventListener('dblclick', (event) => {
       if (onRowControl(event)) return;
-      this.onPlay(track);
+      this.play(track);
     });
     row.addEventListener('contextmenu', (event) => {
       event.preventDefault();

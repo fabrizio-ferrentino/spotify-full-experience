@@ -5,12 +5,18 @@
 // made in the player are applied from its own requests.
 import type { LikedIndex } from '../../../shared/likedIndex';
 import {
+  curationVariables,
+  EDITABLE_PAGE_SIZE,
+  LIKED_SONGS_CONTEXT,
   OPERATIONS,
   parseArtistOverview,
+  parseCurationResult,
+  parseEditablePlaylists,
   parseLibraryChange,
   parseLibraryPage,
   parseProfileUri,
   type ArtistInfo,
+  type EditablePlaylist,
 } from '../../adapters/libraryShapes';
 import type { PageInfo } from '../../adapters/routes';
 import { headerTitleOf, mainViewportOf, popularBlockOf, SELECTORS } from '../../adapters/spotifyDom';
@@ -23,6 +29,7 @@ import { navigateTo, trackPath } from '../../adapters/spotifyNav';
 import type { LikedTrack } from '../../../shared/likedIndex';
 import { debugLog, debugWarn } from '../../debug/log';
 import { LikedSongsCard } from './card';
+import type { CurationChange } from './saveDialog';
 import { LikedSongsView, type ViewModel } from './view';
 import { buildIndex, isStale, refreshIndex, removeTracks, tracksByArtist, type FetchPage } from './indexSync';
 
@@ -49,6 +56,9 @@ function waitForNowPlaying(title: string, timeoutMs: number): Promise<boolean> {
     check();
   });
 }
+
+/** At most this many editablePlaylists pages for one dialog or submenu. */
+const MAX_PLAYLIST_PAGES = 4;
 
 /** After a failure, the feature stays quiet for this long. */
 const RETRY_AFTER_MS = 60_000;
@@ -279,6 +289,51 @@ export class ArtistLikedSongsFeature {
     navigateTo(trackPath(track.t));
   }
 
+  /** The liked songs and the user's editable playlists, each saying whether it has the track. */
+  private async playlistsFor(track: LikedTrack): Promise<EditablePlaylist[]> {
+    const client = this.deps.client;
+    if (!client) throw new Error('no client');
+    const uris = [`spotify:track:${track.t}`];
+    const playlists: EditablePlaylist[] = [];
+    let offset = 0;
+    for (let page = 0; page < MAX_PLAYLIST_PAGES; page += 1) {
+      const result = await client.query(OPERATIONS.editablePlaylists, { offset, limit: EDITABLE_PAGE_SIZE, textFilter: '', uris });
+      const parsed = parseEditablePlaylists(result.data);
+      if (!parsed) throw new Error(`unexpected ${OPERATIONS.editablePlaylists} response`);
+      playlists.push(...parsed.playlists);
+      offset += parsed.itemCount;
+      if (parsed.itemCount === 0 || offset >= parsed.total) break;
+    }
+    return playlists;
+  }
+
+  /**
+   * Saves or removes a track like the player's "saved in" dialog (applyCurations), only on an
+   * explicit user action (CLAUDE.md §2.10). Our own requests are not observed by the
+   * interceptor, so a change to the liked songs is applied to the index here.
+   */
+  private async curate(track: LikedTrack, changes: CurationChange[]): Promise<boolean> {
+    const client = this.deps.client;
+    if (!client || !changes.length) return false;
+    const result = await client.query(OPERATIONS.applyCurations, curationVariables([`spotify:track:${track.t}`], changes));
+    if (result.errors.length || !parseCurationResult(result.data)) {
+      debugWarn('liked songs: applyCurations failed', result.errors);
+      return false;
+    }
+    const liked = changes.find((change) => change.contextUri === LIKED_SONGS_CONTEXT);
+    if (liked) this.applyChange(liked.curationType === 'UNCURATE' ? 'removed' : 'added', [track.t]);
+    return true;
+  }
+
+  private async queue(track: LikedTrack): Promise<boolean> {
+    const player = this.deps.player;
+    if (!player?.ready) {
+      debugLog(`liked songs: queue command unavailable (${player ? JSON.stringify(player.describe()) : 'no player'})`);
+      return false;
+    }
+    return player.queue(`spotify:track:${track.t}`);
+  }
+
   /** Shows "Brani che ti piacciono di <artist>" in place of the artist page content. */
   private openView(): void {
     const artistId = this.artistId;
@@ -291,7 +346,12 @@ export class ArtistLikedSongsFeature {
       mainViewportOf(main),
       card.typography,
       () => (this.view = null),
-      (track) => void this.playTrack(track, artistId),
+      {
+        play: (track) => void this.playTrack(track, artistId),
+        queue: (track) => this.queue(track),
+        playlists: (track) => this.playlistsFor(track),
+        curate: (track, changes) => this.curate(track, changes),
+      },
     );
     this.view.open(this.viewModel(artistId, name));
   }
