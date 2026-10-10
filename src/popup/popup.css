@@ -161,6 +161,31 @@ main {
 
 .footer {
   margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: 11px;
+}
+
+.links {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.links a {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.links a:hover,
+.links a:focus-visible {
+  color: var(--fg);
+  text-decoration: underline;
+}
+
+.disclaimer {
+  margin: 0;
 }

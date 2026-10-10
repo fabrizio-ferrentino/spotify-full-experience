@@ -18,6 +18,8 @@ export type MessageKey =
   | 'debugDesc'
   | 'saved'
   | 'saveFailed'
+  | 'sourceCode'
+  | 'reportIssue'
   | 'disclaimer';
 
 export interface FormDeps {
@@ -28,6 +30,8 @@ export interface FormDeps {
   name: string;
   version: string;
   iconUrl: string;
+  /** Public repository and its "new issue" page. */
+  links: { source: string; issues: string };
 }
 
 type FeatureKey = Exclude<ToggleKey, 'enabled'>;
@@ -103,7 +107,19 @@ export async function renderSettingsForm(root: HTMLElement, deps: FormDeps): Pro
   const status = el('p', 'status');
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
-  const footer = el('footer', 'footer', t('disclaimer'));
+  const links = el('nav', 'links');
+  for (const [href, label] of [
+    [deps.links.source, t('sourceCode')],
+    [deps.links.issues, t('reportIssue')],
+  ] as const) {
+    const link = el('a', '', label);
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    links.append(link);
+  }
+  const footer = el('footer', 'footer');
+  footer.append(links, el('p', 'disclaimer', t('disclaimer')));
   root.replaceChildren(header, master, features, advanced, status, footer);
 
   let timer: ReturnType<typeof setTimeout> | null = null;

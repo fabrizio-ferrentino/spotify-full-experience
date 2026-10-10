@@ -59,6 +59,7 @@ describe('settings form', () => {
     name: 'Spotify Full Experience',
     version: '2026.10.10',
     iconUrl: 'icons/icon-48.png',
+    links: { source: 'https://github.com/owner/repo', issues: 'https://github.com/owner/repo/issues/new' },
     ...overrides,
   });
 
@@ -88,6 +89,16 @@ describe('settings form', () => {
       expect(input(id).disabled).toBe(false);
       expect(input(id).getAttribute('role')).toBe('switch');
     }
+  });
+
+  it('links to the source code and to a new issue, in a new tab', async () => {
+    await renderSettingsForm(root, deps());
+    const links = [...root.querySelectorAll<HTMLAnchorElement>('.links a')];
+    expect(links.map((a) => [a.textContent, a.href, a.target])).toEqual([
+      ['sourceCode', 'https://github.com/owner/repo', '_blank'],
+      ['reportIssue', 'https://github.com/owner/repo/issues/new', '_blank'],
+    ]);
+    expect(links.every((a) => a.rel === 'noopener noreferrer')).toBe(true);
   });
 
   it('saves a feature switch', async () => {

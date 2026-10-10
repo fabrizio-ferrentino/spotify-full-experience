@@ -44,6 +44,12 @@
   "saveFailed": {
     "message": "Impossibile salvare l'impostazione."
   },
+  "sourceCode": {
+    "message": "Codice sorgente"
+  },
+  "reportIssue": {
+    "message": "Segnala un problema"
+  },
   "disclaimer": {
     "message": "Progetto non ufficiale, non affiliato a Spotify né approvato da Spotify."
   }

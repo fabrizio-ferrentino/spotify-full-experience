@@ -44,6 +44,12 @@
   "saveFailed": {
     "message": "Could not save the setting."
   },
+  "sourceCode": {
+    "message": "Source code"
+  },
+  "reportIssue": {
+    "message": "Report a problem"
+  },
   "disclaimer": {
     "message": "Unofficial project, not affiliated with or endorsed by Spotify."
   }

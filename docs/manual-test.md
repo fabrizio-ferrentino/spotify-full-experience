@@ -69,6 +69,7 @@ Run with the "Search and sort in playlists" option enabled.
 - [ ] The switches show the stored settings; changing one shows "Saved." and the open Spotify tab follows without a reload (debug excepted).
 - [ ] Master switch off: the feature switches turn grey but keep their state; on the open Spotify tab the play counts, the liked songs section and the playlist controls disappear. Back on: they come back.
 - [ ] Master switch off and reload the tab: the page is identical to the original.
+- [ ] "Source code" opens the GitHub repository and "Report a problem" a new issue, each in a new tab.
 - [ ] The extension's options page (`chrome://extensions` → Details → Extension options; `about:addons` on Firefox) shows the same panel.
 
 ## Phase 0 reconnaissance

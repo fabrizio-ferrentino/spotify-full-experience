@@ -3,6 +3,7 @@
   "name": "Spotify Full Experience",
   "description": "Adds desktop-only information to the web player. Unofficial, not affiliated with Spotify.",
   "default_locale": "en",
+  "homepage_url": "https://github.com/fabrizio-ferrentino/spotify-full-experience",
   "permissions": ["storage"],
   "content_scripts": [
     {

@@ -15,6 +15,8 @@ async function save(key: ToggleKey, value: boolean): Promise<Settings> {
   return next;
 }
 
+const REPOSITORY = 'https://github.com/fabrizio-ferrentino/spotify-full-experience';
+
 const t = (key: MessageKey) => ext.i18n.getMessage(key) || key;
 
 const root = document.querySelector<HTMLElement>('#app');
@@ -28,5 +30,6 @@ if (root) {
     name: manifest.name,
     version: manifest.version,
     iconUrl: ext.runtime.getURL('icons/icon-48.png'),
+    links: { source: REPOSITORY, issues: `${REPOSITORY}/issues/new` },
   });
 }

@@ -4,6 +4,12 @@
   "private": true,
   "description": "Browser extension that adds desktop-only information to the Spotify web player.",
   "license": "MIT",
+  "homepage": "https://github.com/fabrizio-ferrentino/spotify-full-experience",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fabrizio-ferrentino/spotify-full-experience.git"
+  },
+  "bugs": "https://github.com/fabrizio-ferrentino/spotify-full-experience/issues",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
