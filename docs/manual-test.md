@@ -49,6 +49,20 @@ Run with the "Liked songs on artist pages" option enabled. Keep Spotify open in 
 - [ ] Like a track of the artist elsewhere, come back: the count goes up. Unlike it: the count goes down.
 - [ ] Option disabled (reload the tab): no section, artist page identical to the original.
 
+## Search and sort in playlists
+
+Run with the "Search and sort in playlists" option enabled.
+
+- [ ] Playlist and Liked Songs pages: a magnifier and one "order ☰" button in the action bar; the player's "Elenco" button is hidden.
+- [ ] Without searching or sorting, the list is the player's own (hover, play, menus, drag and drop as usual).
+- [ ] Search: matches title, artists and album, ignoring case and accents; the matches are highlighted; × and Escape restore the native list.
+- [ ] Sort menu: Liked Songs offer Titolo, Aggiunti di recente, Artista, Album; playlists offer Ordine personalizzato, Titolo, Artista, Album, Data di aggiunta, Durata. Choosing the same entry again flips the direction; headers of our list sort too.
+- [ ] "Visualizza come" Compatta / Elenco from our menu switches the player's view.
+- [ ] Double click in a filtered playlist plays from that track in the playlist context.
+- [ ] Navigate playlist → playlist, Home → playlist, playlist → Liked Songs: the controls are always there, no leftovers on other pages.
+- [ ] A playlist longer than 1000 songs loads with one extra request per 1000 songs, only when searching or sorting.
+- [ ] Option disabled (reload the tab): playlist pages identical to the original.
+
 ## Phase 0 reconnaissance
 
 Navigate **inside the app** (click links) rather than reloading a URL: requests issued before the page script starts cannot be captured.

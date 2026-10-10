@@ -4,7 +4,7 @@ Candidates after Phases 0–2 (2026-10-10). ✅ = checked on the live web player
 
 ## Feasible (information and UI)
 
-1. **Search and sort in Liked Songs and playlists.** ✅ On the web, neither Liked Songs nor regular playlists have a "search in playlist" field or a sort menu: the action bar only offers "Visualizza come" (compact / list), and the column headers have `aria-sort="none"` without buttons (checked on 2026-10-10). The desktop app has both. *In progress.*
+1. **Search and sort in Liked Songs and playlists.** ✅ On the web, neither Liked Songs nor regular playlists have a "search in playlist" field or a sort menu: the action bar only offers "Visualizza come" (compact / list), and the column headers have `aria-sort="none"` without buttons (checked on 2026-10-10). The desktop app has both. **Done** (`features/playlist-tools`): search box and one "sort by / view as" button in the action bar; our list replaces the native one only while searching or sorting.
 2. **Play counts on the track page and in the "now playing" bar.** Check first what the web player already shows.
 3. **Sort album track lists by plays.** Builds on Phase 1.
 4. **The menu entries left out of our "liked songs by artist" view:**
@@ -16,6 +16,8 @@ Candidates after Phases 0–2 (2026-10-10). ✅ = checked on the live web player
    Their operations have not been observed yet.
 5. **Extended credits** (engineers, mixers, session musicians). Check whether the credits endpoint returns them to the web session.
 6. **"Lossless" label, information only.** Only if the metadata reachable from the web exposes the audio file formats (`FLAC_FLAC`, `FLAC_FLAC_24BIT`). Playback quality is never changed.
+
+7. **Genre and mood filter chips under the action bar** (desktop Liked Songs and playlists: "Emo", "Rock", "Upbeat", "Chill"…). The web player's bundle has no operation for them (checked on 2026-10-10), so the desktop's data source must be found first; moods cannot be derived from data we already have.
 
 ## To evaluate carefully
 

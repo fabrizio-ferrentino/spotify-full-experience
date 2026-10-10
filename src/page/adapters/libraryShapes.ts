@@ -8,7 +8,13 @@ export const OPERATIONS = {
   addToLibrary: 'addToLibrary',
   applyCurations: 'applyCurations',
   editablePlaylists: 'editablePlaylists',
+  playlist: 'fetchPlaylist',
+  playlistContents: 'fetchPlaylistContents',
 } as const;
+
+/** Largest page accepted by fetchPlaylistContents (checked live: 1000). */
+export const PLAYLIST_PAGE_MAX = 1000;
+const PLAYLIST_URI = /^spotify:playlist:[A-Za-z0-9]{22}$/;
 
 /** Largest page accepted by fetchLibraryTracks (checked live: 1000). */
 export const LIBRARY_PAGE_MAX = 1000;
@@ -62,6 +68,32 @@ export interface LibraryPage {
   tracks: LikedTrack[];
 }
 
+/**
+ * A track entry from the `data` of a Track object, shared by the library and playlist pages.
+ * Duration is `duration` in the library and `trackDuration` in playlists.
+ */
+export function trackFrom(id: string, added: number, data: unknown): LikedTrack {
+  const artists = at(data, 'artists', 'items');
+  const artistList = Array.isArray(artists) ? artists : [];
+  const name = at(data, 'name');
+  const album = at(data, 'albumOfTrack');
+  const albumName = at(album, 'name');
+  const duration = Number(at(data, 'duration', 'totalMilliseconds') ?? at(data, 'trackDuration', 'totalMilliseconds'));
+  return {
+    t: id,
+    a: idOf(at(artistList[0], 'uri'), ARTIST_URI),
+    d: added,
+    n: typeof name === 'string' ? name : '',
+    ar: artistList.map((artist) => at(artist, 'profile', 'name')).map((n) => (typeof n === 'string' ? n : '')),
+    ad: artistList.map((artist) => idOf(at(artist, 'uri'), ARTIST_URI)),
+    al: typeof albumName === 'string' ? albumName : '',
+    ai: idOf(at(album, 'uri'), ALBUM_URI),
+    c: smallestImage(at(album, 'coverArt', 'sources'), 40) ?? '',
+    ms: Number.isFinite(duration) && duration >= 0 ? duration : 0,
+    e: at(data, 'contentRating', 'label') === 'EXPLICIT',
+  };
+}
+
 /** `data` of fetchLibraryTracks → page of liked tracks (items that are not tracks are skipped). */
 export function parseLibraryPage(data: unknown): LibraryPage | null {
   const page = at(data, 'me', 'library', 'tracks');
@@ -73,26 +105,7 @@ export function parseLibraryPage(data: unknown): LibraryPage | null {
     const id = idOf(at(item, 'track', '_uri'), TRACK_URI);
     const added = Date.parse(String(at(item, 'addedAt', 'isoString') ?? ''));
     if (!id || !Number.isFinite(added)) continue;
-    const data = at(item, 'track', 'data');
-    const artists = at(data, 'artists', 'items');
-    const artistList = Array.isArray(artists) ? artists : [];
-    const name = at(data, 'name');
-    const album = at(data, 'albumOfTrack');
-    const albumName = at(album, 'name');
-    const duration = Number(at(data, 'duration', 'totalMilliseconds'));
-    tracks.push({
-      t: id,
-      a: idOf(at(artistList[0], 'uri'), ARTIST_URI),
-      d: added,
-      n: typeof name === 'string' ? name : '',
-      ar: artistList.map((artist) => at(artist, 'profile', 'name')).map((n) => (typeof n === 'string' ? n : '')),
-      ad: artistList.map((artist) => idOf(at(artist, 'uri'), ARTIST_URI)),
-      al: typeof albumName === 'string' ? albumName : '',
-      ai: idOf(at(album, 'uri'), ALBUM_URI),
-      c: smallestImage(at(album, 'coverArt', 'sources'), 40) ?? '',
-      ms: Number.isFinite(duration) && duration >= 0 ? duration : 0,
-      e: at(data, 'contentRating', 'label') === 'EXPLICIT',
-    });
+    tracks.push(trackFrom(id, added, at(item, 'track', 'data')));
   }
   return { total, itemCount: items.length, tracks };
 }
@@ -205,4 +218,49 @@ export function curationVariables(
   curations: { contextUri: string; curationType: CurationType }[],
 ): Record<string, unknown> {
   return { input: { curations: curations.map(({ contextUri, curationType }) => ({ contextUri, curationType })), itemUris } };
+}
+
+/** A playlist row: the track plus the row ID (`uid`, a track can appear twice). */
+export type PlaylistTrack = LikedTrack & { u: string };
+
+export interface PlaylistPage {
+  uri: string;
+  offset: number;
+  total: number;
+  /** Raw items in order; null for rows that are not tracks (episodes, local files...). */
+  items: (PlaylistTrack | null)[];
+  /** Playlist revision, only in fetchPlaylist responses. */
+  revision: string | null;
+}
+
+/**
+ * Request variables and `data` of fetchPlaylist / fetchPlaylistContents (checked live on
+ * 2026-10-10): variables `{ uri, offset, limit, ... }`; `playlistV2 { revisionId?, content {
+ * totalCount, pagingInfo { offset, limit }, items[] { uid, addedAt.isoString, itemV2 {
+ * __typename: TrackResponseWrapper, data: Track } } } }`.
+ */
+export function parsePlaylistPage(variables: unknown, data: unknown): PlaylistPage | null {
+  const uri = at(variables, 'uri');
+  const playlist = at(data, 'playlistV2');
+  const content = at(playlist, 'content');
+  const total = at(content, 'totalCount');
+  const items = at(content, 'items');
+  const offset = at(content, 'pagingInfo', 'offset') ?? at(variables, 'offset');
+  if (typeof uri !== 'string' || !PLAYLIST_URI.test(uri) || typeof total !== 'number' || !Array.isArray(items)) return null;
+  if (typeof offset !== 'number' || !Number.isInteger(offset) || offset < 0) return null;
+  const revision = at(playlist, 'revisionId');
+  return {
+    uri,
+    offset,
+    total,
+    revision: typeof revision === 'string' ? revision : null,
+    items: items.map((item) => {
+      const data = at(item, 'itemV2', 'data');
+      const id = idOf(at(data, 'uri'), TRACK_URI);
+      const uid = at(item, 'uid');
+      if (!id || at(data, '__typename') !== 'Track' || typeof uid !== 'string') return null;
+      const added = Date.parse(String(at(item, 'addedAt', 'isoString') ?? ''));
+      return { ...trackFrom(id, Number.isFinite(added) ? added : 0, data), u: uid };
+    }),
+  };
 }

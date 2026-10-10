@@ -1,7 +1,7 @@
 import { ext } from '../shared/ext';
 import { parseSettings, SETTINGS_STORAGE_KEY, type Settings, type ToggleKey } from '../shared/settings';
 
-const TOGGLES: readonly ToggleKey[] = ['playcounts', 'likedSongs', 'debug'];
+const TOGGLES: readonly ToggleKey[] = ['playcounts', 'likedSongs', 'playlistTools', 'debug'];
 
 async function load(): Promise<Settings> {
   const stored = await ext.storage.local.get(SETTINGS_STORAGE_KEY);

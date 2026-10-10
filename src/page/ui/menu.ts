@@ -1,7 +1,7 @@
 // Context menu for the rows of our liked songs view, styled like the player's menus, with
 // icons, separators and submenus (optionally loaded later and filtered by a search field).
 // It is our own menu: the player's native track menu cannot be opened for our elements.
-import { el, HOVER, icon, ICONS } from './typography';
+import { ACCENT, el, HOVER, icon, ICONS } from './typography';
 
 export interface Submenu {
   /** Entries, possibly loaded on demand (shown with a placeholder meanwhile). */
@@ -19,6 +19,12 @@ export interface MenuItem {
   submenu?: Submenu;
   /** Draws a separator above the entry. */
   separator?: boolean;
+  /** A section title ("Sort by"): not an action. */
+  heading?: boolean;
+  /** The current choice: accent colour, like the player's menus. */
+  selected?: boolean;
+  /** Shown at the end of the entry (direction arrow, tick). */
+  trailing?: () => Element;
 }
 
 const OWN = 'data-sfe-liked-menu';
@@ -94,6 +100,13 @@ export class ContextMenu {
   private entry(item: MenuItem, topLevel: boolean): HTMLLIElement {
     const entry = el('li', item.separator ? 'border-top: 1px solid rgba(255,255,255,0.1); margin-top: 4px; padding-top: 4px' : '');
     entry.setAttribute('role', 'none');
+    if (item.heading) {
+      const title = el('span', 'display: block; padding: 12px 12px 8px; font-size: 11px; font-weight: 700; color: var(--text-subdued, #b3b3b3)', this.itemClass);
+      title.textContent = item.label;
+      entry.setAttribute('role', 'presentation');
+      entry.append(title);
+      return entry;
+    }
     const button = el('button', ENTRY, this.itemClass);
     button.type = 'button';
     button.setAttribute('role', 'menuitem');
@@ -105,6 +118,15 @@ export class ContextMenu {
     const text = el('span', 'flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis');
     text.textContent = item.label;
     button.append(text);
+    if (item.selected) {
+      button.style.color = ACCENT;
+      button.setAttribute('aria-checked', 'true');
+    }
+    if (item.trailing) {
+      const end = el('span', 'display: flex; flex: 0 0 auto');
+      end.append(item.trailing());
+      button.append(end);
+    }
     button.addEventListener('mouseleave', () => {
       if (this.subOwner !== button) button.style.background = 'transparent';
     });

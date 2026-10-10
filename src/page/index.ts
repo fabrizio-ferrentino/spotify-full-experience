@@ -20,6 +20,8 @@ import { logStartupReport, takeStartupSnapshot } from './debug/startupReport';
 import { ArtistLikedSongsFeature } from './features/artist-liked-songs';
 import { LikedLibrary } from './library/likedLibrary';
 import { Playback } from './library/playback';
+import { PlaylistToolsFeature } from './features/playlist-tools';
+import { PlaylistStore } from './features/playlist-tools/playlistStore';
 import { PlaycountsFeature } from './features/playcounts';
 
 const LOADED = Symbol.for('spotify-full-experience.loaded');
@@ -58,6 +60,7 @@ function main(): void {
   // Created below, once the client exists; captures before that only matter to debug and playcounts.
   let likedSongs: ArtistLikedSongsFeature | null = null;
   let library: LikedLibrary | null = null;
+  let playlistTools: PlaylistToolsFeature | null = null;
   // Session headers and hashes are taken from every Pathfinder request of the player.
   const session = new Session();
   // Assigned once the native fetch is known; the hook only needs it after that.
@@ -70,7 +73,8 @@ function main(): void {
       registry.observe(operationName, hash);
     },
     shouldCapture: (kind) =>
-      debugCapturing() || (kind === 'pathfinder' && (playcounts.isEnabled || likedSongs?.isEnabled === true)),
+      debugCapturing() ||
+      (kind === 'pathfinder' && (playcounts.isEnabled || likedSongs?.isEnabled === true || playlistTools?.isEnabled === true)),
     onCapture: (capture) => {
       if (debugCapturing()) record(capture);
       try {
@@ -78,7 +82,7 @@ function main(): void {
       } catch {
         // Same as a failing feature.
       }
-      for (const feature of [playcounts, likedSongs]) {
+      for (const feature of [playcounts, likedSongs, playlistTools]) {
         try {
           feature?.onCapture(capture);
         } catch {
@@ -96,6 +100,9 @@ function main(): void {
   library = new LikedLibrary({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
   const playback = new Playback(player);
   likedSongs = new ArtistLikedSongsFeature({ library, playback });
+  playlistTools = new PlaylistToolsFeature({ library, playback, store: new PlaylistStore(client) });
+  if (DEFAULT_SETTINGS.playlistTools) playlistTools.enable();
+  const tools = playlistTools;
   if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();
   const liked = likedSongs;
   startCoverage();
@@ -106,6 +113,8 @@ function main(): void {
     else playcounts.disable();
     if (settings.likedSongs) liked.enable();
     else liked.disable();
+    if (settings.playlistTools) tools.enable();
+    else tools.disable();
 
     const wasDebug = previous?.debug ?? false;
     if (settings.debug && !wasDebug) {
@@ -121,6 +130,7 @@ function main(): void {
   onPageChange((page) => {
     playcounts.onPageChange(page);
     liked.onPageChange(page);
+    tools.onPageChange(page);
     if (!isDebugEnabled()) return;
     logCoverage();
     logPageChange(page);

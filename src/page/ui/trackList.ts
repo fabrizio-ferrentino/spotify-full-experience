@@ -58,6 +58,54 @@ export const ROUND_BUTTON =
 const MORE = 'M3 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm6.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM16 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z';
 const HEADER_SORT: readonly (SortKey | null)[] = ['custom', 'title', 'album', 'added', 'duration', null];
 
+const MARK = 'background: #2e77d0; color: #fff; border-radius: 2px';
+
+/** Folds a character like the search does: lower case, no accents. */
+function fold(char: string): string {
+  return char.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+}
+
+/**
+ * `text` with the words of `query` highlighted (case and accents ignored), as the desktop app
+ * shows search results. Plain text when there is nothing to highlight.
+ */
+export function highlighted(text: string, query: string): Node {
+  const words = query.split(/\s+/).map((word) => [...word].map(fold).join('')).filter(Boolean);
+  if (!words.length || !text) return document.createTextNode(text);
+  // Folded text with, for each folded character, the index of its source character.
+  const chars = [...text];
+  let folded = '';
+  const source: number[] = [];
+  chars.forEach((char, i) => {
+    for (const part of fold(char)) {
+      folded += part;
+      source.push(i);
+    }
+  });
+  const marked = new Array<boolean>(chars.length).fill(false);
+  for (const word of words) {
+    for (let at = folded.indexOf(word); at >= 0; at = folded.indexOf(word, at + word.length)) {
+      for (let k = at; k < at + word.length; k += 1) marked[source[k]!] = true;
+    }
+  }
+  if (!marked.includes(true)) return document.createTextNode(text);
+  const fragment = document.createDocumentFragment();
+  let i = 0;
+  while (i < chars.length) {
+    const on = marked[i];
+    let j = i;
+    while (j < chars.length && marked[j] === on) j += 1;
+    const piece = chars.slice(i, j).join('');
+    if (on) {
+      const mark = el('span', MARK);
+      mark.textContent = piece;
+      fragment.append(mark);
+    } else fragment.append(piece);
+    i = j;
+  }
+  return fragment;
+}
+
 function copyText(text: string): Promise<boolean> {
   return navigator.clipboard ? navigator.clipboard.writeText(text).then(() => true) : Promise.resolve(false);
 }
@@ -86,6 +134,7 @@ export class TrackList {
   private readonly saveDialog: SaveDialog;
   private readonly headerCells: HTMLElement[] = [];
   private renderedKey = '';
+  private highlight = '';
 
   constructor(private readonly options: TrackListOptions) {
     const { typography, stickyTop, padding } = options;
@@ -144,10 +193,12 @@ export class TrackList {
     });
   }
 
-  render(tracks: ListTrack[], now: number): void {
-    const key = tracks.map((track) => track.u ?? track.t).join(',');
+  /** Shows `tracks`; `highlight` is the search text to mark in titles, artists and albums. */
+  render(tracks: ListTrack[], now: number, highlight = ''): void {
+    const key = `${highlight}\n${tracks.map((track) => track.u ?? track.t).join(',')}`;
     if (key === this.renderedKey) return;
     this.renderedKey = key;
+    this.highlight = highlight;
     this.list.replaceChildren(...tracks.map((track, i) => this.row(track, i + 1, now)));
   }
 
@@ -195,7 +246,7 @@ export class TrackList {
   private artistLink(id: string, name: string): HTMLAnchorElement {
     const { currentArtistId, onCurrentArtist } = this.options;
     const link = appLink(artistPath(id), '', id === currentArtistId && onCurrentArtist ? onCurrentArtist : undefined);
-    link.textContent = name;
+    link.replaceChildren(highlighted(name, this.highlight));
     return link;
   }
 
@@ -293,7 +344,7 @@ export class TrackList {
     }
     const text = el('div', 'display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; flex: 1 1 auto');
     const title = appLink(trackPath(track.t), `${ELLIPSIS}; max-width: 100%`, undefined, titleClass);
-    title.textContent = track.n || track.t;
+    title.replaceChildren(highlighted(track.n || track.t, this.highlight));
     const line = el('div', `${subdued}; display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%`);
     if (track.e) {
       const badge = el('span', 'flex: 0 0 auto; font-size: 9px; font-weight: 700; line-height: 16px; padding: 0 5px; border-radius: 2px; background: rgba(255,255,255,0.6); color: #000');
@@ -305,14 +356,14 @@ export class TrackList {
     track.ar.forEach((name, i) => {
       if (i > 0) artists.append(', ');
       const id = track.ad[i];
-      artists.append(id ? this.artistLink(id, name) : name);
+      artists.append(id ? this.artistLink(id, name) : highlighted(name, this.highlight));
     });
     line.append(artists);
     text.append(title, line);
     main.append(cover, text);
 
     const album = track.ai ? appLink(albumPath(track.ai), `${subdued}; ${ELLIPSIS}`) : el('span', `${subdued}; ${ELLIPSIS}`);
-    album.textContent = track.al;
+    album.replaceChildren(highlighted(track.al, this.highlight));
     const added = el('span', `${subdued}; ${ELLIPSIS}`);
     added.textContent = addedDate(track.d, now);
     // Tick before the duration ("Save in"), shown on hover like on the desktop rows: green when

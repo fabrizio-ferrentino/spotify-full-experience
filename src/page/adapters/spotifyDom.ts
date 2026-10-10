@@ -15,7 +15,57 @@ export const SELECTORS = {
   resizeHandle: '[role="separator"]',
   /** Artist and album page header. */
   entityHeader: '[data-testid="entity-header"]',
+  /** Playlist and Liked Songs page (checked live on 2026-10-10). */
+  playlistPage: 'section[data-testid="playlist-page"]',
+  /** Main track list of a playlist page (Liked Songs uses `track-list`). */
+  playlistTrackList: '[data-testid="playlist-tracklist"]',
+  /** Right side of the action bar, holding the "Elenco" (view as) button. */
+  actionBarTrailing: '[data-testid="action-bar-row-trailing"]',
 } as const;
+
+/** The player's "view as" button (compact / list) in the action bar. */
+export function nativeViewButtonOf(trailing: ParentNode): HTMLButtonElement | null {
+  return trailing.querySelector<HTMLButtonElement>('button[role="combobox"][aria-haspopup="true"]');
+}
+
+/**
+ * Chooses a "view as" mode through the player's own menu: opens it (hidden from sight), clicks
+ * the radio item with that label (or at that position), and lets the player close it. The menu
+ * is `ul[role=menu]#<aria-controls>` of `menuitemradio` items (Compatta, Elenco), rendered by
+ * tippy in `[data-tippy-root]` (checked live on 2026-10-10).
+ */
+export async function chooseNativeView(button: HTMLButtonElement, label: string, position: number): Promise<boolean> {
+  const veil = document.createElement('style');
+  veil.textContent = '[data-tippy-root] { opacity: 0 !important; }';
+  document.head.append(veil);
+  try {
+    button.click();
+    for (let waited = 0; waited < 600; waited += 50) {
+      const menu = document.getElementById(button.getAttribute('aria-controls') ?? '');
+      const items = menu ? [...menu.querySelectorAll<HTMLElement>('[role="menuitemradio"]')] : [];
+      if (items.length) {
+        const wanted = label.trim().toLocaleLowerCase();
+        const item = items.find((candidate) => candidate.textContent?.trim().toLocaleLowerCase() === wanted) ?? items[position];
+        item?.click();
+        return !!item;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return false;
+  } finally {
+    // Leave the menu closed whatever happened, then show tippy menus again.
+    if (button.getAttribute('aria-expanded') === 'true') button.click();
+    setTimeout(() => veil.remove(), 100);
+  }
+}
+
+/**
+ * The page's own track list on playlist pages (`playlist-tracklist`) or Liked Songs
+ * (`track-list`); never the "recommended" list below a playlist, also a `track-list`.
+ */
+export function pageTrackListOf(page: ParentNode, likedSongs: boolean): HTMLElement | null {
+  return page.querySelector<HTMLElement>(SELECTORS.playlistTrackList) ?? (likedSongs ? page.querySelector<HTMLElement>(SELECTORS.trackList) : null);
+}
 
 /**
  * The artist "Popular" block: `div > [h2, div > track-list, button]` (docs/phase2-findings.md).
