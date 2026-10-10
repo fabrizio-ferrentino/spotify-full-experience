@@ -3,7 +3,7 @@
 // liked songs view (view.ts).
 import { setText } from '../../core/dom';
 import { byArtistText, likedCountText, likedSectionTitle } from '../../ui/format';
-import { ACCENT, borrowTypography, el, hoverable, icon, ICONS, type Typography } from './typography';
+import { ACCENT, borrowTypography, el, hoverable, icon, ICONS, type Typography } from '../../ui/typography';
 
 const OWN = 'data-sfe-liked';
 const PICTURE_SIZE = 88;

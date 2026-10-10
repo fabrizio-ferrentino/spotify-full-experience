@@ -82,14 +82,18 @@ export function parseActiveDevice(json: unknown): string | null {
   return id;
 }
 
-export function buildPlayCommand(contextUri: string, trackUri: string, params: PlayParams, commandId: string): unknown {
+/**
+ * `skip_to` takes `track_uid`, `track_index`, `track_uri`, `page_index` (player bundle,
+ * 2026-10-10); we send the URI and, from playlists, the row UID (a track can appear twice).
+ */
+export function buildPlayCommand(contextUri: string, trackUri: string, params: PlayParams, commandId: string, trackUid?: string): unknown {
   return {
     command: {
       context: { uri: contextUri, url: `context://${contextUri}`, metadata: {} },
       ...(params.playOrigin ? { play_origin: params.playOrigin } : {}),
       options: {
         ...(params.license ? { license: params.license } : {}),
-        skip_to: { track_uri: trackUri },
+        skip_to: { ...(trackUid ? { track_uid: trackUid } : {}), track_uri: trackUri },
         player_options_override: {},
       },
       logging_params: { command_id: commandId },

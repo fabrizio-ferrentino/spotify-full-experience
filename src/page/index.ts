@@ -18,6 +18,8 @@ import { clearRecords, flushBuffered, record } from './debug/recorder';
 import { logPageChange } from './debug/requestLog';
 import { logStartupReport, takeStartupSnapshot } from './debug/startupReport';
 import { ArtistLikedSongsFeature } from './features/artist-liked-songs';
+import { LikedLibrary } from './library/likedLibrary';
+import { Playback } from './library/playback';
 import { PlaycountsFeature } from './features/playcounts';
 
 const LOADED = Symbol.for('spotify-full-experience.loaded');
@@ -55,6 +57,7 @@ function main(): void {
   const debugCapturing = () => getSettings()?.debug ?? true;
   // Created below, once the client exists; captures before that only matter to debug and playcounts.
   let likedSongs: ArtistLikedSongsFeature | null = null;
+  let library: LikedLibrary | null = null;
   // Session headers and hashes are taken from every Pathfinder request of the player.
   const session = new Session();
   // Assigned once the native fetch is known; the hook only needs it after that.
@@ -70,6 +73,11 @@ function main(): void {
       debugCapturing() || (kind === 'pathfinder' && (playcounts.isEnabled || likedSongs?.isEnabled === true)),
     onCapture: (capture) => {
       if (debugCapturing()) record(capture);
+      try {
+        library?.onCapture(capture);
+      } catch {
+        // Same as a failing feature.
+      }
       for (const feature of [playcounts, likedSongs]) {
         try {
           feature?.onCapture(capture);
@@ -85,7 +93,9 @@ function main(): void {
   const client = nativeFetch ? new PathfinderClient(nativeFetch, session, registry) : null;
   player = nativeFetch ? new PlayerCommands(nativeFetch, session) : null;
   const services = client ? { session, registry, client, player } : null;
-  likedSongs = new ArtistLikedSongsFeature({ client, player, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
+  library = new LikedLibrary({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
+  const playback = new Playback(player);
+  likedSongs = new ArtistLikedSongsFeature({ library, playback });
   if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();
   const liked = likedSongs;
   startCoverage();

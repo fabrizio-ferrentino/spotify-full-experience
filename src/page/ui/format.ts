@@ -169,6 +169,15 @@ type ViewLabels = {
   saved: string;
   linkCopied: string;
   failed: string;
+  saveToLiked: string;
+  savedToLiked: string;
+  searchInPlaylist: string;
+  clearSearch: string;
+  sortBy: string;
+  sortKeys: Record<'custom' | 'title' | 'artist' | 'album' | 'added' | 'duration', string>;
+  noResults: (query: string) => string;
+  loading: string;
+  partial: (shown: number, total: number) => string;
 };
 
 const VIEW_LABELS: Record<string, ViewLabels> = {
@@ -179,6 +188,9 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     saveIn: 'Salva in', findPlaylist: 'Trova una playlist', likedSongs: 'Brani che ti piacciono', noPlaylists: 'Nessuna playlist', cancel: 'Annulla', done: 'Fatto',
     addedToQueue: 'Aggiunto in coda', removedFromLiked: 'Rimosso dai brani che ti piacciono', addedTo: (p) => `Aggiunto a ${p}`, saved: 'Modifiche salvate',
     linkCopied: 'Link copiato negli appunti', failed: "Non è stato possibile completare l'operazione",
+    saveToLiked: 'Salva nei brani che ti piacciono', savedToLiked: 'Aggiunto ai brani che ti piacciono', searchInPlaylist: 'Cerca nella playlist', clearSearch: 'Cancella ricerca',
+    sortBy: 'Ordina per', sortKeys: { custom: 'Ordine personalizzato', title: 'Titolo', artist: 'Artista', album: 'Album', added: 'Data di aggiunta', duration: 'Durata' },
+    noResults: (q) => `Nessun risultato per “${q}”`, loading: 'Caricamento…', partial: (n, t) => `Sono considerati i primi ${n} brani su ${t}`,
   },
   en: {
     title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit',
@@ -187,6 +199,9 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     saveIn: 'Save in', findPlaylist: 'Find a playlist', likedSongs: 'Liked Songs', noPlaylists: 'No playlists', cancel: 'Cancel', done: 'Done',
     addedToQueue: 'Added to queue', removedFromLiked: 'Removed from Liked Songs', addedTo: (p) => `Added to ${p}`, saved: 'Changes saved',
     linkCopied: 'Link copied to clipboard', failed: 'Something went wrong',
+    saveToLiked: 'Save to your Liked Songs', savedToLiked: 'Added to Liked Songs', searchInPlaylist: 'Search in playlist', clearSearch: 'Clear search',
+    sortBy: 'Sort by', sortKeys: { custom: 'Custom order', title: 'Title', artist: 'Artist', album: 'Album', added: 'Date added', duration: 'Duration' },
+    noResults: (q) => `No results found for “${q}”`, loading: 'Loading…', partial: (n, t) => `Only the first ${n} of ${t} songs are included`,
   },
   es: {
     title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito',
@@ -195,6 +210,9 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     saveIn: 'Guardar en', findPlaylist: 'Buscar una playlist', likedSongs: 'Canciones que te gustan', noPlaylists: 'No hay playlists', cancel: 'Cancelar', done: 'Listo',
     addedToQueue: 'Añadida a la cola', removedFromLiked: 'Quitada de Canciones que te gustan', addedTo: (p) => `Añadida a ${p}`, saved: 'Cambios guardados',
     linkCopied: 'Enlace copiado al portapapeles', failed: 'Se ha producido un error',
+    saveToLiked: 'Guardar en tus canciones que te gustan', savedToLiked: 'Añadida a Canciones que te gustan', searchInPlaylist: 'Buscar en la playlist', clearSearch: 'Borrar búsqueda',
+    sortBy: 'Ordenar por', sortKeys: { custom: 'Orden personalizado', title: 'Título', artist: 'Artista', album: 'Álbum', added: 'Fecha en que se añadió', duration: 'Duración' },
+    noResults: (q) => `No hay resultados para “${q}”`, loading: 'Cargando…', partial: (n, t) => `Solo se incluyen las primeras ${n} de ${t} canciones`,
   },
   fr: {
     title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite',
@@ -203,6 +221,9 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     saveIn: 'Enregistrer dans', findPlaylist: 'Rechercher une playlist', likedSongs: 'Titres likés', noPlaylists: 'Aucune playlist', cancel: 'Annuler', done: 'OK',
     addedToQueue: 'Ajouté à la file d’attente', removedFromLiked: 'Retiré des Titres likés', addedTo: (p) => `Ajouté à ${p}`, saved: 'Modifications enregistrées',
     linkCopied: 'Lien copié dans le presse-papiers', failed: 'Une erreur s’est produite',
+    saveToLiked: 'Enregistrer dans les Titres likés', savedToLiked: 'Ajouté aux Titres likés', searchInPlaylist: 'Rechercher dans la playlist', clearSearch: 'Effacer la recherche',
+    sortBy: 'Trier par', sortKeys: { custom: 'Ordre personnalisé', title: 'Titre', artist: 'Artiste', album: 'Album', added: 'Date d’ajout', duration: 'Durée' },
+    noResults: (q) => `Aucun résultat pour « ${q} »`, loading: 'Chargement…', partial: (n, t) => `Seuls les ${n} premiers titres sur ${t} sont pris en compte`,
   },
   de: {
     title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit',
@@ -211,6 +232,9 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     saveIn: 'Speichern in', findPlaylist: 'Playlist suchen', likedSongs: 'Lieblingssongs', noPlaylists: 'Keine Playlists', cancel: 'Abbrechen', done: 'Fertig',
     addedToQueue: 'Zur Warteschlange hinzugefügt', removedFromLiked: 'Aus Lieblingssongs entfernt', addedTo: (p) => `Zu ${p} hinzugefügt`, saved: 'Änderungen gespeichert',
     linkCopied: 'Link in die Zwischenablage kopiert', failed: 'Etwas ist schiefgelaufen',
+    saveToLiked: 'In Lieblingssongs speichern', savedToLiked: 'Zu Lieblingssongs hinzugefügt', searchInPlaylist: 'In Playlist suchen', clearSearch: 'Suche löschen',
+    sortBy: 'Sortieren nach', sortKeys: { custom: 'Benutzerdefinierte Reihenfolge', title: 'Titel', artist: 'Künstler', album: 'Album', added: 'Hinzugefügt am', duration: 'Dauer' },
+    noResults: (q) => `Keine Ergebnisse für „${q}“`, loading: 'Wird geladen …', partial: (n, t) => `Nur die ersten ${n} von ${t} Songs werden berücksichtigt`,
   },
   pt: {
     title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito',
@@ -219,6 +243,9 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     saveIn: 'Salvar em', findPlaylist: 'Encontrar uma playlist', likedSongs: 'Músicas Curtidas', noPlaylists: 'Nenhuma playlist', cancel: 'Cancelar', done: 'Concluir',
     addedToQueue: 'Adicionada à fila', removedFromLiked: 'Removida das Músicas Curtidas', addedTo: (p) => `Adicionada a ${p}`, saved: 'Alterações salvas',
     linkCopied: 'Link copiado para a área de transferência', failed: 'Algo deu errado',
+    saveToLiked: 'Salvar nas Músicas Curtidas', savedToLiked: 'Adicionada às Músicas Curtidas', searchInPlaylist: 'Buscar na playlist', clearSearch: 'Limpar busca',
+    sortBy: 'Ordenar por', sortKeys: { custom: 'Ordem personalizada', title: 'Título', artist: 'Artista', album: 'Álbum', added: 'Data de adição', duration: 'Duração' },
+    noResults: (q) => `Nenhum resultado para “${q}”`, loading: 'Carregando…', partial: (n, t) => `Apenas as primeiras ${n} de ${t} músicas são consideradas`,
   },
 };
 

@@ -2,7 +2,7 @@
 // player's fonts and colours without hardcoding its CSS. Headings and titles reuse the player's
 // classes; for subdued text only the text properties are copied, because the class of the
 // duration cell also carries layout (an end-aligned flex box) that truncates longer text.
-import { SELECTORS } from '../../adapters/spotifyDom';
+import { SELECTORS } from '../adapters/spotifyDom';
 
 const DURATION_TEXT = /^\d+:\d{2}$/;
 const TEXT_PROPERTIES = ['font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing', 'color'] as const;
@@ -85,6 +85,11 @@ export function checkIcon(size: number): SVGSVGElement {
   return svg;
 }
 
+/** Outlined circle with a plus: "save", on rows of tracks that are not in the liked songs. */
+export function addIcon(size: number): SVGSVGElement {
+  return icon('M8 1.25a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm7.25-3.75h1.5v3h3v1.5h-3v3h-1.5v-3h-3v-1.5h3z', size);
+}
+
 /** Empty circle: "not saved here", in the "save in" dialog. */
 export function emptyCircleIcon(size: number): SVGSVGElement {
   return icon('M8 1.25a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z', size);
@@ -102,5 +107,9 @@ export const ICONS = {
   share: 'M8 .5l3.8 3.8-1.06 1.06-1.99-1.99V10.5h-1.5V3.37L5.26 5.36 4.2 4.3zM1.5 7H5v1.5H3v6h10v-6h-2V7h3.5v9h-13z',
   link: 'M9.6 2.3a3 3 0 0 1 4.24 4.24l-2.12 2.12-1.06-1.06 2.12-2.12a1.5 1.5 0 0 0-2.12-2.12L8.54 5.48 7.48 4.42zM5.36 9.58l4.22-4.22 1.06 1.06-4.22 4.22zm1.1 2.04-2.12 2.12A3 3 0 0 1 .1 9.5l2.12-2.12 1.06 1.06-2.12 2.12a1.5 1.5 0 0 0 2.12 2.12l2.12-2.12z',
   chevron: 'M5.47 2.47a.75.75 0 0 1 1.06 0L12.06 8l-5.53 5.53a.75.75 0 1 1-1.06-1.06L9.94 8 5.47 3.53a.75.75 0 0 1 0-1.06z',
+  caretUp: 'M8 4.5 14 11H2z',
+  caretDown: 'M8 11.5 2 5h12z',
+  check: 'M15.53 2.47a.75.75 0 0 1 0 1.06L6 13.06.47 7.53a.75.75 0 0 1 1.06-1.06L6 10.94l8.47-8.47a.75.75 0 0 1 1.06 0z',
+  close: 'M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06z',
   search: 'M6.75 1.5a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5zM0 6.75a6.75 6.75 0 1 1 12.02 4.21l3.76 3.76-1.06 1.06-3.76-3.76A6.75 6.75 0 0 1 0 6.75z',
 } as const;

@@ -1,8 +1,8 @@
 // Builds and refreshes the liked songs index (CLAUDE.md §6): full paging on first build, then a
 // cheap check of the first page that only prepends what is new; anything inconsistent triggers
 // a full rebuild.
-import type { LikedIndex, LikedTrack } from '../../../shared/likedIndex';
-import { LIBRARY_PAGE_MAX, type LibraryPage } from '../../adapters/libraryShapes';
+import type { LikedIndex, LikedTrack } from '../../shared/likedIndex';
+import { LIBRARY_PAGE_MAX, type LibraryPage } from '../adapters/libraryShapes';
 
 export type FetchPage = (offset: number, limit: number) => Promise<LibraryPage>;
 

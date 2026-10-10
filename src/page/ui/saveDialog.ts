@@ -1,8 +1,8 @@
 // "Save in" dialog of the green tick on our rows, like the desktop app's: the liked songs and
 // the user's editable playlists, each with a tick, then Cancel / Done. Done reports only what
 // changed; nothing is sent before it.
-import type { CurationType, EditablePlaylist } from '../../adapters/libraryShapes';
-import { viewLabels } from '../../ui/format';
+import type { CurationType, EditablePlaylist } from '../adapters/libraryShapes';
+import { viewLabels } from './format';
 import { checkIcon, el, emptyCircleIcon, HOVER, icon, ICONS } from './typography';
 
 export interface CurationChange {

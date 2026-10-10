@@ -1,92 +1,32 @@
 // Feature: on artist pages, "You've liked N songs by <artist>" (primary artist only, as on the
-// desktop app), from a local index of the user's liked songs.
-// Requests: the index is built with fetchLibraryTracks (2 pages for ~1200 songs), then checked
-// with one small page at most every 10 minutes when an artist page is opened. Likes and unlikes
-// made in the player are applied from its own requests.
-import type { LikedIndex } from '../../../shared/likedIndex';
-import {
-  curationVariables,
-  EDITABLE_PAGE_SIZE,
-  LIKED_SONGS_CONTEXT,
-  OPERATIONS,
-  parseArtistOverview,
-  parseCurationResult,
-  parseEditablePlaylists,
-  parseLibraryChange,
-  parseLibraryPage,
-  parseProfileUri,
-  type ArtistInfo,
-  type EditablePlaylist,
-} from '../../adapters/libraryShapes';
+// desktop app), from the shared local index of the user's liked songs (library/likedLibrary).
+import { likedByArtistContext, likedSongsContext } from '../../adapters/connectShapes';
+import { OPERATIONS, parseArtistOverview, type ArtistInfo } from '../../adapters/libraryShapes';
 import type { PageInfo } from '../../adapters/routes';
 import { headerTitleOf, mainViewportOf, popularBlockOf, SELECTORS } from '../../adapters/spotifyDom';
 import { frameScheduler, whenAvailable } from '../../core/dom';
 import type { CapturedRequest } from '../../core/interceptor';
-import type { PathfinderClient } from '../../core/pathfinderClient';
-import type { PlayerCommands } from '../../core/player';
-import { likedByArtistContext, likedSongsContext, nowPlayingTitle } from '../../adapters/connectShapes';
-import { navigateTo, trackPath } from '../../adapters/spotifyNav';
-import type { LikedTrack } from '../../../shared/likedIndex';
-import { debugLog, debugWarn } from '../../debug/log';
+import { tracksByArtist } from '../../library/indexSync';
+import type { LikedLibrary } from '../../library/likedLibrary';
+import type { Playback } from '../../library/playback';
 import { LikedSongsCard } from './card';
-import type { CurationChange } from './saveDialog';
 import { LikedSongsView, type ViewModel } from './view';
-import { buildIndex, isStale, refreshIndex, removeTracks, tracksByArtist, type FetchPage } from './indexSync';
 
 export interface LikedSongsDeps {
-  client: PathfinderClient | null;
-  /** Connect commands for double click → play; null: always open the track page. */
-  player?: PlayerCommands | null;
-  loadIndex(key: string): Promise<LikedIndex | null>;
-  saveIndex(key: string, index: LikedIndex | null): void;
+  library: LikedLibrary;
+  playback: Playback;
   now?: () => number;
-}
-
-/** How long to wait for the player to show the requested track before trying the next way. */
-const PLAY_CONFIRM_MS = 4000;
-
-function waitForNowPlaying(title: string, timeoutMs: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    const started = Date.now();
-    const check = () => {
-      if (nowPlayingTitle() === title.trim()) resolve(true);
-      else if (Date.now() - started >= timeoutMs) resolve(false);
-      else setTimeout(check, 250);
-    };
-    check();
-  });
-}
-
-/** At most this many editablePlaylists pages for one dialog or submenu. */
-const MAX_PLAYLIST_PAGES = 4;
-
-/** After a failure, the feature stays quiet for this long. */
-const RETRY_AFTER_MS = 60_000;
-/** How long to wait for the player's own profileAttributes before asking ourselves. */
-const PROFILE_WAIT_MS = 4000;
-
-async function sha256Hex(text: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 export class ArtistLikedSongsFeature {
   private enabled = false;
   private artistId: string | null = null;
-  private profileUri: string | null = null;
-  private userKey: string | null = null;
-  private index: LikedIndex | null = null;
-  private indexLoaded = false;
-  /** A like was seen: check the server even if the index is recent. */
-  private dirty = false;
-  private syncing: Promise<void> | null = null;
-  private failedAt = Number.NEGATIVE_INFINITY;
-  private profileWaiters: (() => void)[] = [];
   private readonly artists = new Map<string, ArtistInfo>();
   private card: LikedSongsCard | null = null;
   private view: LikedSongsView | null = null;
   private mainObserver: MutationObserver | null = null;
   private cancelWait: (() => void) | null = null;
+  private unsubscribe: (() => void) | null = null;
   private readonly scheduler = frameScheduler(() => this.render());
   private readonly now: () => number;
 
@@ -101,12 +41,15 @@ export class ArtistLikedSongsFeature {
   enable(): void {
     if (this.enabled) return;
     this.enabled = true;
+    this.unsubscribe = this.deps.library.subscribe(() => this.scheduler.schedule());
     if (this.artistId) this.showArtist();
   }
 
   disable(): void {
     if (!this.enabled) return;
     this.enabled = false;
+    this.unsubscribe?.();
+    this.unsubscribe = null;
     this.stopWatching();
   }
 
@@ -121,110 +64,17 @@ export class ArtistLikedSongsFeature {
   }
 
   onCapture(capture: CapturedRequest): void {
-    if (!this.enabled || capture.kind !== 'pathfinder') return;
-    const operation = capture.operationName;
-    if (operation === OPERATIONS.profile) {
-      const uri = parseProfileUri(capture.json);
-      if (uri) {
-        this.profileUri = uri;
-        for (const wake of this.profileWaiters.splice(0)) wake();
-      }
-    } else if (operation === OPERATIONS.artistOverview) {
-      const artist = parseArtistOverview(capture.json);
-      if (artist) {
-        this.artists.set(artist.id, artist);
-        if (artist.id === this.artistId) this.scheduler.schedule();
-      }
-    }
-    if (capture.status >= 200 && capture.status < 300) {
-      const change = parseLibraryChange(operation, capture.variables);
-      if (change) this.applyChange(change.kind, change.trackIds);
-    }
-  }
-
-  private applyChange(kind: 'added' | 'removed', trackIds: string[]): void {
-    if (kind === 'added') {
-      this.dirty = true; // details (artist, title) come with the next check of the first page
-      if (this.artistId) this.showArtist();
-      return;
-    }
-    if (!this.index || !this.userKey) return;
-    this.index = removeTracks(this.index, trackIds);
-    this.deps.saveIndex(this.userKey, this.index);
-    this.scheduler.schedule();
+    if (!this.enabled || capture.kind !== 'pathfinder' || capture.operationName !== OPERATIONS.artistOverview) return;
+    const artist = parseArtistOverview(capture.json);
+    if (!artist) return;
+    this.artists.set(artist.id, artist);
+    if (artist.id === this.artistId) this.scheduler.schedule();
   }
 
   /** Loads and refreshes the index if needed, then renders the card when the page is ready. */
   private showArtist(): void {
     this.watchPage();
-    void this.ensureFresh().then(() => this.scheduler.schedule());
-  }
-
-  private waitForProfile(timeoutMs: number): Promise<void> {
-    if (this.profileUri) return Promise.resolve();
-    return new Promise((resolve) => {
-      this.profileWaiters.push(resolve);
-      setTimeout(resolve, timeoutMs);
-    });
-  }
-
-  private async ensureUserKey(): Promise<string | null> {
-    if (this.userKey) return this.userKey;
-    // The player asks for its profile at startup: wait for it before asking ourselves.
-    await this.waitForProfile(PROFILE_WAIT_MS);
-    if (!this.profileUri && this.deps.client) {
-      // The player asks for the profile at startup; ask ourselves only if that was missed.
-      const result = await this.deps.client.query(OPERATIONS.profile, {});
-      this.profileUri = parseProfileUri({ data: result.data });
-    }
-    if (!this.profileUri) return null;
-    this.userKey = await sha256Hex(this.profileUri);
-    return this.userKey;
-  }
-
-  private ensureFresh(): Promise<void> {
-    this.syncing ??= this.sync().finally(() => {
-      this.syncing = null;
-    });
-    return this.syncing;
-  }
-
-  private async sync(): Promise<void> {
-    const client = this.deps.client;
-    if (!client || this.now() - this.failedAt < RETRY_AFTER_MS) return;
-    try {
-      // Nothing can be done before the player's first requests (session headers, hashes).
-      if (!(await client.waitForSession())) return;
-      const key = await this.ensureUserKey();
-      if (!key) return;
-      if (!this.indexLoaded) {
-        this.index = await this.deps.loadIndex(key);
-        this.indexLoaded = true;
-      }
-      const now = this.now();
-      if (this.index && !this.dirty && !isStale(this.index, now)) return;
-
-      const fetchPage: FetchPage = async (offset, limit) => {
-        const result = await client.query(OPERATIONS.libraryTracks, { offset, limit });
-        const page = parseLibraryPage(result.data);
-        if (!page) throw new Error(`unexpected ${OPERATIONS.libraryTracks} response`);
-        return page;
-      };
-      if (this.index) {
-        const { index, mode } = await refreshIndex(this.index, fetchPage, now);
-        this.index = index;
-        debugLog(`liked songs: index ${mode} (${index.tracks.length} tracks)`);
-      } else {
-        this.index = await buildIndex(fetchPage, now);
-        debugLog(`liked songs: index built (${this.index.tracks.length} tracks, ${client.sent} requests so far)`);
-      }
-      this.dirty = false;
-      this.deps.saveIndex(key, this.index);
-    } catch (error) {
-      // Fail silently: no card. Tried again on a later artist page, after a pause.
-      this.failedAt = this.now();
-      debugWarn('liked songs: index unavailable', error instanceof Error ? error.message : error);
-    }
+    void this.deps.library.ensureFresh().then(() => this.scheduler.schedule());
   }
 
   /** Re-renders when the page content changes (the Popular block appears late). */
@@ -252,86 +102,18 @@ export class ArtistLikedSongsFeature {
   }
 
   private viewModel(artistId: string, name: string): ViewModel {
+    const index = this.deps.library.index;
     return {
       artistId,
       artistName: name,
       imageUrl: this.artists.get(artistId)?.imageUrl ?? null,
-      tracks: this.index ? tracksByArtist(this.index, artistId) : [],
+      tracks: index ? tracksByArtist(index, artistId) : [],
       now: this.now(),
     };
   }
 
   private artistName(artistId: string, main: HTMLElement | null): string | null {
     return this.artists.get(artistId)?.name ?? (main ? headerTitleOf(main) : null);
-  }
-
-  /**
-   * Double click on a row: like the desktop app, play the artist's liked songs from this track
-   * (Connect "play" with the desktop's context), else the liked songs from this track, else open
-   * the track page, which the web player starts by itself. Each step is confirmed by the
-   * player's "now playing" bar before giving up on it.
-   */
-  private async playTrack(track: LikedTrack, artistId: string): Promise<void> {
-    const player = this.deps.player;
-    const trackUri = `spotify:track:${track.t}`;
-    const contexts = this.profileUri && player?.ready ? [likedByArtistContext(this.profileUri, artistId), likedSongsContext(this.profileUri)] : [];
-    for (const context of contexts) {
-      if ((await player!.play(context, trackUri)) && (await waitForNowPlaying(track.n, PLAY_CONFIRM_MS))) {
-        debugLog(`liked songs: playing via ${context === contexts[0] ? 'artist' : 'liked songs'} context`);
-        return;
-      }
-    }
-    debugLog(
-      contexts.length
-        ? 'liked songs: play commands not confirmed by the player, opening the track page'
-        : `liked songs: play command unavailable (${!player ? 'no player' : !player.ready ? `player not ready: ${JSON.stringify(player.describe())}` : 'profile unknown'}), opening the track page`,
-    );
-    navigateTo(trackPath(track.t));
-  }
-
-  /** The liked songs and the user's editable playlists, each saying whether it has the track. */
-  private async playlistsFor(track: LikedTrack): Promise<EditablePlaylist[]> {
-    const client = this.deps.client;
-    if (!client) throw new Error('no client');
-    const uris = [`spotify:track:${track.t}`];
-    const playlists: EditablePlaylist[] = [];
-    let offset = 0;
-    for (let page = 0; page < MAX_PLAYLIST_PAGES; page += 1) {
-      const result = await client.query(OPERATIONS.editablePlaylists, { offset, limit: EDITABLE_PAGE_SIZE, textFilter: '', uris });
-      const parsed = parseEditablePlaylists(result.data);
-      if (!parsed) throw new Error(`unexpected ${OPERATIONS.editablePlaylists} response`);
-      playlists.push(...parsed.playlists);
-      offset += parsed.itemCount;
-      if (parsed.itemCount === 0 || offset >= parsed.total) break;
-    }
-    return playlists;
-  }
-
-  /**
-   * Saves or removes a track like the player's "saved in" dialog (applyCurations), only on an
-   * explicit user action (CLAUDE.md §2.10). Our own requests are not observed by the
-   * interceptor, so a change to the liked songs is applied to the index here.
-   */
-  private async curate(track: LikedTrack, changes: CurationChange[]): Promise<boolean> {
-    const client = this.deps.client;
-    if (!client || !changes.length) return false;
-    const result = await client.query(OPERATIONS.applyCurations, curationVariables([`spotify:track:${track.t}`], changes));
-    if (result.errors.length || !parseCurationResult(result.data)) {
-      debugWarn('liked songs: applyCurations failed', result.errors);
-      return false;
-    }
-    const liked = changes.find((change) => change.contextUri === LIKED_SONGS_CONTEXT);
-    if (liked) this.applyChange(liked.curationType === 'UNCURATE' ? 'removed' : 'added', [track.t]);
-    return true;
-  }
-
-  private async queue(track: LikedTrack): Promise<boolean> {
-    const player = this.deps.player;
-    if (!player?.ready) {
-      debugLog(`liked songs: queue command unavailable (${player ? JSON.stringify(player.describe()) : 'no player'})`);
-      return false;
-    }
-    return player.queue(`spotify:track:${track.t}`);
   }
 
   /** Shows "Brani che ti piacciono di <artist>" in place of the artist page content. */
@@ -341,25 +123,27 @@ export class ArtistLikedSongsFeature {
     const main = document.querySelector<HTMLElement>(SELECTORS.main);
     const name = artistId ? this.artistName(artistId, main) : null;
     if (!artistId || !card || !main || !name) return;
+    const { library, playback } = this.deps;
     this.view?.close();
-    this.view = new LikedSongsView(
-      mainViewportOf(main),
-      card.typography,
-      () => (this.view = null),
-      {
-        play: (track) => void this.playTrack(track, artistId),
-        queue: (track) => this.queue(track),
-        playlists: (track) => this.playlistsFor(track),
-        curate: (track, changes) => this.curate(track, changes),
+    this.view = new LikedSongsView(mainViewportOf(main), card.typography, () => (this.view = null), {
+      // Like the desktop app: the artist's liked songs from this track, else all liked songs.
+      play: (track) => {
+        const profile = library.profileUri;
+        const contexts = profile ? [likedByArtistContext(profile, artistId), likedSongsContext(profile)] : [];
+        void playback.play({ trackId: track.t, title: track.n, contexts });
       },
-    );
+      queue: (track) => playback.queue(track.t),
+      playlists: (track) => library.playlistsFor(track.t),
+      curate: (track, changes) => library.curate(track.t, changes),
+    });
     this.view.open(this.viewModel(artistId, name));
   }
 
   private render(): void {
     const artistId = this.artistId;
-    if (!this.enabled || !artistId || !this.index) return;
-    const tracks = tracksByArtist(this.index, artistId);
+    const index = this.deps.library.index;
+    if (!this.enabled || !artistId || !index) return;
+    const tracks = tracksByArtist(index, artistId);
     if (tracks.length === 0) {
       this.view?.close();
       this.card?.remove();

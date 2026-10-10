@@ -60,8 +60,8 @@ export class PlayerCommands {
   }
 
   /** Asks the player to play `trackUri` within `contextUri`. Resolves false on any failure. */
-  play(contextUri: string, trackUri: string): Promise<boolean> {
-    return this.send(() => buildPlayCommand(contextUri, trackUri, this.params, randomHex(16)));
+  play(contextUri: string, trackUri: string, trackUid?: string): Promise<boolean> {
+    return this.send(() => buildPlayCommand(contextUri, trackUri, this.params, randomHex(16), trackUid));
   }
 
   /**

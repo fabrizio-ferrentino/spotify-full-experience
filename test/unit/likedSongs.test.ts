@@ -11,7 +11,7 @@ import {
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildIndex, CHECK_PAGE_SIZE, isStale, refreshIndex, removeTracks, tracksByArtist, REFRESH_AFTER_MS, type FetchPage } from '../../src/page/features/artist-liked-songs/indexSync';
+import { buildIndex, CHECK_PAGE_SIZE, isStale, refreshIndex, removeTracks, tracksByArtist, REFRESH_AFTER_MS, type FetchPage } from '../../src/page/library/indexSync';
 import { parseLikedIndex, type LikedIndex, type LikedTrack } from '../../src/shared/likedIndex';
 import { BRIDGE_NAMESPACE, parseContentToPage, parsePageToContent } from '../../src/shared/protocol';
 
