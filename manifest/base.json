@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Spotify Full Experience",
-  "description": "Adds desktop-only information to the web player. Unofficial, not affiliated with Spotify.",
+  "name": "Full Experience for Spotify",
+  "description": "Desktop app features in the Spotify web player: play counts, liked songs by artist, playlist search and sort. Unofficial.",
   "default_locale": "en",
   "homepage_url": "https://github.com/fabrizio-ferrentino/spotify-full-experience",
   "permissions": ["storage"],
@@ -20,7 +20,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "Spotify Full Experience",
+    "default_title": "Full Experience for Spotify",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",

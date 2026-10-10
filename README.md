@@ -1,6 +1,6 @@
 <p align="center"><img src="assets/icons/icon-128.png" width="96" alt=""></p>
 
-<h1 align="center">Spotify Full Experience</h1>
+<h1 align="center">Full Experience for Spotify</h1>
 
 <p align="center">A browser extension that adds to the Spotify web player some of what only the desktop app has.<br>It runs on Chrome, Brave, Edge and Firefox.</p>
 
@@ -66,12 +66,15 @@ In Firefox, open `about:debugging#/runtime/this-firefox`, click "Load Temporary 
 - Audio, DRM and ads are left alone, and Premium features stay locked.
 - Play, queue, playlist and like actions run only when you click them.
 
+The full [privacy policy](PRIVACY.md) explains what the extension reads and stores.
+
 ## Development
 
 ```sh
 npm run watch       # rebuild on change
 npm test
 npm run typecheck
+npm run package     # store zips in release/
 ```
 
 To report a bug, [open an issue](https://github.com/fabrizio-ferrentino/spotify-full-experience/issues/new).

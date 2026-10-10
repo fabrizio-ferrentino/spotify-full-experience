@@ -56,7 +56,7 @@ describe('settings form', () => {
       return { ...stored };
     },
     t: (key) => key,
-    name: 'Spotify Full Experience',
+    name: 'Full Experience for Spotify',
     version: '2026.10.10',
     iconUrl: 'icons/icon-48.png',
     links: { source: 'https://github.com/owner/repo', issues: 'https://github.com/owner/repo/issues/new' },
@@ -78,7 +78,7 @@ describe('settings form', () => {
 
   it('shows the name, the version and the stored switches', async () => {
     await renderSettingsForm(root, deps());
-    expect(root.querySelector('.name')?.textContent).toBe('Spotify Full Experience');
+    expect(root.querySelector('.name')?.textContent).toBe('Full Experience for Spotify');
     expect(root.querySelector('.version')?.textContent).toBe('v2026.10.10');
     expect(input('enabled').checked).toBe(true);
     expect(input('playcounts').checked).toBe(true);
