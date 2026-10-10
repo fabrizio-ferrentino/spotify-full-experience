@@ -1,5 +1,6 @@
 node_modules/
 dist/
+release/
 coverage/
 
 # Raw traffic and logs may contain tokens or personal data: never commit them.
