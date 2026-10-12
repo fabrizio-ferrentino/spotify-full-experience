@@ -396,16 +396,17 @@ export class TrackList {
       added.textContent = addedDate(track.d, now);
       middle.push(albumLink, added);
     }
-    // Tick before the duration ("Save in"), shown on hover like on the desktop rows: green when
-    // the track is in the liked songs, an empty "+" otherwise.
+    // Tick before the duration ("Save in"), like the player's rows: a green tick always shown
+    // when the track is in the liked songs, an empty "+" only on hover otherwise.
     const duration = el('span', `${subdued}; justify-self: end; display: flex; align-items: center; gap: 16px; font-variant-numeric: tabular-nums`);
     const time = el('span');
     time.textContent = formatDuration(track.ms);
-    const saved = el('button', `${ROUND_BUTTON}; width: 24px; height: 24px; opacity: 0`);
+    const liked = this.isLiked(track);
+    const saved = el('button', `${ROUND_BUTTON}; width: 24px; height: 24px; opacity: ${liked ? 1 : 0}`);
     saved.type = 'button';
     saved.setAttribute('aria-label', labels.saveIn);
     saved.setAttribute('aria-haspopup', 'dialog');
-    saved.append(this.isLiked(track) ? checkIcon(16) : addIcon(16));
+    saved.append(liked ? checkIcon(16) : addIcon(16));
     saved.addEventListener('click', (event) => {
       event.stopPropagation();
       this.openSaveDialog(track, saved);
@@ -429,7 +430,8 @@ export class TrackList {
       const selected = row.hasAttribute(SELECTED);
       const active = row.matches(':hover') || row.contains(document.activeElement);
       row.style.background = selected ? SELECTED_BACKGROUND : active ? HOVER : 'transparent';
-      for (const control of [saved, more]) control.style.opacity = active ? '1' : '0';
+      saved.style.opacity = active || liked ? '1' : '0';
+      more.style.opacity = active ? '1' : '0';
       number.style.display = active ? 'none' : '';
       play.style.display = active ? 'flex' : 'none';
     };

@@ -150,7 +150,7 @@ describe('PlaylistToolsFeature on an album page', () => {
     const section = buildPage();
     const tracks = [albumTrack(1, 'One', 50), albumTrack(2, 'Two', 1_234_567), albumTrack(3, 'Three', null)];
     const albums = { load: vi.fn(async () => ({ tracks, total: 3, partial: false })), observePage: vi.fn() };
-    const library = { subscribe: () => () => {}, ensureFresh: async () => {}, isLiked: () => false, index: null, profileUri: null } as unknown as LikedLibrary;
+    const library = { subscribe: () => () => {}, ensureFresh: async () => {}, isLiked: (t: string) => t === id(2), index: null, profileUri: null } as unknown as LikedLibrary;
     const playback = { play: vi.fn(async () => {}), queue: vi.fn(async () => true) } as unknown as Playback;
     const feature = new PlaylistToolsFeature({ library, playback, store: {} as PlaylistStore, albums: albums as unknown as AlbumStore });
     feature.enable();
@@ -178,6 +178,9 @@ describe('PlaylistToolsFeature on an album page', () => {
     expect(rows.map((li) => li.querySelector('a[href^="/track/"]')!.textContent)).toEqual(['Two', 'One', 'Three']);
     expect(rows[0]!.textContent).toContain('1.234.567');
     expect(rows[0]!.querySelector('img')).toBeNull();
+    // Like the player's rows: the green tick of a liked song is always shown, the "+" only on hover.
+    const tick = (row: Element) => row.querySelector<HTMLElement>('button[aria-haspopup="dialog"]')!.style.opacity;
+    expect(rows.map(tick)).toEqual(['1', '0', '0']);
 
     rows[0]!.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
     expect(playback.play).toHaveBeenCalledWith({ trackId: id(2), title: 'Two', contexts: [ALBUM], uid: 'uid2' });
