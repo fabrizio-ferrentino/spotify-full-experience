@@ -1,6 +1,6 @@
 {
   "name": "spotify-full-experience",
-  "version": "2026.10.10",
+  "version": "2026.10.12",
   "private": true,
   "description": "Browser extension that adds desktop-only information to the Spotify web player.",
   "license": "MIT",

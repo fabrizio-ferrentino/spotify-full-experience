@@ -52,16 +52,17 @@ The popup also links to the source code and to the issue tracker.
 
 ## Install
 
-The extension is not on the stores yet. To try it, build it and load it unpacked (you need Node.js 20 or newer):
+- **Chrome, Edge, Brave:** [Chrome Web Store](https://chromewebstore.google.com/detail/nedbmgeaenbgpecemeibnadhpinkeecn)
+- **Firefox:** [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/full-experience-for-spotify/)
+
+To build it yourself instead (Node.js 20 or newer):
 
 ```sh
 npm install
 npm run build
 ```
 
-In Chrome, Brave or Edge, open `chrome://extensions`, turn on Developer mode, click "Load unpacked" and pick `dist/chrome`.
-
-In Firefox, open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on" and pick `dist/firefox/manifest.json`. Firefox removes it when it restarts.
+In Chrome, Brave or Edge, open `chrome://extensions`, turn on Developer mode, click "Load unpacked" and pick `dist/chrome`. In Firefox, open `about:debugging#/runtime/this-firefox`, click "Load Temporary Add-on" and pick `dist/firefox/manifest.json` (Firefox removes it when it restarts).
 
 ## Privacy
 
