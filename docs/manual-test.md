@@ -80,6 +80,7 @@ Run with the "Genre and mood filters in Liked Songs" option enabled.
 - [ ] First visit to Liked Songs: after a few seconds (about one request per 50 songs) a row of chips appears between the action bar and the list, in the player's language; later visits show it at once.
 - [ ] The row scrolls sideways; the arrows appear only when chips are hidden on that side.
 - [ ] A chip shows only its songs (compare a few with the desktop app's same chip); the row keeps a ✕ and the chosen chip, white. Search and sort still work on the filtered songs.
+- [ ] With a chip chosen the header reads the chip's count and length ("77 brani, 5 ore 1 min"), and goes back to the full count after ✕.
 - [ ] ✕ (or the chosen chip again) brings back every chip and the player's own list.
 - [ ] Like a new song, reload: its genres are asked (one request) and the chips include it.
 - [ ] Option disabled: no chips, no requests.

@@ -25,6 +25,22 @@ export const SELECTORS = {
   actionBarTrailing: '[data-testid="action-bar-row-trailing"]',
 } as const;
 
+/**
+ * Song count and total length in a playlist header: `[data-testid=entity-header]` holds
+ * `<span>1,220 songs</span><span>, </span><span>over 24 hr</span>` (checked live on 2026-10-12).
+ */
+export function entityHeaderStatsOf(page: ParentNode): { count: HTMLElement; duration: HTMLElement | null } | null {
+  const header = page.querySelector('[data-testid="entity-header"]');
+  if (!header) return null;
+  for (const span of header.querySelectorAll<HTMLElement>('span')) {
+    const comma = span.nextElementSibling;
+    if (span.childElementCount === 0 && /\d/.test(span.textContent ?? '') && comma?.textContent === ', ') {
+      return { count: span, duration: comma.nextElementSibling as HTMLElement | null };
+    }
+  }
+  return null;
+}
+
 /** The player's "view as" button (compact / list) in the action bar. */
 export function nativeViewButtonOf(trailing: ParentNode): HTMLButtonElement | null {
   return trailing.querySelector<HTMLButtonElement>('button[role="combobox"][aria-haspopup="true"]');

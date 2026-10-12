@@ -5,7 +5,7 @@
 // the filtered or sorted tracks in its place, until the search is cleared or the order reset.
 import { likedSongsContext } from '../../adapters/connectShapes';
 import type { PageInfo } from '../../adapters/routes';
-import { pageTrackListOf, SELECTORS } from '../../adapters/spotifyDom';
+import { entityHeaderStatsOf, pageTrackListOf, SELECTORS } from '../../adapters/spotifyDom';
 import { frameScheduler, whenAvailable } from '../../core/dom';
 import type { CapturedRequest } from '../../core/interceptor';
 import { OPERATIONS } from '../../adapters/libraryShapes';
@@ -17,7 +17,7 @@ import type { LikedLibrary } from '../../library/likedLibrary';
 import type { Playback } from '../../library/playback';
 import type { TrackActions } from '../../library/trackActions';
 import { debugWarn } from '../../debug/log';
-import { label, pageLanguage, viewLabels } from '../../ui/format';
+import { label, likedCountText, pageLanguage, totalDurationText, viewLabels } from '../../ui/format';
 import { TrackList, type ListTrack, type SortKey, type SortState } from '../../ui/trackList';
 import { borrowTypography, el, type Typography } from '../../ui/typography';
 import { PlaylistControls, type SortChoices } from './controls';
@@ -83,6 +83,8 @@ export class PlaylistToolsFeature {
   private chipBar: ChipBar | null = null;
   private chipsLoading = false;
   private chipsToken = 0;
+  /** The header's own count and length texts, while a chip shows ours. */
+  private header: { count: HTMLElement; countText: string; duration: HTMLElement | null; durationText: string } | null = null;
   /** The page content root, observed for the whole visit (the page section inside it is replaced when moving between playlists). */
   private main: HTMLElement | null = null;
   private observer: MutationObserver | null = null;
@@ -239,7 +241,37 @@ export class PlaylistToolsFeature {
     this.scheduler.schedule();
   }
 
+  /** Like the desktop app: with a chip chosen, the header counts the chip's songs. */
+  private syncHeader(section: HTMLElement): void {
+    const chip = this.chip;
+    const tracks = this.tracks;
+    if (!chip || !tracks) {
+      this.restoreHeader();
+      return;
+    }
+    const stats = entityHeaderStatsOf(section);
+    if (!stats) return;
+    if (this.header?.count !== stats.count) {
+      this.restoreHeader();
+      this.header = { count: stats.count, countText: stats.count.textContent ?? '', duration: stats.duration, durationText: stats.duration?.textContent ?? '' };
+    }
+    const shown = tracks.filter((track) => chip.trackIds.has(track.t));
+    const count = likedCountText(shown.length);
+    const length = totalDurationText(shown.reduce((sum, track) => sum + track.ms, 0));
+    if (stats.count.textContent !== count) stats.count.textContent = count;
+    if (stats.duration && stats.duration.textContent !== length) stats.duration.textContent = length;
+  }
+
+  private restoreHeader(): void {
+    const header = this.header;
+    if (!header) return;
+    this.header = null;
+    if (header.count.isConnected) header.count.textContent = header.countText;
+    if (header.duration?.isConnected) header.duration.textContent = header.durationText;
+  }
+
   private dropChips(): void {
+    this.restoreHeader();
     this.chipBar?.remove();
     this.chipBar = null;
     this.chip = null;
@@ -350,7 +382,10 @@ export class PlaylistToolsFeature {
       this.controls.showSort(this.sort);
       this.controls.mount(trailing);
     }
-    if (target.kind === 'liked') this.syncChips(section, typography);
+    if (target.kind === 'liked') {
+      this.syncChips(section, typography);
+      this.syncHeader(section);
+    }
 
     if (!this.active) {
       this.restoreNative();

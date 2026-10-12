@@ -34,3 +34,12 @@ describe('label', () => {
     expect(label('playcounts')).toBe('Riproduzioni');
   });
 });
+
+describe('total duration', () => {
+  it('reads like the desktop header', async () => {
+    const { totalDurationText } = await import('../../src/page/ui/format');
+    expect(totalDurationText((5 * 3600 + 60) * 1000, 'it')).toBe('5 ore 1 min');
+    expect(totalDurationText(3600 * 1000, 'it')).toBe('1 ora 0 min');
+    expect(totalDurationText((52 * 60 + 30) * 1000, 'en')).toBe('52 min 30 sec');
+  });
+});

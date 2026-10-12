@@ -152,6 +152,7 @@ describe('chips over Liked Songs', () => {
     document.documentElement.lang = 'en';
     document.body.innerHTML = `
       <main><section data-testid="playlist-page">
+        <div data-testid="entity-header"><div><span>5 songs</span><span>, </span><span>about 1 hr</span></div></div>
         <div data-testid="action-bar-row-trailing"><div id="view"><button role="combobox" aria-haspopup="true">List</button></div></div>
         <div><div id="wrapper"><div role="grid" data-testid="track-list">
           <div role="row"><div data-testid="tracklist-row"><a data-testid="internal-track-link" href="/track/x"><div>Song</div></a><div>3:00</div></div></div>
@@ -192,6 +193,9 @@ describe('chips over Liked Songs', () => {
     expect(wrapper.style.display).toBe('none');
     const names = () => [...section.querySelectorAll('[data-sfe-playlist-list] li a[href^="/track/"]')].map((a) => a.textContent);
     expect(names()).toEqual(['One', 'Two', 'Three']);
+    // The header counts the chip's songs, like the desktop app ("77 brani, 5 ore 1 min").
+    const header = () => section.querySelector('[data-testid="entity-header"]')!.textContent;
+    expect(header()).toBe('3 songs, 0 min 3 sec');
     expect([...bar.querySelectorAll('button[aria-pressed]')].map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([['Rock', 'true']]);
 
     bar.querySelector<HTMLButtonElement>('button[aria-label="Clear filter"]')!.click();
@@ -199,6 +203,7 @@ describe('chips over Liked Songs', () => {
     expect(wrapper.style.display).toBe('');
     expect(section.querySelector('[data-sfe-playlist-list]')).toBeNull();
     expect(bar.querySelectorAll('button[aria-pressed]')).toHaveLength(2);
+    expect(header()).toBe('5 songs, about 1 hr');
 
     feature.setChipsEnabled(false);
     await frame();

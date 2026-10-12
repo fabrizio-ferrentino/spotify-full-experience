@@ -368,6 +368,25 @@ export function addedDate(timestamp: number, now: number, lang = pageLanguage())
 }
 
 /** 394653 → "6:34". */
+const TOTAL_UNITS: Record<string, { hour: (h: number) => string; min: string; sec: string }> = {
+  it: { hour: (h) => (h === 1 ? 'ora' : 'ore'), min: 'min', sec: 'sec' },
+  en: { hour: () => 'hr', min: 'min', sec: 'sec' },
+  es: { hour: () => 'h', min: 'min', sec: 's' },
+  fr: { hour: () => 'h', min: 'min', sec: 's' },
+  de: { hour: () => 'Std.', min: 'Min.', sec: 'Sek.' },
+  pt: { hour: () => 'h', min: 'min', sec: 's' },
+};
+
+/** Total length of a list, as the desktop app's header shows it ("5 ore 1 min", "52 min 30 sec"). */
+export function totalDurationText(ms: number, lang = pageLanguage()): string {
+  const units = TOTAL_UNITS[lang.toLowerCase().split('-')[0] ?? 'en'] ?? TOTAL_UNITS['en']!;
+  const seconds = Math.round(Math.max(0, ms) / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) return `${formatCount(hours, lang)} ${units.hour(hours)} ${minutes} ${units.min}`;
+  return `${minutes} ${units.min} ${seconds % 60} ${units.sec}`;
+}
+
 export function formatDuration(ms: number): string {
   if (!(ms > 0)) return '';
   const seconds = Math.round(ms / 1000);
