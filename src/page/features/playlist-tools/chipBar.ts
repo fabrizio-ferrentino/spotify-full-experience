@@ -34,8 +34,8 @@ export class ChipBar {
     this.root.setAttribute('role', 'toolbar');
     this.root.setAttribute('aria-label', labels.filterTags);
     this.scroller = el('div', 'display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; scroll-behavior: smooth; flex: 1 1 auto; min-width: 0');
-    this.back = this.arrow(ICONS.back, 'left: 0', -SCROLL_STEP);
-    this.forward = this.arrow(ICONS.chevron, 'right: 0', SCROLL_STEP);
+    this.back = this.arrow('left: 0', -SCROLL_STEP);
+    this.forward = this.arrow('right: 0', SCROLL_STEP);
     this.root.append(this.scroller, this.back, this.forward);
     this.scroller.addEventListener('scroll', () => this.updateArrows());
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => this.updateArrows()).observe(this.scroller);
@@ -87,13 +87,16 @@ export class ChipBar {
     button.addEventListener('mouseleave', () => (button.style.background = IDLE));
   }
 
-  private arrow(path: string, side: string, step: number): HTMLButtonElement {
+  /** The same arrow on both sides (mirrored on the right), so both look the same size. */
+  private arrow(side: string, step: number): HTMLButtonElement {
     // Like the desktop row: a white disc over the chips; on hover only the arrow darkens.
     const button = el('button', `${ROUND}; position: absolute; top: 0; ${side}; background: #fff; color: ${ARROW}; box-shadow: 0 0 12px 8px rgba(0, 0, 0, 0.5); display: none`);
     button.type = 'button';
     button.tabIndex = -1;
     button.setAttribute('aria-hidden', 'true');
-    button.append(icon(path, 14));
+    const glyph = icon(ICONS.back, 14);
+    if (step > 0) glyph.style.transform = 'scaleX(-1)';
+    button.append(glyph);
     button.addEventListener('click', () => this.scroller.scrollBy({ left: step }));
     button.addEventListener('mouseenter', () => (button.style.color = ARROW_HOVER));
     button.addEventListener('mouseleave', () => (button.style.color = ARROW));
