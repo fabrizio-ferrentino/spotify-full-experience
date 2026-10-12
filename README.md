@@ -16,6 +16,10 @@ I blurred my own songs in the screenshots.
 | --- | --- |
 | ![Album page without play counts](docs/images/album-before.jpg) | ![Album page with a play count column](docs/images/album-after.jpg) |
 
+Albums can also be sorted by plays, to find their most played songs (the desktop app cannot sort albums).
+
+![Album sorted by plays](docs/images/album-sort.jpg)
+
 ### Liked songs on artist pages
 
 The artist page tells you how many of the artist's songs you liked. Like the desktop app, it counts only songs where they are the main artist. Click it to open the list.
@@ -24,17 +28,19 @@ The artist page tells you how many of the artist's songs you liked. Like the des
 | --- | --- |
 | ![Artist page without liked songs](docs/images/artist-before.jpg) | ![Artist page with a liked songs section](docs/images/artist-after.jpg) |
 
-A double click plays a song, and each row has the desktop's menu: add to playlist, remove from liked songs, add to queue, go to artist or album, share.
+A double click plays a song, and each row has the player's full menu: add to playlist, remove from Liked Songs, add to queue, exclude from your taste profile, go to song radio, go to artist or album, view credits, share, open in the desktop app.
 
 ![Liked songs of an artist, with the row menu](docs/images/liked-by-artist.jpg)
 
 ### Genre and mood filters in Liked Songs
 
-Chips under the action bar, like the desktop app's, filter your liked songs by genre or mood. They use the genres and moods Spotify gives each song; which chips appear is chosen by the extension, so it can differ a little from the desktop app.
+Chips under the action bar, like the desktop app's, filter your liked songs by genre or mood. They use the genres and moods Spotify gives each song; which chips appear is chosen by the extension, so it can differ a little from the desktop app. With a chip chosen, the header shows its song count and length.
+
+![Genre and mood chips in Liked Songs](docs/images/liked-chips.jpg)
 
 ### Search and sort in playlists and albums
 
-You can search a playlist or Liked Songs, and sort it by title, artist, album, date added or duration. Albums can be searched too, and sorted by plays, title or duration (the desktop app cannot sort albums).
+You can search a playlist, an album or Liked Songs, and sort it by title, artist, album, date added or duration.
 
 | Before | After |
 | --- | --- |

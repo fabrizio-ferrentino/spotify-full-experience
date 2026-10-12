@@ -22,19 +22,25 @@ Text to paste into the Developer Dashboard. Images are in this folder.
 The Spotify web player lacks a few things the desktop app has. This extension adds them to open.spotify.com.
 
 PLAY COUNTS ON ALBUM PAGES
-A "Plays" column next to each song, as in the desktop app, formatted for your language.
+A "Plays" column next to each song, as in the desktop app, formatted for your language. Sort an album by plays to find its most played songs.
+
+GENRE AND MOOD FILTERS IN LIKED SONGS
+Chips under the Liked Songs action bar, like the desktop app's: pick a genre or a mood (Rock, Chill, Nostalgia…) to see only those songs, with their count and length.
 
 LIKED SONGS ON ARTIST PAGES
-How many of the artist's songs you liked, and their list. Double click to play a song. Each row has the desktop's menu: add to playlist, remove from Liked Songs, add to queue, go to artist or album, share.
+How many of the artist's songs you liked, and their list. Double click to play a song.
 
 SEARCH AND SORT IN PLAYLISTS AND ALBUMS
-Search inside a playlist or Liked Songs, and sort by title, artist, album, date added or duration. Sort albums by plays to find their most played songs.
+Search inside a playlist, an album or Liked Songs, and sort by title, artist, album, date added or duration.
+
+THE FULL SONG MENU
+In every list of the extension, the "…" menu has the player's entries: add to playlist, save or remove from Liked Songs, add to queue, exclude from your taste profile, go to song radio, go to artist or album, view credits, share, open in the desktop app.
 
 SETTINGS
 Click the extension icon to turn each feature on or off, or the whole extension at once. English and Italian.
 
 PRIVACY
-No server, no analytics, no tracking. The extension reads what the web player already receives and only talks to Spotify. Your liked songs index stays in your browser. Play and library actions run only when you click them.
+No server, no analytics, no tracking. The extension reads what the web player already receives and only talks to Spotify. Your liked songs index and their genres stay in your browser. Play and library actions run only when you click them.
 
 It never touches audio, DRM or ads, and does not unlock Premium features.
 
@@ -58,7 +64,7 @@ Unofficial project, not affiliated with, endorsed by or sponsored by Spotify. "S
 **Single purpose:**
 
 ```
-Adds features of the Spotify desktop app to the Spotify web player (open.spotify.com): play counts on album pages, liked songs on artist pages, and search and sort in playlists and albums.
+Adds features of the Spotify desktop app to the Spotify web player (open.spotify.com): play counts on album pages, genre and mood filters in Liked Songs, liked songs on artist pages, search and sort in playlists and albums, and the full song menu.
 ```
 
 **Permission justification, storage:**
@@ -75,7 +81,7 @@ The extension only works on the Spotify web player: it adds columns, sections an
 
 **Remote code:** No, I am not using remote code. All code is in the package.
 
-**Data usage:** tick **Website content** (the extension reads songs, playlists and liked songs from Spotify pages and keeps a liked songs index in local storage). Leave the other categories unticked: it collects no personal identifiers, location, browsing history or credentials, and sends nothing to the developer.
+**Data usage:** tick **Website content** (the extension reads songs, playlists and liked songs from Spotify pages and keeps a liked songs index, with their genres, in local storage). Leave the other categories unticked: it collects no personal identifiers, location, browsing history or credentials, and sends nothing to the developer.
 
 Then tick the three certifications (no sale of data, no use unrelated to the single purpose, no use for creditworthiness or lending).
 
