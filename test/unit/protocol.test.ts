@@ -13,15 +13,15 @@ describe('bridge protocol', () => {
   });
 
   it('round-trips a settings message', () => {
-    const envelope = envelopeToPage({ type: 'settings', settings: { enabled: true, debug: true, playcounts: false, likedSongs: true, playlistTools: true, playcountsTitleWidth: 240 } });
+    const envelope = envelopeToPage({ type: 'settings', settings: { enabled: true, debug: true, playcounts: false, likedSongs: true, playlistTools: true, likedChips: true, playcountsTitleWidth: 240 } });
     expect(parseContentToPage(envelope)).toEqual({
       type: 'settings',
-      settings: { enabled: true, debug: true, playcounts: false, likedSongs: true, playlistTools: true, playcountsTitleWidth: 240 },
+      settings: { enabled: true, debug: true, playcounts: false, likedSongs: true, playlistTools: true, likedChips: true, playcountsTitleWidth: 240 },
     });
   });
 
   it('rejects messages with the wrong direction', () => {
-    const envelope = envelopeToPage({ type: 'settings', settings: { enabled: true, debug: true, playcounts: true, likedSongs: true, playlistTools: true, playcountsTitleWidth: null } });
+    const envelope = envelopeToPage({ type: 'settings', settings: { enabled: true, debug: true, playcounts: true, likedSongs: true, playlistTools: true, likedChips: true, playcountsTitleWidth: null } });
     expect(parsePageToContent(envelope)).toBeNull();
     expect(parseContentToPage(envelopeToContent({ type: 'hello' }))).toBeNull();
   });
@@ -51,6 +51,6 @@ describe('bridge protocol', () => {
       type: 'settings',
       settings: { debug: 'yes', token: 'Bearer abc' },
     });
-    expect(msg).toEqual({ type: 'settings', settings: { enabled: true, debug: false, playcounts: true, likedSongs: true, playlistTools: true, playcountsTitleWidth: null } });
+    expect(msg).toEqual({ type: 'settings', settings: { enabled: true, debug: false, playcounts: true, likedSongs: true, playlistTools: true, likedChips: true, playcountsTitleWidth: null } });
   });
 });

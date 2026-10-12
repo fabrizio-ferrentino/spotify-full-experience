@@ -13,6 +13,8 @@ export type MessageKey =
   | 'likedSongsDesc'
   | 'playlistToolsTitle'
   | 'playlistToolsDesc'
+  | 'likedChipsTitle'
+  | 'likedChipsDesc'
   | 'advancedHeading'
   | 'debugTitle'
   | 'debugDesc'
@@ -40,6 +42,7 @@ const FEATURES: readonly { key: FeatureKey; title: MessageKey; desc: MessageKey 
   { key: 'playcounts', title: 'playcountsTitle', desc: 'playcountsDesc' },
   { key: 'likedSongs', title: 'likedSongsTitle', desc: 'likedSongsDesc' },
   { key: 'playlistTools', title: 'playlistToolsTitle', desc: 'playlistToolsDesc' },
+  { key: 'likedChips', title: 'likedChipsTitle', desc: 'likedChipsDesc' },
 ];
 
 const ADVANCED: readonly { key: FeatureKey; title: MessageKey; desc: MessageKey }[] = [

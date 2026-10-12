@@ -193,6 +193,8 @@ type ViewLabels = {
   credits: string;
   close: string;
   sources: string;
+  filterTags: string;
+  clearFilter: string;
 };
 
 const VIEW_LABELS: Record<string, ViewLabels> = {
@@ -218,6 +220,8 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     credits: "Riconoscimenti",
     close: "Chiudi",
     sources: "Fonte",
+    filterTags: "Filtri per genere e atmosfera",
+    clearFilter: "Cancella filtro",
   },
   en: {
     title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit',
@@ -241,6 +245,8 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     credits: "Credits",
     close: "Close",
     sources: "Source",
+    filterTags: "Genre and mood filters",
+    clearFilter: "Clear filter",
   },
   es: {
     title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito',
@@ -264,6 +270,8 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     credits: "Créditos",
     close: "Cerrar",
     sources: "Fuente",
+    filterTags: "Filtros por género y estado de ánimo",
+    clearFilter: "Borrar filtro",
   },
   fr: {
     title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite',
@@ -287,6 +295,8 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     credits: "Crédits",
     close: "Fermer",
     sources: "Source",
+    filterTags: "Filtres par genre et ambiance",
+    clearFilter: "Effacer le filtre",
   },
   de: {
     title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit',
@@ -310,6 +320,8 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     credits: "Credits",
     close: "Schließen",
     sources: "Quelle",
+    filterTags: "Genre- und Stimmungsfilter",
+    clearFilter: "Filter löschen",
   },
   pt: {
     title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito',
@@ -333,6 +345,8 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     credits: "Créditos",
     close: "Fechar",
     sources: "Fonte",
+    filterTags: "Filtros por gênero e clima",
+    clearFilter: "Limpar filtro",
   },
 };
 

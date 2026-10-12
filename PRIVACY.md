@@ -16,12 +16,13 @@ Everything stays in the browser's extension storage on your device:
 
 - Your settings (which features are on, a column width).
 - An index of your liked songs, used by the "liked songs on artist pages" feature: for each song its Spotify ID, title, artists, album, cover link, duration and the date you liked it. It is saved under a hashed key, never under your user ID.
+- For the genre and mood filters in Liked Songs: the genres and moods ("descriptors") of your liked songs, as Spotify describes them, under the same hashed key.
 
 Removing the extension deletes this data. Playlist contents and play counts are kept only in memory and are gone when you close the tab.
 
 ## What it sends
 
-- Requests to Spotify's own servers, the same ones the web player uses, to read the data above.
+- Requests to Spotify's own servers, the same ones the web player uses, to read the data above. The genres and moods of your liked songs are asked once (about one request per 50 songs) and then only for songs you like later.
 - Player and library commands (play, add to queue, add to a playlist, like or unlike a song) only when you click the matching button or menu item.
 - From a song's menu, like the web player's own: its credits and its radio playlist when you pick those entries; whether the song is excluded from your taste profile when you open the menu, and the change when you pick "Exclude" or "Include". These requests carry your Spotify user name, as the player's do; the extension keeps it in memory only.
 

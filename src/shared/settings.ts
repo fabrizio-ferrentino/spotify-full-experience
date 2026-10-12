@@ -8,11 +8,13 @@ export interface Settings {
   likedSongs: boolean;
   /** Feature: search and sort in playlists and Liked Songs. */
   playlistTools: boolean;
+  /** Feature: genre and mood chips over Liked Songs. */
+  likedChips: boolean;
   /** Title width (px) chosen by dragging the play counts column edge; null for the default layout. */
   playcountsTitleWidth: number | null;
 }
 
-export type ToggleKey = 'enabled' | 'debug' | 'playcounts' | 'likedSongs' | 'playlistTools';
+export type ToggleKey = 'enabled' | 'debug' | 'playcounts' | 'likedSongs' | 'playlistTools' | 'likedChips';
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   enabled: true,
@@ -20,6 +22,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   playcounts: true,
   likedSongs: true,
   playlistTools: true,
+  likedChips: true,
   playcountsTitleWidth: null,
 });
 
@@ -45,6 +48,7 @@ export function parseSettings(value: unknown): Settings {
     playcounts: flag('playcounts'),
     likedSongs: flag('likedSongs'),
     playlistTools: flag('playlistTools'),
+    likedChips: flag('likedChips'),
     playcountsTitleWidth: parseTitleWidth(source['playcountsTitleWidth']),
   };
 }
@@ -52,5 +56,5 @@ export function parseSettings(value: unknown): Settings {
 /** Settings as the page applies them: with the master switch off, every toggle is off. */
 export function effectiveSettings(settings: Settings): Settings {
   if (settings.enabled) return settings;
-  return { ...settings, debug: false, playcounts: false, likedSongs: false, playlistTools: false };
+  return { ...settings, debug: false, playcounts: false, likedSongs: false, playlistTools: false, likedChips: false };
 }

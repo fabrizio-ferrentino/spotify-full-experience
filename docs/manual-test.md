@@ -73,6 +73,17 @@ Run with the "Search and sort in playlists and albums" option enabled.
 - [ ] Album with more than 50 songs (e.g. a deluxe edition): sorting by plays shows every song, with one extra request per 300 missing songs.
 - [ ] Back to "Album order", or to another page: the native list comes back, nothing left behind.
 
+## Genre and mood filters in Liked Songs
+
+Run with the "Genre and mood filters in Liked Songs" option enabled.
+
+- [ ] First visit to Liked Songs: after a few seconds (about one request per 50 songs) a row of chips appears between the action bar and the list, in the player's language; later visits show it at once.
+- [ ] The row scrolls sideways; the arrows appear only when chips are hidden on that side.
+- [ ] A chip shows only its songs (compare a few with the desktop app's same chip); the row keeps a ✕ and the chosen chip, white. Search and sort still work on the filtered songs.
+- [ ] ✕ (or the chosen chip again) brings back every chip and the player's own list.
+- [ ] Like a new song, reload: its genres are asked (one request) and the chips include it.
+- [ ] Option disabled: no chips, no requests.
+
 ## Row menu entries from the web player
 
 In our lists (liked songs by artist; a searched or sorted playlist or album):

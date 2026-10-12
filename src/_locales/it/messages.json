@@ -29,6 +29,12 @@
   "playlistToolsDesc": {
     "message": "Cerca nella playlist e ordina per, nelle playlist e nei Brani che ti piacciono. Gli album si possono ordinare anche per riproduzioni."
   },
+  "likedChipsTitle": {
+    "message": "Filtri per genere e atmosfera nei Brani che ti piacciono"
+  },
+  "likedChipsDesc": {
+    "message": "Pillole come nell'app desktop per filtrare i brani che ti piacciono per genere o atmosfera. Legge i generi dei tuoi brani una volta e li tiene nel browser."
+  },
   "advancedHeading": {
     "message": "Avanzate"
   },

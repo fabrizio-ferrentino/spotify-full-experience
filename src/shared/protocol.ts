@@ -1,7 +1,8 @@
 // Page <-> content script bridge over window.postMessage.
-// Settings and the liked songs index travel on the bridge. Never put tokens or captured traffic
+// Settings, the liked songs index and its descriptor cache travel on the bridge. Never put tokens or captured traffic
 // here: any script running in the page can read and forge these messages, so everything coming
 // from the page is validated on the content script side.
+import { parseDescriptorCache, type DescriptorCache } from './descriptorCache';
 import { INDEX_KEY, parseLikedIndex, type LikedIndex } from './likedIndex';
 import { parseSettings, parseTitleWidth, type Settings } from './settings';
 
@@ -11,10 +12,13 @@ export type PageToContentMessage =
   | { type: 'hello' }
   | { type: 'set-playcounts-title-width'; width: number | null }
   | { type: 'load-liked-index'; key: string }
-  | { type: 'save-liked-index'; key: string; index: LikedIndex | null };
+  | { type: 'save-liked-index'; key: string; index: LikedIndex | null }
+  | { type: 'load-descriptors'; key: string }
+  | { type: 'save-descriptors'; key: string; cache: DescriptorCache | null };
 export type ContentToPageMessage =
   | { type: 'settings'; settings: Settings }
-  | { type: 'liked-index'; key: string; index: LikedIndex | null };
+  | { type: 'liked-index'; key: string; index: LikedIndex | null }
+  | { type: 'descriptors'; key: string; cache: DescriptorCache | null };
 
 type Direction = 'to-content' | 'to-page';
 
@@ -51,6 +55,12 @@ export function parsePageToContent(data: unknown): PageToContentMessage | null {
     const index = parseLikedIndex(record['index']);
     if (index) return { type: 'save-liked-index', key, index };
   }
+  if (record['type'] === 'load-descriptors') return { type: 'load-descriptors', key };
+  if (record['type'] === 'save-descriptors') {
+    if (record['cache'] === null) return { type: 'save-descriptors', key, cache: null };
+    const cache = parseDescriptorCache(record['cache']);
+    if (cache) return { type: 'save-descriptors', key, cache };
+  }
   return null;
 }
 
@@ -62,6 +72,9 @@ export function parseContentToPage(data: unknown): ContentToPageMessage | null {
   }
   if (record['type'] === 'liked-index' && typeof record['key'] === 'string' && INDEX_KEY.test(record['key'])) {
     return { type: 'liked-index', key: record['key'], index: parseLikedIndex(record['index']) };
+  }
+  if (record['type'] === 'descriptors' && typeof record['key'] === 'string' && INDEX_KEY.test(record['key'])) {
+    return { type: 'descriptors', key: record['key'], cache: parseDescriptorCache(record['cache']) };
   }
   return null;
 }

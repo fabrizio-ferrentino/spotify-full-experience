@@ -1,7 +1,7 @@
 // Entry point of the code running in the page's JS context (injected by bootstrap).
 // Passive capture of the player's internal requests, feeding the features and debug mode.
 import { DEFAULT_SETTINGS } from '../shared/settings';
-import { loadLikedIndex, saveLikedIndex, sendToContent, startBridge } from './core/bridge';
+import { loadDescriptors, loadLikedIndex, saveDescriptors, saveLikedIndex, sendToContent, startBridge } from './core/bridge';
 import { HashRegistry } from './core/hashRegistry';
 import { installFetchInterceptor, installXhrInterceptor, type InterceptorHooks } from './core/interceptor';
 import { PathfinderClient } from './core/pathfinderClient';
@@ -24,8 +24,10 @@ import { Playback } from './library/playback';
 import { TrackActions } from './library/trackActions';
 import { PlaylistToolsFeature } from './features/playlist-tools';
 import { AlbumStore } from './features/playlist-tools/albumStore';
+import { DescriptorLibrary } from './library/descriptors';
 import { PlaylistStore } from './features/playlist-tools/playlistStore';
 import { PlaycountsFeature } from './features/playcounts';
+import { pageLanguage } from './ui/format';
 
 const LOADED = Symbol.for('spotify-full-experience.loaded');
 
@@ -110,7 +112,13 @@ function main(): void {
     profileUri: () => likedLibrary.profileUri,
   });
   likedSongs = new ArtistLikedSongsFeature({ library, playback, trackActions });
-  playlistTools = new PlaylistToolsFeature({ library, playback, store: new PlaylistStore(client), albums: new AlbumStore(client), trackActions });
+  playlistTools = new PlaylistToolsFeature({ library, playback, store: new PlaylistStore(client), albums: new AlbumStore(client), trackActions, descriptors: new DescriptorLibrary({
+    spclient,
+    storageKey: () => likedLibrary.storageKey(),
+    load: loadDescriptors,
+    save: saveDescriptors,
+    lang: () => pageLanguage(),
+  }) });
   if (DEFAULT_SETTINGS.playlistTools) playlistTools.enable();
   const tools = playlistTools;
   if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();
@@ -125,6 +133,7 @@ function main(): void {
     else liked.disable();
     if (settings.playlistTools) tools.enable();
     else tools.disable();
+    tools.setChipsEnabled(settings.likedChips);
 
     const wasDebug = previous?.debug ?? false;
     if (settings.debug && !wasDebug) {

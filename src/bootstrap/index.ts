@@ -8,6 +8,7 @@ import {
   parsePageToContent,
   type ContentToPageMessage,
 } from '../shared/protocol';
+import { descriptorStorageKeyFor, parseDescriptorCache, type DescriptorCache } from '../shared/descriptorCache';
 import { parseLikedIndex, storageKeyFor, type LikedIndex } from '../shared/likedIndex';
 import { DEFAULT_SETTINGS, parseSettings, SETTINGS_STORAGE_KEY, type Settings } from '../shared/settings';
 
@@ -40,6 +41,27 @@ async function saveLikedIndex(key: string, index: LikedIndex | null): Promise<vo
     else await ext.storage.local.remove(storageKeyFor(key));
   } catch {
     // Not saved: the index is rebuilt on a later visit.
+  }
+}
+
+async function loadDescriptors(key: string): Promise<void> {
+  let cache: DescriptorCache | null = null;
+  try {
+    const storageKey = descriptorStorageKeyFor(key);
+    const stored = await ext.storage.local.get(storageKey);
+    cache = parseDescriptorCache(stored[storageKey]);
+  } catch {
+    cache = null;
+  }
+  postToPage({ type: 'descriptors', key, cache });
+}
+
+async function saveDescriptors(key: string, cache: DescriptorCache | null): Promise<void> {
+  try {
+    if (cache) await ext.storage.local.set({ [descriptorStorageKeyFor(key)]: cache });
+    else await ext.storage.local.remove(descriptorStorageKeyFor(key));
+  } catch {
+    // Not saved: the descriptors are asked again on a later visit.
   }
 }
 
@@ -83,6 +105,8 @@ function main(): void {
     else if (msg?.type === 'set-playcounts-title-width') void saveTitleWidth(msg.width);
     else if (msg?.type === 'load-liked-index') void loadLikedIndex(msg.key);
     else if (msg?.type === 'save-liked-index') void saveLikedIndex(msg.key, msg.index);
+    else if (msg?.type === 'load-descriptors') void loadDescriptors(msg.key);
+    else if (msg?.type === 'save-descriptors') void saveDescriptors(msg.key, msg.cache);
   });
   void settingsReady.then(sendSettings);
 

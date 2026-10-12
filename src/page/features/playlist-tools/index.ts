@@ -10,6 +10,9 @@ import { frameScheduler, whenAvailable } from '../../core/dom';
 import type { CapturedRequest } from '../../core/interceptor';
 import { OPERATIONS } from '../../adapters/libraryShapes';
 import type { AlbumStore } from './albumStore';
+import type { DescriptorLibrary } from '../../library/descriptors';
+import { ChipBar } from './chipBar';
+import { pickChips, type Chip } from './chips';
 import type { LikedLibrary } from '../../library/likedLibrary';
 import type { Playback } from '../../library/playback';
 import type { TrackActions } from '../../library/trackActions';
@@ -51,6 +54,8 @@ export interface PlaylistToolsDeps {
   albums: AlbumStore;
   /** Song radio, credits, taste profile and "Open in Desktop app" in the row menu. */
   trackActions?: TrackActions;
+  /** Genre and mood chips over Liked Songs, like the desktop app. */
+  descriptors?: DescriptorLibrary;
   now?: () => number;
 }
 
@@ -71,6 +76,13 @@ export class PlaylistToolsFeature {
   private loadError = false;
   private partial: { shown: number; total: number } | null = null;
   private loadToken = 0;
+  private chipsEnabled = true;
+  /** Chips of Liked Songs, once their descriptors are known (null: not computed yet). */
+  private chips: Chip[] | null = null;
+  private chip: Chip | null = null;
+  private chipBar: ChipBar | null = null;
+  private chipsLoading = false;
+  private chipsToken = 0;
   /** The page content root, observed for the whole visit (the page section inside it is replaced when moving between playlists). */
   private main: HTMLElement | null = null;
   private observer: MutationObserver | null = null;
@@ -112,6 +124,14 @@ export class PlaylistToolsFeature {
     this.disable();
   }
 
+  /** The genre and mood chips over Liked Songs (their own setting). */
+  setChipsEnabled(enabled: boolean): void {
+    if (enabled === this.chipsEnabled) return;
+    this.chipsEnabled = enabled;
+    if (!enabled) this.dropChips();
+    this.scheduler.schedule();
+  }
+
   onPageChange(page: PageInfo): void {
     const target = targetOf(page);
     if (target?.uri === this.target?.uri) return;
@@ -143,7 +163,7 @@ export class PlaylistToolsFeature {
   }
 
   private get active(): boolean {
-    return this.query !== '' || !sameSort(this.sort, this.defaultSort);
+    return this.query !== '' || !sameSort(this.sort, this.defaultSort) || this.chip !== null;
   }
 
   private sortChoices(kind: TargetKind): SortChoices {
@@ -178,6 +198,7 @@ export class PlaylistToolsFeature {
     this.observer = null;
     this.scheduler.cancel();
     this.restoreNative();
+    this.dropChips();
     this.controls?.remove();
     this.controls = null;
     this.trackList?.closePopups();
@@ -218,8 +239,62 @@ export class PlaylistToolsFeature {
     this.scheduler.schedule();
   }
 
+  private dropChips(): void {
+    this.chipBar?.remove();
+    this.chipBar = null;
+    this.chip = null;
+    this.chips = null;
+    this.chipsLoading = false;
+    this.chipsToken += 1;
+  }
+
+  private onChip(chip: Chip | null): void {
+    this.chip = chip;
+    this.scheduler.schedule();
+  }
+
+  /** Liked Songs: the chips row between the action bar and the list, once descriptors are known. */
+  private syncChips(section: HTMLElement, typography: Typography): void {
+    const { descriptors, library } = this.deps;
+    const wrapper = pageTrackListOf(section, true)?.parentElement;
+    if (!this.chipsEnabled || !descriptors || !wrapper) {
+      this.chipBar?.remove();
+      return;
+    }
+    const index = library.index;
+    if (!this.chips && !this.chipsLoading) {
+      this.chipsLoading = true;
+      const token = ++this.chipsToken;
+      const ready = index ? Promise.resolve() : library.ensureFresh();
+      void ready
+        .then(() => {
+          const ids = (library.index?.tracks ?? []).map((track) => track.t);
+          return descriptors.ensure(ids).then((cache) => (cache ? pickChips(ids, cache) : []));
+        })
+        .catch(() => [])
+        .then((chips) => {
+          if (token !== this.chipsToken) return;
+          this.chips = chips;
+          this.chipsLoading = false;
+          this.scheduler.schedule();
+        });
+    }
+    if (!this.chips?.length) {
+      this.chipBar?.remove();
+      return;
+    }
+    this.chipBar ??= new ChipBar(typography.title, (chip) => this.onChip(chip));
+    this.chipBar.render(this.chips, this.chip);
+    if (this.chipBar.root.nextElementSibling !== wrapper) wrapper.before(this.chipBar.root);
+  }
+
   private onLibraryChange(): void {
     if (!this.target) return;
+    if (this.target.kind === 'liked' && this.chips && !this.chipsLoading) {
+      // New or removed liked songs: the chips are computed again (descriptors are cached).
+      this.chips = null;
+      if (this.chip) this.chip = null;
+    }
     if (this.target.kind === 'liked' && this.tracks) this.tracks = this.likedTracks();
     this.trackList?.invalidate();
     this.scheduler.schedule();
@@ -275,6 +350,7 @@ export class PlaylistToolsFeature {
       this.controls.showSort(this.sort);
       this.controls.mount(trailing);
     }
+    if (target.kind === 'liked') this.syncChips(section, typography);
 
     if (!this.active) {
       this.restoreNative();
@@ -347,7 +423,9 @@ export class PlaylistToolsFeature {
     if (this.loadError) text = labels.failed;
     else if (!this.tracks) text = labels.loading;
     else {
-      shown = queryTracks(this.tracks, this.query, this.sort, pageLanguage());
+      const chip = this.chip;
+      const tracks = chip ? this.tracks.filter((track) => chip.trackIds.has(track.t)) : this.tracks;
+      shown = queryTracks(tracks, this.query, this.sort, pageLanguage());
       if (!shown.length && this.query) text = labels.noResults(this.query);
       else if (this.partial) text = labels.partial(this.partial.shown, this.partial.total);
     }

@@ -28,6 +28,10 @@ A double click plays a song, and each row has the desktop's menu: add to playlis
 
 ![Liked songs of an artist, with the row menu](docs/images/liked-by-artist.jpg)
 
+### Genre and mood filters in Liked Songs
+
+Chips under the action bar, like the desktop app's, filter your liked songs by genre or mood. They use the genres and moods Spotify gives each song; which chips appear is chosen by the extension, so it can differ a little from the desktop app.
+
 ### Search and sort in playlists and albums
 
 You can search a playlist or Liked Songs, and sort it by title, artist, album, date added or duration. Albums can be searched too, and sorted by plays, title or duration (the desktop app cannot sort albums).

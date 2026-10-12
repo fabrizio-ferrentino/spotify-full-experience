@@ -29,6 +29,7 @@ describe('master switch', () => {
       playcounts: false,
       likedSongs: false,
       playlistTools: false,
+      likedChips: false,
       playcountsTitleWidth: 300,
     });
     const on: Settings = { ...DEFAULT_SETTINGS, playcounts: false };

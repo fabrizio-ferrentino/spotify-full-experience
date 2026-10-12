@@ -170,6 +170,11 @@ export class LikedLibrary {
     });
   }
 
+  /** Hashed per-user key of the local storage (never the user ID itself); null until known. */
+  storageKey(): Promise<string | null> {
+    return this.ensureUserKey();
+  }
+
   private async ensureUserKey(): Promise<string | null> {
     if (this.userKey) return this.userKey;
     // The player asks for its profile at startup: wait for it before asking ourselves.

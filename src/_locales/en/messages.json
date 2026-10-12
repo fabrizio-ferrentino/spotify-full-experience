@@ -29,6 +29,12 @@
   "playlistToolsDesc": {
     "message": "Search in playlist and sort by, in playlists and Liked Songs. Albums can also be sorted by plays."
   },
+  "likedChipsTitle": {
+    "message": "Genre and mood filters in Liked Songs"
+  },
+  "likedChipsDesc": {
+    "message": "Chips like the desktop app's to filter your liked songs by genre or mood. Reads the genres of your liked songs once, then keeps them in the browser."
+  },
   "advancedHeading": {
     "message": "Advanced"
   },
