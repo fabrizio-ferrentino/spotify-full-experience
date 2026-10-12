@@ -12,6 +12,8 @@ export interface CurationChange {
 
 const OWN = 'data-sfe-liked-save';
 const WIDTH = 320;
+/** Space kept between the dialog and the window edges. */
+const MARGIN = 8;
 
 export class SaveDialog {
   private root: HTMLElement | null = null;
@@ -42,7 +44,7 @@ export class SaveDialog {
     const labels = viewLabels();
     const root = el(
       'div',
-      `position: fixed; z-index: 30; width: ${WIDTH}px; display: flex; flex-direction: column; border-radius: 8px; background: #282828; box-shadow: 0 16px 24px rgba(0,0,0,0.3), 0 6px 8px rgba(0,0,0,0.2)`,
+      `position: fixed; z-index: 30; width: ${WIDTH}px; max-height: calc(100vh - ${2 * MARGIN}px); display: flex; flex-direction: column; border-radius: 8px; background: #282828; box-shadow: 0 16px 24px rgba(0,0,0,0.3), 0 6px 8px rgba(0,0,0,0.2)`,
       this.textClass,
     );
     root.setAttribute(OWN, '');
@@ -60,7 +62,8 @@ export class SaveDialog {
     search.placeholder = labels.findPlaylist;
     search.setAttribute('aria-label', labels.findPlaylist);
     field.append(icon(ICONS.search, 16), search);
-    const list = el('ul', 'margin: 0; padding: 0 4px; list-style: none; max-height: min(320px, 50vh); overflow-y: auto');
+    // The list scrolls and shrinks first, so the buttons always stay on screen.
+    const list = el('ul', 'flex: 0 1 auto; min-height: 0; margin: 0; padding: 0 4px; list-style: none; max-height: min(320px, 50vh); overflow-y: auto');
     const footer = el('div', 'display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 12px 16px 16px');
     const cancel = el(
       'button',
@@ -85,15 +88,26 @@ export class SaveDialog {
       item.textContent = text;
       return item;
     };
+    // Below the tick when it fits, above otherwise; always inside the window. Run again when
+    // the playlists arrive, since the dialog then grows.
+    const place = () => {
+      if (!root.isConnected) return;
+      const box = anchor.getBoundingClientRect();
+      const height = root.getBoundingClientRect().height;
+      const below = box.bottom + 4 + height + MARGIN <= window.innerHeight;
+      const top = below ? box.bottom + 4 : box.top - height - 4;
+      root.style.left = `${Math.max(MARGIN, Math.min(box.right - WIDTH, window.innerWidth - WIDTH - MARGIN))}px`;
+      root.style.top = `${Math.max(MARGIN, Math.min(top, window.innerHeight - height - MARGIN))}px`;
+    };
     const render = () => {
-      if (!playlists) {
-        list.replaceChildren(placeholder('…'));
-        return;
+      if (!playlists) list.replaceChildren(placeholder('…'));
+      else {
+        const query = search.value.trim().toLocaleLowerCase();
+        const shown = query ? playlists.filter((p) => (p.liked ? labels.likedSongs : p.name).toLocaleLowerCase().includes(query)) : playlists;
+        if (shown.length) list.replaceChildren(...shown.map((playlist) => this.row(playlist, chosen, labels.likedSongs)));
+        else list.replaceChildren(placeholder(labels.noPlaylists));
       }
-      const query = search.value.trim().toLocaleLowerCase();
-      const shown = query ? playlists.filter((p) => (p.liked ? labels.likedSongs : p.name).toLocaleLowerCase().includes(query)) : playlists;
-      if (shown.length) list.replaceChildren(...shown.map((playlist) => this.row(playlist, chosen, labels.likedSongs)));
-      else list.replaceChildren(placeholder(labels.noPlaylists));
+      place();
     };
     search.addEventListener('input', render);
     cancel.addEventListener('click', () => this.close());
@@ -106,14 +120,8 @@ export class SaveDialog {
       this.close();
       if (changes.length) onDone(changes);
     });
-    render();
-
     document.body.append(root);
-    const box = anchor.getBoundingClientRect();
-    const height = root.getBoundingClientRect().height;
-    const below = box.bottom + 4 + height + 8 <= window.innerHeight;
-    root.style.left = `${Math.max(8, Math.min(box.right - WIDTH, window.innerWidth - WIDTH - 8))}px`;
-    root.style.top = `${Math.max(8, below ? box.bottom + 4 : box.top - height - 4)}px`;
+    render();
     this.root = root;
     document.addEventListener('pointerdown', this.onPointerDown, true);
     document.addEventListener('keydown', this.onKey, true);
