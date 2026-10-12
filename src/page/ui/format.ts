@@ -182,6 +182,7 @@ type ViewLabels = {
   compact: string;
   list: string;
   recentlyAdded: string;
+  albumOrder: string;
 };
 
 const VIEW_LABELS: Record<string, ViewLabels> = {
@@ -196,6 +197,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     sortBy: 'Ordina per', sortKeys: { custom: 'Ordine personalizzato', title: 'Titolo', artist: 'Artista', album: 'Album', added: 'Data di aggiunta', duration: 'Durata' },
     noResults: (q) => `Nessun risultato per “${q}”`, loading: 'Caricamento…', partial: (n, t) => `Sono considerati i primi ${n} brani su ${t}`,
     viewAs: 'Visualizza come', compact: 'Compatta', list: 'Elenco', recentlyAdded: 'Aggiunti di recente',
+    albumOrder: "Ordine dell'album",
   },
   en: {
     title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit',
@@ -208,6 +210,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     sortBy: 'Sort by', sortKeys: { custom: 'Custom order', title: 'Title', artist: 'Artist', album: 'Album', added: 'Date added', duration: 'Duration' },
     noResults: (q) => `No results found for “${q}”`, loading: 'Loading…', partial: (n, t) => `Only the first ${n} of ${t} songs are included`,
     viewAs: 'View as', compact: 'Compact', list: 'List', recentlyAdded: 'Recently added',
+    albumOrder: 'Album order',
   },
   es: {
     title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito',
@@ -220,6 +223,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     sortBy: 'Ordenar por', sortKeys: { custom: 'Orden personalizado', title: 'Título', artist: 'Artista', album: 'Álbum', added: 'Fecha en que se añadió', duration: 'Duración' },
     noResults: (q) => `No hay resultados para “${q}”`, loading: 'Cargando…', partial: (n, t) => `Solo se incluyen las primeras ${n} de ${t} canciones`,
     viewAs: 'Ver como', compact: 'Compacta', list: 'Lista', recentlyAdded: 'Añadidas recientemente',
+    albumOrder: 'Orden del álbum',
   },
   fr: {
     title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite',
@@ -232,6 +236,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     sortBy: 'Trier par', sortKeys: { custom: 'Ordre personnalisé', title: 'Titre', artist: 'Artiste', album: 'Album', added: 'Date d’ajout', duration: 'Durée' },
     noResults: (q) => `Aucun résultat pour « ${q} »`, loading: 'Chargement…', partial: (n, t) => `Seuls les ${n} premiers titres sur ${t} sont pris en compte`,
     viewAs: 'Afficher en tant que', compact: 'Compact', list: 'Liste', recentlyAdded: 'Ajoutés récemment',
+    albumOrder: 'Ordre de l’album',
   },
   de: {
     title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit',
@@ -244,6 +249,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     sortBy: 'Sortieren nach', sortKeys: { custom: 'Benutzerdefinierte Reihenfolge', title: 'Titel', artist: 'Künstler', album: 'Album', added: 'Hinzugefügt am', duration: 'Dauer' },
     noResults: (q) => `Keine Ergebnisse für „${q}“`, loading: 'Wird geladen …', partial: (n, t) => `Nur die ersten ${n} von ${t} Songs werden berücksichtigt`,
     viewAs: 'Anzeigen als', compact: 'Kompakt', list: 'Liste', recentlyAdded: 'Zuletzt hinzugefügt',
+    albumOrder: 'Albumreihenfolge',
   },
   pt: {
     title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito',
@@ -256,6 +262,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     sortBy: 'Ordenar por', sortKeys: { custom: 'Ordem personalizada', title: 'Título', artist: 'Artista', album: 'Álbum', added: 'Data de adição', duration: 'Duração' },
     noResults: (q) => `Nenhum resultado para “${q}”`, loading: 'Carregando…', partial: (n, t) => `Apenas as primeiras ${n} de ${t} músicas são consideradas`,
     viewAs: 'Ver como', compact: 'Compacto', list: 'Lista', recentlyAdded: 'Adicionadas recentemente',
+    albumOrder: 'Ordem do álbum',
   },
 };
 

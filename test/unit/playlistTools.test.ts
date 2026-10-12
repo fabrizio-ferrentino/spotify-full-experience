@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { parsePlaylistPage, type PlaylistTrack } from '../../src/page/adapters/libraryShapes';
 import type { PathfinderClient } from '../../src/page/core/pathfinderClient';
 import { PlaylistToolsFeature } from '../../src/page/features/playlist-tools';
+import type { AlbumStore } from '../../src/page/features/playlist-tools/albumStore';
 import { matches, nextSort, normalize, queryTracks } from '../../src/page/features/playlist-tools/listQuery';
 import { MAX_ITEMS, PlaylistStore } from '../../src/page/features/playlist-tools/playlistStore';
 import type { LikedLibrary } from '../../src/page/library/likedLibrary';
@@ -169,7 +170,7 @@ describe('PlaylistToolsFeature on a page', () => {
     const store = { load: vi.fn(async () => ({ tracks, total: 3, partial: false })), observePage: vi.fn(), observeRequest: vi.fn(), invalidate: vi.fn() };
     const library = { subscribe: () => () => {}, ensureFresh: async () => {}, isLiked: (t: string) => t === id(2), index: null, profileUri: null } as unknown as LikedLibrary;
     const playback = { play: vi.fn(async () => {}), queue: vi.fn(async () => true) } as unknown as Playback;
-    const feature = new PlaylistToolsFeature({ library, playback, store: store as unknown as PlaylistStore });
+    const feature = new PlaylistToolsFeature({ library, playback, store: store as unknown as PlaylistStore, albums: {} as AlbumStore });
     return { feature, store, playback };
   }
 
@@ -275,7 +276,7 @@ describe('desktop look', () => {
     const section = document.querySelector('section')!;
     const store = { load: vi.fn(), observePage: vi.fn(), observeRequest: vi.fn(), invalidate: vi.fn() };
     const library = { subscribe: () => () => {}, ensureFresh: async () => {}, isLiked: () => true, index: { tracks: list }, profileUri: null } as unknown as LikedLibrary;
-    const feature = new PlaylistToolsFeature({ library, playback: {} as Playback, store: store as unknown as PlaylistStore });
+    const feature = new PlaylistToolsFeature({ library, playback: {} as Playback, store: store as unknown as PlaylistStore, albums: {} as AlbumStore });
     feature.enable();
     feature.onPageChange({ kind: 'collection', id: 'tracks' });
     await new Promise((resolve) => setTimeout(resolve, 40));

@@ -17,6 +17,8 @@ export const SELECTORS = {
   entityHeader: '[data-testid="entity-header"]',
   /** Playlist and Liked Songs page (checked live on 2026-10-10). */
   playlistPage: 'section[data-testid="playlist-page"]',
+  /** Album page (checked live on 2026-10-12); its list is the first `track-list`. */
+  albumPage: 'section[data-testid="album-page"]',
   /** Main track list of a playlist page (Liked Songs uses `track-list`). */
   playlistTrackList: '[data-testid="playlist-tracklist"]',
   /** Right side of the action bar, holding the "Elenco" (view as) button. */
@@ -63,8 +65,13 @@ export async function chooseNativeView(button: HTMLButtonElement, label: string,
  * The page's own track list on playlist pages (`playlist-tracklist`) or Liked Songs
  * (`track-list`); never the "recommended" list below a playlist, also a `track-list`.
  */
-export function pageTrackListOf(page: ParentNode, likedSongs: boolean): HTMLElement | null {
-  return page.querySelector<HTMLElement>(SELECTORS.playlistTrackList) ?? (likedSongs ? page.querySelector<HTMLElement>(SELECTORS.trackList) : null);
+/**
+ * Main track list of a playlist, Liked Songs or album page. Playlists have their own test ID;
+ * Liked Songs and albums use the generic `track-list` (the recommendations after a playlist
+ * are a `track-list` too, so playlists never fall back to it).
+ */
+export function pageTrackListOf(page: ParentNode, genericList: boolean): HTMLElement | null {
+  return page.querySelector<HTMLElement>(SELECTORS.playlistTrackList) ?? (genericList ? page.querySelector<HTMLElement>(SELECTORS.trackList) : null);
 }
 
 /**

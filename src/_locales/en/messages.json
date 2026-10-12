@@ -24,10 +24,10 @@
     "message": "How many of the artist's songs you liked, with the list. Keeps a local index of your liked songs."
   },
   "playlistToolsTitle": {
-    "message": "Search and sort in playlists"
+    "message": "Search and sort in playlists and albums"
   },
   "playlistToolsDesc": {
-    "message": "Search in playlist and sort by, in playlists and Liked Songs."
+    "message": "Search in playlist and sort by, in playlists and Liked Songs. Albums can also be sorted by plays."
   },
   "advancedHeading": {
     "message": "Advanced"

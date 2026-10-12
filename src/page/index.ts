@@ -21,6 +21,7 @@ import { ArtistLikedSongsFeature } from './features/artist-liked-songs';
 import { LikedLibrary } from './library/likedLibrary';
 import { Playback } from './library/playback';
 import { PlaylistToolsFeature } from './features/playlist-tools';
+import { AlbumStore } from './features/playlist-tools/albumStore';
 import { PlaylistStore } from './features/playlist-tools/playlistStore';
 import { PlaycountsFeature } from './features/playcounts';
 
@@ -100,7 +101,7 @@ function main(): void {
   library = new LikedLibrary({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
   const playback = new Playback(player);
   likedSongs = new ArtistLikedSongsFeature({ library, playback });
-  playlistTools = new PlaylistToolsFeature({ library, playback, store: new PlaylistStore(client) });
+  playlistTools = new PlaylistToolsFeature({ library, playback, store: new PlaylistStore(client), albums: new AlbumStore(client) });
   if (DEFAULT_SETTINGS.playlistTools) playlistTools.enable();
   const tools = playlistTools;
   if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();

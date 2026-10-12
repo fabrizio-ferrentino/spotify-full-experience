@@ -24,10 +24,10 @@
     "message": "Quanti brani dell'artista ti piacciono, con la lista. Tiene un indice locale dei tuoi brani piaciuti."
   },
   "playlistToolsTitle": {
-    "message": "Cerca e ordina nelle playlist"
+    "message": "Cerca e ordina in playlist e album"
   },
   "playlistToolsDesc": {
-    "message": "Cerca nella playlist e ordina per, nelle playlist e nei Brani che ti piacciono."
+    "message": "Cerca nella playlist e ordina per, nelle playlist e nei Brani che ti piacciono. Gli album si possono ordinare anche per riproduzioni."
   },
   "advancedHeading": {
     "message": "Avanzate"

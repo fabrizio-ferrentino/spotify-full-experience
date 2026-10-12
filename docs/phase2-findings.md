@@ -27,6 +27,7 @@ For "Paper Thin" (`spotify:track:33LQdszht4rDfgmOSth8W0`), `artists.items` is IL
 ## Hashes
 
 - Bundle extraction works: for every operation checked, the hash found after the operation name in the player's bundles equals the one in the live traffic.
+- `queryAlbumTracks` (checked on 2026-10-12): variables `{ uri, offset, limit }`, `limit` up to at least 300 (a 92-track album came back whole); the response is `albumUnion { tracksV2 { totalCount, items[] { uid, track } } }`, the same items as `getAlbum` (with `playcount`, `discNumber`, `trackNumber`) but without the album name or cover.
 - One hash can serve several operations of the same document: `getAlbum` / `queryAlbumTracks`, `fetchPlaylist` / `fetchPlaylistContents` / `fetchPlaylistMetadata`.
 
 ## Session

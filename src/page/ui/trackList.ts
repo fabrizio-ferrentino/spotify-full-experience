@@ -5,16 +5,22 @@
 import type { LikedTrack } from '../../shared/likedIndex';
 import { LIKED_SONGS_CONTEXT, type EditablePlaylist } from '../adapters/libraryShapes';
 import { albumPath, artistPath, navigateTo, trackPath, trackShareUrl } from '../adapters/spotifyNav';
-import { addedDate, formatDuration, viewLabels } from './format';
+import { addedDate, formatCount, formatDuration, label, viewLabels } from './format';
 import { ContextMenu, type MenuItem } from './menu';
 import { SaveDialog, type CurationChange } from './saveDialog';
 import { showToast } from './toast';
 import { ACCENT, addIcon, checkIcon, el, ELLIPSIS, HOVER, icon, ICONS, type Typography } from './typography';
 
-/** A row: a liked songs index entry, with the playlist row ID when it comes from a playlist. */
-export type ListTrack = LikedTrack & { u?: string };
+/**
+ * A row: a liked songs index entry, with the row ID when it comes from a playlist or an album,
+ * and the play count on albums (null when unknown).
+ */
+export type ListTrack = LikedTrack & { u?: string; p?: number | null };
 
-export type SortKey = 'custom' | 'title' | 'artist' | 'album' | 'added' | 'duration';
+export type SortKey = 'custom' | 'title' | 'artist' | 'album' | 'added' | 'duration' | 'plays';
+
+/** Columns: `library` (title, album, date added) or `album` (title, plays; no covers, like album pages). */
+export type ListLayout = 'library' | 'album';
 export interface SortState {
   key: SortKey;
   descending: boolean;
@@ -47,6 +53,8 @@ export interface TrackListOptions {
   background?: string;
   /** Header clicks ask for this sort (no sorting by header when absent). */
   onSort?: (key: SortKey) => void;
+  /** Default: `library`. */
+  layout?: ListLayout;
 }
 
 export const COLUMNS =
@@ -56,7 +64,13 @@ const SELECTED_BACKGROUND = 'rgba(255, 255, 255, 0.2)';
 export const ROUND_BUTTON =
   'border: 0; border-radius: 50%; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0';
 const MORE = 'M3 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm6.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM16 8a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z';
-const HEADER_SORT: readonly (SortKey | null)[] = ['custom', 'title', 'album', 'added', 'duration', null];
+const ALBUM_COLUMNS =
+  'display: grid; grid-template-columns: 24px minmax(0, 4fr) minmax(120px, 1fr) minmax(88px, 1fr) 32px; column-gap: 16px; align-items: center; padding: 0 8px 0 16px';
+/** Sort asked by each header cell, in column order. */
+const HEADER_SORT: Record<ListLayout, readonly (SortKey | null)[]> = {
+  library: ['custom', 'title', 'album', 'added', 'duration', null],
+  album: ['custom', 'title', 'plays', 'duration', null],
+};
 
 const MARK = 'background: #2e77d0; color: #fff; border-radius: 2px';
 
@@ -135,9 +149,13 @@ export class TrackList {
   private readonly headerCells: HTMLElement[] = [];
   private renderedKey = '';
   private highlight = '';
+  private readonly layout: ListLayout;
+  private readonly columns: string;
 
   constructor(private readonly options: TrackListOptions) {
     const { typography, stickyTop, padding } = options;
+    this.layout = options.layout ?? 'library';
+    this.columns = this.layout === 'album' ? ALBUM_COLUMNS : COLUMNS;
     const background = options.background ?? 'var(--background-base, #121212)';
     this.menu = new ContextMenu(typography.title);
     this.saveDialog = new SaveDialog(typography.title);
@@ -145,13 +163,14 @@ export class TrackList {
 
     this.head = el(
       'div',
-      `${COLUMNS}; ${typography.subdued}; position: sticky; top: ${stickyTop}px; z-index: 1; height: 36px; margin: 0 ${padding}px 8px; background: ${background}; border-bottom: 1px solid rgba(255,255,255,0.1)`,
+      `${this.columns}; ${typography.subdued}; position: sticky; top: ${stickyTop}px; z-index: 1; height: 36px; margin: 0 ${padding}px 8px; background: ${background}; border-bottom: 1px solid rgba(255,255,255,0.1)`,
     );
-    const cells = ['#', labels.title, labels.album, labels.added].map((label, i) => {
+    const titles = this.layout === 'album' ? ['#', labels.title, label('playcounts')] : ['#', labels.title, labels.album, labels.added];
+    const cells = titles.map((text, i) => {
       const cell = el('span', i === 0 ? 'display: flex; justify-content: flex-end; align-items: center; gap: 4px' : `${ELLIPSIS}; display: flex; align-items: center; gap: 4px`);
-      const text = el('span', i === 0 ? '' : ELLIPSIS);
-      text.textContent = label;
-      cell.append(text);
+      const span = el('span', i === 0 ? '' : ELLIPSIS);
+      span.textContent = text;
+      cell.append(span);
       return cell;
     });
     const clock = el('span', 'justify-self: end; display: flex; align-items: center; gap: 4px');
@@ -160,7 +179,7 @@ export class TrackList {
     this.head.append(...cells, clock, el('span'));
     if (options.onSort) {
       this.headerCells.forEach((cell, i) => {
-        const key = HEADER_SORT[i];
+        const key = HEADER_SORT[this.layout][i];
         if (!key) return;
         cell.style.cursor = 'pointer';
         cell.setAttribute('role', 'button');
@@ -184,7 +203,7 @@ export class TrackList {
   showSort(sort: SortState): void {
     this.headerCells.forEach((cell, i) => {
       cell.querySelector('[data-sfe-sort]')?.remove();
-      if (HEADER_SORT[i] !== sort.key || sort.key === 'custom') return;
+      if (HEADER_SORT[this.layout][i] !== sort.key || sort.key === 'custom') return;
       const caret = el('span', `display: flex; color: ${ACCENT}`);
       caret.setAttribute('data-sfe-sort', '');
       caret.append(icon(sort.descending ? ICONS.caretDown : ICONS.caretUp, 12));
@@ -320,7 +339,8 @@ export class TrackList {
   private row(track: ListTrack, position: number, now: number): HTMLLIElement {
     const { title: titleClass, subdued } = this.options.typography;
     const labels = viewLabels();
-    const row = el('li', `${COLUMNS}; height: 56px; border-radius: 4px`);
+    const album = this.layout === 'album';
+    const row = el('li', `${this.columns}; height: 56px; border-radius: 4px`);
 
     // Number, or ▶ while the row is hovered or focused.
     const index = el('span', `${subdued}; display: flex; justify-content: flex-end; align-items: center; font-variant-numeric: tabular-nums`);
@@ -360,12 +380,22 @@ export class TrackList {
     });
     line.append(artists);
     text.append(title, line);
-    main.append(cover, text);
+    // Album pages show no covers: every row would have the same one.
+    if (album) main.append(text);
+    else main.append(cover, text);
 
-    const album = track.ai ? appLink(albumPath(track.ai), `${subdued}; ${ELLIPSIS}`) : el('span', `${subdued}; ${ELLIPSIS}`);
-    album.replaceChildren(highlighted(track.al, this.highlight));
-    const added = el('span', `${subdued}; ${ELLIPSIS}`);
-    added.textContent = addedDate(track.d, now);
+    const middle: HTMLElement[] = [];
+    if (album) {
+      const plays = el('span', `${subdued}; ${ELLIPSIS}; font-variant-numeric: tabular-nums`);
+      plays.textContent = typeof track.p === 'number' ? formatCount(track.p) : '';
+      middle.push(plays);
+    } else {
+      const albumLink = track.ai ? appLink(albumPath(track.ai), `${subdued}; ${ELLIPSIS}`) : el('span', `${subdued}; ${ELLIPSIS}`);
+      albumLink.replaceChildren(highlighted(track.al, this.highlight));
+      const added = el('span', `${subdued}; ${ELLIPSIS}`);
+      added.textContent = addedDate(track.d, now);
+      middle.push(albumLink, added);
+    }
     // Tick before the duration ("Save in"), shown on hover like on the desktop rows: green when
     // the track is in the liked songs, an empty "+" otherwise.
     const duration = el('span', `${subdued}; justify-self: end; display: flex; align-items: center; gap: 16px; font-variant-numeric: tabular-nums`);
@@ -428,7 +458,7 @@ export class TrackList {
       this.menu.open(this.menuItems(track), event.clientX, event.clientY);
     });
 
-    row.append(index, main, album, added, duration, more);
+    row.append(index, main, ...middle, duration, more);
     return row;
   }
 }

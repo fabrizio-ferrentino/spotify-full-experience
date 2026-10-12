@@ -10,11 +10,16 @@ export const OPERATIONS = {
   editablePlaylists: 'editablePlaylists',
   playlist: 'fetchPlaylist',
   playlistContents: 'fetchPlaylistContents',
+  album: 'getAlbum',
+  albumTracks: 'queryAlbumTracks',
 } as const;
 
 /** Largest page accepted by fetchPlaylistContents (checked live: 1000). */
 export const PLAYLIST_PAGE_MAX = 1000;
 const PLAYLIST_URI = /^spotify:playlist:[A-Za-z0-9]{22}$/;
+
+/** Largest page accepted by queryAlbumTracks (checked live on 2026-10-12: 300). */
+export const ALBUM_PAGE_MAX = 300;
 
 /** Largest page accepted by fetchLibraryTracks (checked live: 1000). */
 export const LIBRARY_PAGE_MAX = 1000;
@@ -261,6 +266,63 @@ export function parsePlaylistPage(variables: unknown, data: unknown): PlaylistPa
       if (!id || at(data, '__typename') !== 'Track' || typeof uid !== 'string') return null;
       const added = Date.parse(String(at(item, 'addedAt', 'isoString') ?? ''));
       return { ...trackFrom(id, Number.isFinite(added) ? added : 0, data), u: uid };
+    }),
+  };
+}
+
+/** An album row: the track, its row ID and its play count (null when the response has none). */
+export type AlbumTrack = PlaylistTrack & { p: number | null };
+
+export interface AlbumPage {
+  uri: string;
+  offset: number;
+  total: number;
+  /** Album name and small cover; only getAlbum has them (queryAlbumTracks returns the tracks only). */
+  name: string | null;
+  cover: string | null;
+  /** Raw items in album order (disc, then track number); null for unusable rows. */
+  items: (AlbumTrack | null)[];
+}
+
+/**
+ * Request variables and `data` of getAlbum / queryAlbumTracks (checked live on 2026-10-12):
+ * variables `{ uri, offset, limit, ... }`; `albumUnion { name?, coverArt?, tracksV2 { totalCount,
+ * items[] { uid, track { uri, name, artists, duration, playcount (string), discNumber,
+ * trackNumber, contentRating } } } }`.
+ */
+export function parseAlbumPage(variables: unknown, data: unknown): AlbumPage | null {
+  const uri = at(variables, 'uri');
+  const album = at(data, 'albumUnion');
+  const tracks = at(album, 'tracksV2');
+  const total = at(tracks, 'totalCount');
+  const items = at(tracks, 'items');
+  const offset = at(variables, 'offset') ?? 0;
+  const albumId = idOf(uri, ALBUM_URI);
+  if (!albumId || typeof uri !== 'string' || typeof total !== 'number' || !Array.isArray(items)) return null;
+  if (typeof offset !== 'number' || !Number.isInteger(offset) || offset < 0) return null;
+  const name = at(album, 'name');
+  const cover = smallestImage(at(album, 'coverArt', 'sources'), 40);
+  return {
+    uri,
+    offset,
+    total,
+    name: typeof name === 'string' ? name : null,
+    cover,
+    items: items.map((item) => {
+      const track = at(item, 'track');
+      const id = idOf(at(track, 'uri'), TRACK_URI);
+      const uid = at(item, 'uid');
+      if (!id || typeof uid !== 'string') return null;
+      const raw = at(track, 'playcount');
+      const plays = (typeof raw === 'string' && raw.trim() !== '') || typeof raw === 'number' ? Number(raw) : NaN;
+      return {
+        ...trackFrom(id, 0, track),
+        ai: albumId,
+        al: typeof name === 'string' ? name : '',
+        c: cover ?? '',
+        u: uid,
+        p: Number.isFinite(plays) && plays >= 0 ? plays : null,
+      };
     }),
   };
 }

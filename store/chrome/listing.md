@@ -27,8 +27,8 @@ A "Plays" column next to each song, as in the desktop app, formatted for your la
 LIKED SONGS ON ARTIST PAGES
 How many of the artist's songs you liked, and their list. Double click to play a song. Each row has the desktop's menu: add to playlist, remove from Liked Songs, add to queue, go to artist or album, share.
 
-SEARCH AND SORT IN PLAYLISTS
-Search inside a playlist or Liked Songs, and sort by title, artist, album, date added or duration.
+SEARCH AND SORT IN PLAYLISTS AND ALBUMS
+Search inside a playlist or Liked Songs, and sort by title, artist, album, date added or duration. Sort albums by plays to find their most played songs.
 
 SETTINGS
 Click the extension icon to turn each feature on or off, or the whole extension at once. English and Italian.
@@ -58,7 +58,7 @@ Unofficial project, not affiliated with, endorsed by or sponsored by Spotify. "S
 **Single purpose:**
 
 ```
-Adds features of the Spotify desktop app to the Spotify web player (open.spotify.com): play counts on album pages, liked songs on artist pages, and search and sort in playlists.
+Adds features of the Spotify desktop app to the Spotify web player (open.spotify.com): play counts on album pages, liked songs on artist pages, and search and sort in playlists and albums.
 ```
 
 **Permission justification, storage:**

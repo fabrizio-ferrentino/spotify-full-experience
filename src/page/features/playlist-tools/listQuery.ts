@@ -19,9 +19,9 @@ export function matches(track: ListTrack, query: string): boolean {
   return words.every((word) => haystack.includes(word));
 }
 
-/** Direction used when a sort is first chosen (newest first for the date added). */
+/** Direction used when a sort is first chosen (newest first, most played first). */
 export function defaultDescending(key: SortKey): boolean {
-  return key === 'added';
+  return key === 'added' || key === 'plays';
 }
 
 /** Next sort after choosing `key`: same key flips the direction, another key starts fresh. */
@@ -51,9 +51,12 @@ export function queryTracks(tracks: readonly ListTrack[], query: string, sort: S
     album: (a, b) => text(a.al, b.al),
     added: (a, b) => a.d - b.d,
     duration: (a, b) => a.ms - b.ms,
+    plays: (a, b) => (a.p ?? 0) - (b.p ?? 0),
   };
   const order = new Map(tracks.map((track, i) => [track, i]));
   const by = compare[sort.key];
   const sign = sort.descending ? -1 : 1;
-  return filtered.sort((a, b) => sign * by(a, b) || order.get(a)! - order.get(b)!);
+  // Tracks without a play count go last in both directions.
+  const unknown = (track: ListTrack) => sort.key === 'plays' && typeof track.p !== 'number';
+  return filtered.sort((a, b) => Number(unknown(a)) - Number(unknown(b)) || sign * by(a, b) || order.get(a)! - order.get(b)!);
 }

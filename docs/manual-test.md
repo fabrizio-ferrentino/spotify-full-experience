@@ -63,6 +63,16 @@ Run with the "Search and sort in playlists" option enabled.
 - [ ] A playlist longer than 1000 songs loads with one extra request per 1000 songs, only when searching or sorting.
 - [ ] Option disabled (reload the tab): playlist pages identical to the original.
 
+## Sort albums by plays
+
+Run with the "Search and sort in playlists and albums" option enabled.
+
+- [ ] Album page: the magnifier and an "Album order ☰" button in the action bar; the player's "List" button is hidden; the native list (with our Plays column) is untouched.
+- [ ] Sort menu: Album order, Plays, Title, Duration. Plays starts with the most played; choosing it again flips the order; songs without a count stay last.
+- [ ] While sorted or searched, our list shows #, Title, Plays and duration, no covers; double click plays the song in the album context.
+- [ ] Album with more than 50 songs (e.g. a deluxe edition): sorting by plays shows every song, with one extra request per 300 missing songs.
+- [ ] Back to "Album order", or to another page: the native list comes back, nothing left behind.
+
 ## Toolbar popup
 
 - [ ] The toolbar shows the green "FE" icon; clicking it opens the popup with name, version and the switches, in the browser's language (Italian or English).

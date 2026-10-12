@@ -1,5 +1,6 @@
 // Feature: search and sort in playlists and Liked Songs, like the desktop app (the web player
-// has neither). The controls go in the page's action bar. While nothing is searched or sorted,
+// has neither), and in albums, where sorting by plays is our own addition. The controls go in
+// the page's action bar. While nothing is searched or sorted,
 // the player's own list is untouched; otherwise it is hidden and our list (ui/trackList) shows
 // the filtered or sorted tracks in its place, until the search is cleared or the order reset.
 import { likedSongsContext } from '../../adapters/connectShapes';
@@ -8,10 +9,11 @@ import { pageTrackListOf, SELECTORS } from '../../adapters/spotifyDom';
 import { frameScheduler, whenAvailable } from '../../core/dom';
 import type { CapturedRequest } from '../../core/interceptor';
 import { OPERATIONS } from '../../adapters/libraryShapes';
+import type { AlbumStore } from './albumStore';
 import type { LikedLibrary } from '../../library/likedLibrary';
 import type { Playback } from '../../library/playback';
 import { debugWarn } from '../../debug/log';
-import { pageLanguage, viewLabels } from '../../ui/format';
+import { label, pageLanguage, viewLabels } from '../../ui/format';
 import { TrackList, type ListTrack, type SortKey, type SortState } from '../../ui/trackList';
 import { borrowTypography, el, type Typography } from '../../ui/typography';
 import { PlaylistControls, type SortChoices } from './controls';
@@ -26,27 +28,33 @@ const RECENTLY_ADDED: SortState = { key: 'added', descending: true };
 const PLAYLIST_KEYS: readonly SortKey[] = ['custom', 'title', 'artist', 'album', 'added', 'duration'];
 /** The desktop app's orders for Liked Songs. */
 const LIKED_KEYS: readonly SortKey[] = ['title', 'added', 'artist', 'album'];
+/** Albums: their own order, then by plays (not in the desktop app), title and duration. */
+const ALBUM_KEYS: readonly SortKey[] = ['custom', 'plays', 'title', 'duration'];
 
 function sameSort(a: SortState, b: SortState): boolean {
   return a.key === b.key && (a.key === 'custom' || a.descending === b.descending);
 }
 
+type TargetKind = 'playlist' | 'liked' | 'album';
+
 interface Target {
-  /** Context URI: `spotify:playlist:<id>` or `spotify:collection:tracks`. */
+  /** Context URI: `spotify:playlist:<id>`, `spotify:collection:tracks` or `spotify:album:<id>`. */
   uri: string;
-  liked: boolean;
+  kind: TargetKind;
 }
 
 export interface PlaylistToolsDeps {
   library: LikedLibrary;
   playback: Playback;
   store: PlaylistStore;
+  albums: AlbumStore;
   now?: () => number;
 }
 
 function targetOf(page: PageInfo): Target | null {
-  if (page.kind === 'playlist' && page.id) return { uri: `spotify:playlist:${page.id}`, liked: false };
-  if (page.kind === 'collection' && page.id === 'tracks') return { uri: 'spotify:collection:tracks', liked: true };
+  if (page.kind === 'playlist' && page.id) return { uri: `spotify:playlist:${page.id}`, kind: 'playlist' };
+  if (page.kind === 'collection' && page.id === 'tracks') return { uri: 'spotify:collection:tracks', kind: 'liked' };
+  if (page.kind === 'album' && page.id) return { uri: `spotify:album:${page.id}`, kind: 'album' };
   return null;
 }
 
@@ -112,15 +120,19 @@ export class PlaylistToolsFeature {
   onCapture(capture: CapturedRequest): void {
     if (!this.enabled || capture.kind !== 'pathfinder') return;
     const operation = capture.operationName;
+    const ok = capture.status >= 200 && capture.status < 300;
+    const data = (capture.json as { data?: unknown } | undefined)?.data;
     if (operation === OPERATIONS.playlist || operation === OPERATIONS.playlistContents) {
-      if (capture.status >= 200 && capture.status < 300) this.deps.store.observePage(capture.variables, (capture.json as { data?: unknown } | undefined)?.data);
+      if (ok) this.deps.store.observePage(capture.variables, data);
+    } else if (operation === OPERATIONS.album || operation === OPERATIONS.albumTracks) {
+      if (ok) this.deps.albums.observePage(capture.variables, data);
     } else {
       this.deps.store.observeRequest(operation, capture.variables);
     }
   }
 
   private get defaultSort(): SortState {
-    return this.target?.liked ? RECENTLY_ADDED : CUSTOM;
+    return this.target?.kind === 'liked' ? RECENTLY_ADDED : CUSTOM;
   }
 
   private get sort(): SortState {
@@ -131,11 +143,16 @@ export class PlaylistToolsFeature {
     return this.query !== '' || !sameSort(this.sort, this.defaultSort);
   }
 
-  private sortChoices(liked: boolean): SortChoices {
+  private sortChoices(kind: TargetKind): SortChoices {
     const labels = viewLabels();
     return {
-      keys: liked ? LIKED_KEYS : PLAYLIST_KEYS,
-      label: (key) => (liked && key === 'added' ? labels.recentlyAdded : labels.sortKeys[key]),
+      keys: kind === 'liked' ? LIKED_KEYS : kind === 'album' ? ALBUM_KEYS : PLAYLIST_KEYS,
+      label: (key) => {
+        if (key === 'plays') return label('playcounts');
+        if (kind === 'liked' && key === 'added') return labels.recentlyAdded;
+        if (kind === 'album' && key === 'custom') return labels.albumOrder;
+        return labels.sortKeys[key];
+      },
     };
   }
 
@@ -191,7 +208,7 @@ export class PlaylistToolsFeature {
   private onSort(key: SortKey): void {
     if (!this.target) return;
     // In Liked Songs the "#" column means their own order, newest first.
-    const sort = this.target.liked && key === 'custom' ? RECENTLY_ADDED : nextSort(this.sort, key);
+    const sort = this.target.kind === 'liked' && key === 'custom' ? RECENTLY_ADDED : nextSort(this.sort, key);
     this.sorts.set(this.target.uri, sort);
     this.controls?.showSort(sort);
     this.trackList?.showSort(sort);
@@ -200,7 +217,7 @@ export class PlaylistToolsFeature {
 
   private onLibraryChange(): void {
     if (!this.target) return;
-    if (this.target.liked && this.tracks) this.tracks = this.likedTracks();
+    if (this.target.kind === 'liked' && this.tracks) this.tracks = this.likedTracks();
     this.trackList?.invalidate();
     this.scheduler.schedule();
   }
@@ -220,16 +237,17 @@ export class PlaylistToolsFeature {
       this.partial = partial;
       this.scheduler.schedule();
     };
-    if (target.liked) {
+    if (target.kind === 'liked') {
       void this.deps.library.ensureFresh().then(() => done(this.likedTracks()));
       return;
     }
     // The liked songs index tells which rows get a green tick.
     void this.deps.library.ensureFresh();
-    this.deps.store.load(target.uri).then(
+    const contents = target.kind === 'album' ? this.deps.albums.load(target.uri) : this.deps.store.load(target.uri);
+    contents.then(
       (contents) => done(contents.tracks, contents.partial ? { shown: contents.tracks.length, total: contents.total } : null),
       (error: unknown) => {
-        debugWarn('playlist tools: contents unavailable', error instanceof Error ? error.message : error);
+        debugWarn(`playlist tools: ${target.kind} contents unavailable`, error instanceof Error ? error.message : error);
         done(null);
       },
     );
@@ -239,7 +257,7 @@ export class PlaylistToolsFeature {
   private sync(): void {
     const target = this.target;
     // Looked up every time: the player replaces the section when moving between playlists.
-    const section = this.main?.querySelector<HTMLElement>(SELECTORS.playlistPage);
+    const section = this.main?.querySelector<HTMLElement>(target?.kind === 'album' ? SELECTORS.albumPage : SELECTORS.playlistPage);
     if (!this.enabled || !target || !section) return;
     const typography = (this.typography ??= section.querySelector(SELECTORS.trackRow) ? borrowTypography(section) : null);
     if (!typography) return;
@@ -249,7 +267,7 @@ export class PlaylistToolsFeature {
       this.controls ??= new PlaylistControls(
         typography.title,
         { onQuery: (q) => this.onQuery(q), onSort: (k) => this.onSort(k) },
-        this.sortChoices(target.liked),
+        this.sortChoices(target.kind),
       );
       this.controls.showSort(this.sort);
       this.controls.mount(trailing);
@@ -259,7 +277,7 @@ export class PlaylistToolsFeature {
       this.restoreNative();
       return;
     }
-    const grid = pageTrackListOf(section, target.liked);
+    const grid = pageTrackListOf(section, target.kind !== 'playlist');
     const wrapper = grid?.parentElement;
     if (!grid || !wrapper) return;
     this.load(target);
@@ -280,19 +298,21 @@ export class PlaylistToolsFeature {
         typography,
         stickyTop: 64,
         padding: 0,
-        isLiked: (track) => target.liked || library.isLiked(track.t),
+        isLiked: (track) => target.kind === 'liked' || library.isLiked(track.t),
         onSort: (key) => this.onSort(key),
+        layout: target.kind === 'album' ? 'album' : 'library',
         actions: {
           play: (track) => {
             const profile = library.profileUri;
-            const contexts = target.liked ? (profile ? [likedSongsContext(profile)] : []) : [target.uri];
-            void playback.play({ trackId: track.t, title: track.n, contexts, ...(track.u && !target.liked ? { uid: track.u } : {}) });
+            const liked = target.kind === 'liked';
+            const contexts = liked ? (profile ? [likedSongsContext(profile)] : []) : [target.uri];
+            void playback.play({ trackId: track.t, title: track.n, contexts, ...(track.u && !liked ? { uid: track.u } : {}) });
           },
           queue: (track) => playback.queue(track.t),
           playlists: (track) => library.playlistsFor(track.t),
           curate: async (track, changes) => {
             const ok = await library.curate(track.t, changes);
-            if (ok && changes.some((change) => change.contextUri === target.uri) && !target.liked) {
+            if (ok && changes.some((change) => change.contextUri === target.uri) && target.kind === 'playlist') {
               this.deps.store.invalidate(target.uri);
               this.tracks = null;
               this.scheduler.schedule();
