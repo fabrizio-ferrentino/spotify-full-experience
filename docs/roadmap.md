@@ -11,7 +11,7 @@ Candidates after Phases 0–2 (2026-10-10). ✅ = checked on the live web player
 5. **Extended credits** (engineers, mixers, session musicians). Check whether the credits endpoint returns them to the web session.
 6. **"Lossless" label, information only.** Only if the metadata reachable from the web exposes the audio file formats (`FLAC_FLAC`, `FLAC_FLAC_24BIT`). Playback quality is never changed.
 
-7. **Genre and mood filter chips under the action bar** (desktop Liked Songs and playlists: "Emo", "Rock", "Upbeat", "Chill"…). The web player's bundle has no operation for them (checked on 2026-10-10), so the desktop's data source must be found first; moods cannot be derived from data we already have.
+7. **Genre and mood filter chips under the action bar** (desktop Liked Songs: "Emo", "Rock", "Upbeat", "Chill"…). **Not feasible faithfully** (checked on 2026-10-12 in the desktop app's own UI bundle and core): the desktop page asks `getTracksFilterTags()` and filters with `getTracks({ filters: [tag] })`, behind the `enableLikedSongsFilterTags` flag; on the web player the same platform method is a stub (`getTracksFilterTags() { return [] }`) and `getTracks` ignores filters. On the desktop the tags come from the native core (`YourLibraryTagsService`, `your_library_tags_backend.proto`), a binary protocol no web client uses. Rebuilding it would mean inventing requests (CLAUDE.md §0, §2.10). Moods are computed by Spotify and appear in no data the web receives. A possible stand-in with data we already have: chips of the most frequent artists of the list.
 
 ## To evaluate carefully
 
