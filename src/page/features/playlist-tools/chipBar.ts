@@ -86,12 +86,15 @@ export class ChipBar {
   }
 
   private arrow(path: string, side: string, step: number): HTMLButtonElement {
-    const button = el('button', `${ROUND}; position: absolute; top: 0; ${side}; background: #121212; box-shadow: 0 0 12px 8px #121212; display: none`);
+    // Like the desktop row: a white disc with a black arrow over the chips.
+    const button = el('button', `${ROUND}; position: absolute; top: 0; ${side}; background: #fff; color: #000; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); display: none`);
     button.type = 'button';
     button.tabIndex = -1;
     button.setAttribute('aria-hidden', 'true');
     button.append(icon(path, 14));
     button.addEventListener('click', () => this.scroller.scrollBy({ left: step }));
+    button.addEventListener('mouseenter', () => (button.style.transform = 'scale(1.06)'));
+    button.addEventListener('mouseleave', () => (button.style.transform = ''));
     return button;
   }
 
