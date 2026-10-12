@@ -73,6 +73,16 @@ Run with the "Search and sort in playlists and albums" option enabled.
 - [ ] Album with more than 50 songs (e.g. a deluxe edition): sorting by plays shows every song, with one extra request per 300 missing songs.
 - [ ] Back to "Album order", or to another page: the native list comes back, nothing left behind.
 
+## Row menu entries from the web player
+
+In our lists (liked songs by artist; a searched or sorted playlist or album):
+
+- [ ] The "…" menu and right click show, in this order: Add to playlist, Remove from / Save to Liked Songs, Add to queue, Exclude from your taste profile, Go to song radio, Go to artist, Go to album, View credits, Share, Open in Desktop app.
+- [ ] Exclude, then open the menu again: it reads "Include in your taste profile"; the player's own menu agrees after a reload. Include again restores it.
+- [ ] Go to song radio opens the song's radio playlist, without reloading the page.
+- [ ] View credits opens a dialog with the role groups and the sources; artists link to their page; ×, Escape and a click outside close it.
+- [ ] Open in Desktop app hands the song to the desktop app (the browser may ask first).
+
 ## Toolbar popup
 
 - [ ] The toolbar shows the green "FE" icon; clicking it opens the popup with name, version and the switches, in the browser's language (Italian or English).

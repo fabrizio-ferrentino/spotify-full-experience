@@ -8,6 +8,7 @@ import { PathfinderClient } from './core/pathfinderClient';
 import { PlayerCommands } from './core/player';
 import { currentPage, onPageChange, startRouter } from './core/router';
 import { Session } from './core/session';
+import { SpclientRequests } from './core/spclient';
 import { getSettings, onSettingsChange } from './core/settings';
 import { installDebugConsole, removeDebugConsole, type DebugConsoleDeps } from './debug/console';
 import { logCoverage, startCoverage, stopCoverage } from './debug/coverage';
@@ -20,6 +21,7 @@ import { logStartupReport, takeStartupSnapshot } from './debug/startupReport';
 import { ArtistLikedSongsFeature } from './features/artist-liked-songs';
 import { LikedLibrary } from './library/likedLibrary';
 import { Playback } from './library/playback';
+import { TrackActions } from './library/trackActions';
 import { PlaylistToolsFeature } from './features/playlist-tools';
 import { AlbumStore } from './features/playlist-tools/albumStore';
 import { PlaylistStore } from './features/playlist-tools/playlistStore';
@@ -100,8 +102,14 @@ function main(): void {
   const services = client ? { session, registry, client, player } : null;
   library = new LikedLibrary({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
   const playback = new Playback(player);
-  likedSongs = new ArtistLikedSongsFeature({ library, playback });
-  playlistTools = new PlaylistToolsFeature({ library, playback, store: new PlaylistStore(client), albums: new AlbumStore(client) });
+  const likedLibrary = library;
+  const trackActions = new TrackActions({
+    spclient: nativeFetch ? new SpclientRequests(nativeFetch, session) : null,
+    client,
+    profileUri: () => likedLibrary.profileUri,
+  });
+  likedSongs = new ArtistLikedSongsFeature({ library, playback, trackActions });
+  playlistTools = new PlaylistToolsFeature({ library, playback, store: new PlaylistStore(client), albums: new AlbumStore(client), trackActions });
   if (DEFAULT_SETTINGS.playlistTools) playlistTools.enable();
   const tools = playlistTools;
   if (DEFAULT_SETTINGS.likedSongs) likedSongs.enable();

@@ -12,6 +12,7 @@ import { OPERATIONS } from '../../adapters/libraryShapes';
 import type { AlbumStore } from './albumStore';
 import type { LikedLibrary } from '../../library/likedLibrary';
 import type { Playback } from '../../library/playback';
+import type { TrackActions } from '../../library/trackActions';
 import { debugWarn } from '../../debug/log';
 import { label, pageLanguage, viewLabels } from '../../ui/format';
 import { TrackList, type ListTrack, type SortKey, type SortState } from '../../ui/trackList';
@@ -48,6 +49,8 @@ export interface PlaylistToolsDeps {
   playback: Playback;
   store: PlaylistStore;
   albums: AlbumStore;
+  /** Song radio, credits, taste profile and "Open in Desktop app" in the row menu. */
+  trackActions?: TrackActions;
   now?: () => number;
 }
 
@@ -319,6 +322,7 @@ export class PlaylistToolsFeature {
             }
             return ok;
           },
+          ...this.deps.trackActions?.rowActions(),
         },
       });
       this.trackList.showSort(this.sort);

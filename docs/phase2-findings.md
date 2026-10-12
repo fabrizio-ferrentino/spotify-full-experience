@@ -53,6 +53,15 @@ For "Paper Thin" (`spotify:track:33LQdszht4rDfgmOSth8W0`), `artists.items` is IL
 - A double click on a native row sends a Connect command: `POST https://<spclient host>/connect-state/v1/player/command/from/<device>/to/<device>` with `{ command: { endpoint: "play", context: { uri, url: "context://<uri>" }, play_origin, options: { license, skip_to: { track_uri } }, logging_params } }`. "Add to queue" is the same command with `endpoint: "add_to_queue"`, preceded by a `connect/transfer` when another device is active.
 - Our double click sends the same `play` command (CLAUDE.md §2.10) with the desktop's context `spotify:user:<id>:collection:artist:<artistId>`, then the liked songs, then falls back to the track page. Works on Chrome, Brave and Firefox when the tab is the active device.
 
+## Track menu entries (checked on 2026-10-12)
+
+The web player's track menu (Liked Songs row): Add to playlist, Remove from your Liked Songs, Add to queue, Exclude from your taste profile, Go to song radio, Go to artist, Go to album, View credits, Share, Open in Desktop app.
+
+- **Go to song radio:** `GET https://spclient.wg.spotify.com/inspiredby-mix/v2/seed_to_playlist/spotify:track:<id>?response-format=json` → `{ mediaItems[] { uri: spotify:playlist:<id> }, total }`; the player then opens that playlist.
+- **View credits:** Pathfinder `queryTrackCreditsGroupedModal`, variables `{ trackUri, contributorsLimit: 100, contributorsOffset: 0 }` (values from the player's dialog code, `xpui-root-dialogs` chunk; hash `f135fb9b…`). Response: `trackUnion { name, artists, creditsTrait { contributors.items[] { name, role, roleGroup.name, uri, url }, sources.items[].name } }`.
+- **Exclude from / Include in your taste profile:** `POST https://spclient.wg.spotify.com/collection/v2/write?market=from_token`, JSON body `{ username, set: "ignoreinrecs", items: [{ uri }] }`; including again adds `is_removed: true` to the item. The menu label comes from `POST …/collection/v2/contains?market=from_token` with the same body, answered `{ found: [boolean] }`. Checked by excluding a song and including it again.
+- **Open in Desktop app:** the `spotify:track:<id>` link.
+
 ## Row actions in our view (desktop parity)
 
 - **Playlists for "Save in" / "Add to playlist":** `editablePlaylists` (hash `d5c4b809…`), variables `{ offset, limit, textFilter, uris: [trackUri] }`. `me.editablePlaylists { totalCount, items[] { curates, pinned, item { _uri, data { __typename, name, uri, image | images } } } }`. The first item is the liked songs (`PseudoPlaylist`, `spotify:collection:tracks`); `curates` says whether the track is already there.

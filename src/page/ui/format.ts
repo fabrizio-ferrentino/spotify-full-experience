@@ -183,6 +183,16 @@ type ViewLabels = {
   list: string;
   recentlyAdded: string;
   albumOrder: string;
+  excludeFromTaste: string;
+  includeInTaste: string;
+  excludedFromTaste: string;
+  includedInTaste: string;
+  songRadio: string;
+  viewCredits: string;
+  openInDesktop: string;
+  credits: string;
+  close: string;
+  sources: string;
 };
 
 const VIEW_LABELS: Record<string, ViewLabels> = {
@@ -198,6 +208,16 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     noResults: (q) => `Nessun risultato per “${q}”`, loading: 'Caricamento…', partial: (n, t) => `Sono considerati i primi ${n} brani su ${t}`,
     viewAs: 'Visualizza come', compact: 'Compatta', list: 'Elenco', recentlyAdded: 'Aggiunti di recente',
     albumOrder: "Ordine dell'album",
+    excludeFromTaste: "Escludi dal tuo profilo dei gusti",
+    includeInTaste: "Includi nel tuo profilo dei gusti",
+    excludedFromTaste: "Escluso dal tuo profilo dei gusti",
+    includedInTaste: "Incluso nel tuo profilo dei gusti",
+    songRadio: "Vai a radio del brano",
+    viewCredits: "Visualizza riconoscimenti",
+    openInDesktop: "Apri nell'app desktop",
+    credits: "Riconoscimenti",
+    close: "Chiudi",
+    sources: "Fonte",
   },
   en: {
     title: 'Title', album: 'Album', added: 'Date added', back: 'Go back', explicit: 'Explicit',
@@ -211,6 +231,16 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     noResults: (q) => `No results found for “${q}”`, loading: 'Loading…', partial: (n, t) => `Only the first ${n} of ${t} songs are included`,
     viewAs: 'View as', compact: 'Compact', list: 'List', recentlyAdded: 'Recently added',
     albumOrder: 'Album order',
+    excludeFromTaste: "Exclude from your taste profile",
+    includeInTaste: "Include in your taste profile",
+    excludedFromTaste: "Excluded from your taste profile",
+    includedInTaste: "Included in your taste profile",
+    songRadio: "Go to song radio",
+    viewCredits: "View credits",
+    openInDesktop: "Open in Desktop app",
+    credits: "Credits",
+    close: "Close",
+    sources: "Source",
   },
   es: {
     title: 'Título', album: 'Álbum', added: 'Fecha en que se añadió', back: 'Atrás', explicit: 'Explícito',
@@ -224,6 +254,16 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     noResults: (q) => `No hay resultados para “${q}”`, loading: 'Cargando…', partial: (n, t) => `Solo se incluyen las primeras ${n} de ${t} canciones`,
     viewAs: 'Ver como', compact: 'Compacta', list: 'Lista', recentlyAdded: 'Añadidas recientemente',
     albumOrder: 'Orden del álbum',
+    excludeFromTaste: "Excluir de tu perfil de gustos",
+    includeInTaste: "Incluir en tu perfil de gustos",
+    excludedFromTaste: "Excluida de tu perfil de gustos",
+    includedInTaste: "Incluida en tu perfil de gustos",
+    songRadio: "Ir a radio de la canción",
+    viewCredits: "Ver créditos",
+    openInDesktop: "Abrir en la app de escritorio",
+    credits: "Créditos",
+    close: "Cerrar",
+    sources: "Fuente",
   },
   fr: {
     title: 'Titre', album: 'Album', added: 'Date d’ajout', back: 'Retour', explicit: 'Explicite',
@@ -237,6 +277,16 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     noResults: (q) => `Aucun résultat pour « ${q} »`, loading: 'Chargement…', partial: (n, t) => `Seuls les ${n} premiers titres sur ${t} sont pris en compte`,
     viewAs: 'Afficher en tant que', compact: 'Compact', list: 'Liste', recentlyAdded: 'Ajoutés récemment',
     albumOrder: 'Ordre de l’album',
+    excludeFromTaste: "Exclure de votre profil de goûts",
+    includeInTaste: "Inclure dans votre profil de goûts",
+    excludedFromTaste: "Exclu de votre profil de goûts",
+    includedInTaste: "Inclus dans votre profil de goûts",
+    songRadio: "Accéder à la radio du titre",
+    viewCredits: "Afficher les crédits",
+    openInDesktop: "Ouvrir dans l’application de bureau",
+    credits: "Crédits",
+    close: "Fermer",
+    sources: "Source",
   },
   de: {
     title: 'Titel', album: 'Album', added: 'Hinzugefügt am', back: 'Zurück', explicit: 'Explizit',
@@ -250,6 +300,16 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     noResults: (q) => `Keine Ergebnisse für „${q}“`, loading: 'Wird geladen …', partial: (n, t) => `Nur die ersten ${n} von ${t} Songs werden berücksichtigt`,
     viewAs: 'Anzeigen als', compact: 'Kompakt', list: 'Liste', recentlyAdded: 'Zuletzt hinzugefügt',
     albumOrder: 'Albumreihenfolge',
+    excludeFromTaste: "Aus deinem Geschmacksprofil ausschließen",
+    includeInTaste: "In dein Geschmacksprofil aufnehmen",
+    excludedFromTaste: "Aus deinem Geschmacksprofil ausgeschlossen",
+    includedInTaste: "In dein Geschmacksprofil aufgenommen",
+    songRadio: "Zum Song-Radio",
+    viewCredits: "Credits anzeigen",
+    openInDesktop: "In der Desktop-App öffnen",
+    credits: "Credits",
+    close: "Schließen",
+    sources: "Quelle",
   },
   pt: {
     title: 'Título', album: 'Álbum', added: 'Adicionada em', back: 'Voltar', explicit: 'Explícito',
@@ -263,6 +323,16 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     noResults: (q) => `Nenhum resultado para “${q}”`, loading: 'Carregando…', partial: (n, t) => `Apenas as primeiras ${n} de ${t} músicas são consideradas`,
     viewAs: 'Ver como', compact: 'Compacto', list: 'Lista', recentlyAdded: 'Adicionadas recentemente',
     albumOrder: 'Ordem do álbum',
+    excludeFromTaste: "Excluir do seu perfil de gosto",
+    includeInTaste: "Incluir no seu perfil de gosto",
+    excludedFromTaste: "Excluída do seu perfil de gosto",
+    includedInTaste: "Incluída no seu perfil de gosto",
+    songRadio: "Ir para a rádio da música",
+    viewCredits: "Ver créditos",
+    openInDesktop: "Abrir no app para computador",
+    credits: "Créditos",
+    close: "Fechar",
+    sources: "Fonte",
   },
 };
 

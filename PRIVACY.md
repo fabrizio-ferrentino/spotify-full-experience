@@ -23,6 +23,7 @@ Removing the extension deletes this data. Playlist contents and play counts are 
 
 - Requests to Spotify's own servers, the same ones the web player uses, to read the data above.
 - Player and library commands (play, add to queue, add to a playlist, like or unlike a song) only when you click the matching button or menu item.
+- From a song's menu, like the web player's own: its credits and its radio playlist when you pick those entries; whether the song is excluded from your taste profile when you open the menu, and the change when you pick "Exclude" or "Include". These requests carry your Spotify user name, as the player's do; the extension keeps it in memory only.
 
 The extension has no analytics, no tracking and no ads. It does not sell or share any data, and it does not send data to any domain other than Spotify's.
 

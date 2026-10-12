@@ -14,4 +14,6 @@ export const KNOWN_HASHES: Readonly<Record<string, string>> = {
   getTrack: 'a8ef9e9f02b836feb0da3003c31dbb30decc6f4b473ef89ca88c882386d668de',
   queryAlbumTracks: '11c9cad9cb24c4f9e25ef9456f68621cfd6006a90f679e729c1d2f2fd70dfe16',
   queryArtistOverview: '9f8134ef565e78621f1e1793555bd6633c5ac144ae0f89604ed3ae3f80b3c8e6',
+  // Observed on 2026-10-12 (xpui-root-dialogs.778247d9.js, matching the live traffic).
+  queryTrackCreditsGroupedModal: 'f135fb9be58a72d041ab5d214d817021a272405d883860468e2627afb01a3ca9',
 };

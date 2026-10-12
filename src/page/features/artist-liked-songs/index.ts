@@ -9,12 +9,15 @@ import type { CapturedRequest } from '../../core/interceptor';
 import { tracksByArtist } from '../../library/indexSync';
 import type { LikedLibrary } from '../../library/likedLibrary';
 import type { Playback } from '../../library/playback';
+import type { TrackActions } from '../../library/trackActions';
 import { LikedSongsCard } from './card';
 import { LikedSongsView, type ViewModel } from './view';
 
 export interface LikedSongsDeps {
   library: LikedLibrary;
   playback: Playback;
+  /** Song radio, credits, taste profile and "Open in Desktop app" in the row menu. */
+  trackActions?: TrackActions;
   now?: () => number;
 }
 
@@ -135,6 +138,7 @@ export class ArtistLikedSongsFeature {
       queue: (track) => playback.queue(track.t),
       playlists: (track) => library.playlistsFor(track.t),
       curate: (track, changes) => library.curate(track.t, changes),
+      ...this.deps.trackActions?.rowActions(),
     });
     this.view.open(this.viewModel(artistId, name));
   }

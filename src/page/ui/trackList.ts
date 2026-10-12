@@ -4,8 +4,10 @@
 // them; menus and dialogs are owned here.
 import type { LikedTrack } from '../../shared/likedIndex';
 import { LIKED_SONGS_CONTEXT, type EditablePlaylist } from '../adapters/libraryShapes';
+import type { TrackCredits } from '../adapters/trackShapes';
 import { albumPath, artistPath, navigateTo, trackPath, trackShareUrl } from '../adapters/spotifyNav';
 import { addedDate, formatCount, formatDuration, label, viewLabels } from './format';
+import { CreditsDialog } from './creditsDialog';
 import { ContextMenu, type MenuItem } from './menu';
 import { SaveDialog, type CurationChange } from './saveDialog';
 import { showToast } from './toast';
@@ -36,7 +38,20 @@ export interface RowActions {
   playlists(track: ListTrack): Promise<EditablePlaylist[]>;
   /** Saves or removes the track in the given contexts; false on failure. */
   curate(track: ListTrack, changes: CurationChange[]): Promise<boolean>;
+  /** Opens the song radio; false on failure. */
+  radio(track: ListTrack): Promise<boolean>;
+  /** The song's credits, for the credits dialog; throws on failure. */
+  credits(track: ListTrack): Promise<TrackCredits>;
+  /** Whether the song is excluded from the taste profile (null when unknown). */
+  isExcluded(track: ListTrack): Promise<boolean | null>;
+  /** Excludes the song from the taste profile or includes it again; false on failure. */
+  setExcluded(track: ListTrack, excluded: boolean): Promise<boolean>;
+  /** Hands the song to the desktop app. */
+  openInDesktop(track: ListTrack): void;
 }
+
+/** How long a menu waits for the taste profile state before opening without that entry. */
+const STATE_TIMEOUT_MS = 1500;
 
 export interface TrackListOptions {
   typography: Typography;
@@ -146,6 +161,7 @@ export class TrackList {
   readonly list: HTMLOListElement;
   private readonly menu: ContextMenu;
   private readonly saveDialog: SaveDialog;
+  private readonly creditsDialog: CreditsDialog;
   private readonly headerCells: HTMLElement[] = [];
   private renderedKey = '';
   private highlight = '';
@@ -159,6 +175,7 @@ export class TrackList {
     const background = options.background ?? 'var(--background-base, #121212)';
     this.menu = new ContextMenu(typography.title);
     this.saveDialog = new SaveDialog(typography.title);
+    this.creditsDialog = new CreditsDialog(typography.title);
     const labels = viewLabels();
 
     this.head = el(
@@ -234,6 +251,21 @@ export class TrackList {
   closePopups(): void {
     this.menu.close();
     this.saveDialog.close();
+    this.creditsDialog.close();
+  }
+
+  /**
+   * Opens the row menu at (x, y). When the taste profile entry is offered, its state is asked
+   * first (briefly), so the entry reads "Exclude" or "Include" like the player's.
+   */
+  private async openMenu(track: ListTrack, x: number, y: number): Promise<void> {
+    const { isExcluded } = this.options.actions;
+    let excluded: boolean | null = null;
+    if (isExcluded) {
+      const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), STATE_TIMEOUT_MS));
+      excluded = await Promise.race([isExcluded(track).catch(() => null), timeout]);
+    }
+    this.menu.open(this.menuItems(track, excluded), x, y);
   }
 
   private isLiked(track: ListTrack): boolean {
@@ -269,9 +301,9 @@ export class TrackList {
     return link;
   }
 
-  private menuItems(track: ListTrack): MenuItem[] {
+  private menuItems(track: ListTrack, excluded: boolean | null = null): MenuItem[] {
     const labels = viewLabels();
-    const { queue, playlists, curate } = this.options.actions;
+    const { queue, playlists, curate, setExcluded, radio, credits, openInDesktop } = this.options.actions;
     const items: MenuItem[] = [];
     if (playlists && curate) {
       items.push({
@@ -308,6 +340,20 @@ export class TrackList {
     if (queue) {
       items.push({ label: labels.addToQueue, icon: () => icon(ICONS.queue, 16), action: () => this.report(queue(track), labels.addedToQueue) });
     }
+    if (setExcluded && excluded !== null) {
+      items.push({
+        label: excluded ? labels.includeInTaste : labels.excludeFromTaste,
+        icon: () => icon(ICONS.exclude, 16),
+        action: () => this.report(setExcluded(track, !excluded), excluded ? labels.includedInTaste : labels.excludedFromTaste),
+      });
+    }
+    if (radio) {
+      items.push({
+        label: labels.songRadio,
+        icon: () => icon(ICONS.radio, 16),
+        action: () => void radio(track).catch(() => false).then((ok) => ok || showToast(labels.failed, this.options.typography.title)),
+      });
+    }
     const navigation: MenuItem[] = [];
     const artistId = track.ad[0] ?? track.a;
     if (artistId) {
@@ -319,6 +365,13 @@ export class TrackList {
       });
     }
     if (track.ai) navigation.push({ label: labels.goToAlbum, icon: () => icon(ICONS.album, 16), action: () => navigateTo(albumPath(track.ai!)) });
+    if (credits) {
+      navigation.push({
+        label: labels.viewCredits,
+        icon: () => icon(ICONS.credits, 16),
+        action: () => this.creditsDialog.open(track.n, () => credits(track), () => showToast(labels.failed, this.options.typography.title)),
+      });
+    }
     navigation.push({
       label: labels.share,
       icon: () => icon(ICONS.share, 16),
@@ -333,7 +386,10 @@ export class TrackList {
       },
     });
     if (items.length) navigation[0]!.separator = true;
-    return [...items, ...navigation];
+    const desktop: MenuItem[] = openInDesktop
+      ? [{ label: labels.openInDesktop, icon: () => icon(ICONS.desktop, 16), action: () => openInDesktop(track), separator: true }]
+      : [];
+    return [...items, ...navigation, ...desktop];
   }
 
   private row(track: ListTrack, position: number, now: number): HTMLLIElement {
@@ -423,7 +479,7 @@ export class TrackList {
     more.addEventListener('click', (event) => {
       event.stopPropagation();
       const box = more.getBoundingClientRect();
-      this.menu.open(this.menuItems(track), box.right - 240, box.bottom + 4);
+      void this.openMenu(track, box.right - 240, box.bottom + 4);
     });
 
     const paint = () => {
@@ -457,7 +513,7 @@ export class TrackList {
     row.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
-      this.menu.open(this.menuItems(track), event.clientX, event.clientY);
+      void this.openMenu(track, event.clientX, event.clientY);
     });
 
     row.append(index, main, ...middle, duration, more);
