@@ -13,6 +13,8 @@ const HOVER = 'rgba(255, 255, 255, 0.12)';
 const ROUND =
   'flex: 0 0 32px; width: 32px; height: 32px; border: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff';
 const SCROLL_STEP = 320;
+const ARROW = '#535353';
+const ARROW_HOVER = '#000';
 
 export class ChipBar {
   readonly root: HTMLElement;
@@ -86,15 +88,15 @@ export class ChipBar {
   }
 
   private arrow(path: string, side: string, step: number): HTMLButtonElement {
-    // Like the desktop row: a white disc with a black arrow over the chips.
-    const button = el('button', `${ROUND}; position: absolute; top: 0; ${side}; background: #fff; color: #000; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); display: none`);
+    // Like the desktop row: a white disc over the chips; on hover only the arrow darkens.
+    const button = el('button', `${ROUND}; position: absolute; top: 0; ${side}; background: #fff; color: ${ARROW}; box-shadow: 0 0 12px 8px rgba(0, 0, 0, 0.5); display: none`);
     button.type = 'button';
     button.tabIndex = -1;
     button.setAttribute('aria-hidden', 'true');
     button.append(icon(path, 14));
     button.addEventListener('click', () => this.scroller.scrollBy({ left: step }));
-    button.addEventListener('mouseenter', () => (button.style.transform = 'scale(1.06)'));
-    button.addEventListener('mouseleave', () => (button.style.transform = ''));
+    button.addEventListener('mouseenter', () => (button.style.color = ARROW_HOVER));
+    button.addEventListener('mouseleave', () => (button.style.color = ARROW));
     return button;
   }
 
