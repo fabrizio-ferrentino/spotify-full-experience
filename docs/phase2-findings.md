@@ -62,6 +62,13 @@ The web player's track menu (Liked Songs row): Add to playlist, Remove from your
 - **Exclude from / Include in your taste profile:** `POST https://spclient.wg.spotify.com/collection/v2/write?market=from_token`, JSON body `{ username, set: "ignoreinrecs", items: [{ uri }] }`; including again adds `is_removed: true` to the item. The menu label comes from `POST …/collection/v2/contains?market=from_token` with the same body, answered `{ found: [boolean] }`. Checked by excluding a song and including it again.
 - **Open in Desktop app:** the `spotify:track:<id>` link.
 
+## Track descriptors (checked on 2026-10-12)
+
+- The desktop's Liked Songs chips (behind its `enableLikedSongsFilterTags` flag) come from `getTracksFilterTags()` of its native platform; a chip filters with `getTracks({ filters: ["tags contains <name>"] })`. On the web player `getTracksFilterTags()` returns `[]`.
+- Descriptors are readable from the web session: `POST https://spclient.wg.spotify.com/extended-metadata/v0/extended-metadata`, JSON body `{ entityRequest: [{ entityUri, query: [{ extensionKind: 6, etag: "" }] }] }` (`6` = `TRACK_DESCRIPTOR` in the player's enum; the player itself sends this body shape with other kinds), `accept: application/protobuf`. 50 tracks per request worked.
+- Response (protobuf): `2 { 3 { 2: entity uri, 3: Any { 1: "type.googleapis.com/spotify.descriptorextension…", 2 { 1 (repeated) { 1: id ("pop punk"), 2: weight (float, ≥ 0.48 seen), 3: packed classes (01 genre, 02 mood, 03, 06, 07, 09, 0a, 0b, 0d, 10, 11, 17), 4: spotify:concept:<id>, 5: display name, localized } } } } }`.
+- Over 1220 liked songs: 163 distinct descriptors. The desktop's 15 chips (Emo, Energia, Pop rock, Chill, Cantautorato, Rock, Rap, Pop, Elettronica, J-pop, Dark, Nostalgia, Rabbia, Intimità, Motivazione) follow neither frequency nor class: J-Pop (21 songs) is a chip, Metal (329) and Pop Punk (296) are not. "Elettronica" filters 77 songs on the desktop, 78 tracks carry "Electronic".
+
 ## Row actions in our view (desktop parity)
 
 - **Playlists for "Save in" / "Add to playlist":** `editablePlaylists` (hash `d5c4b809…`), variables `{ offset, limit, textFilter, uris: [trackUri] }`. `me.editablePlaylists { totalCount, items[] { curates, pinned, item { _uri, data { __typename, name, uri, image | images } } } }`. The first item is the liked songs (`PseudoPlaylist`, `spotify:collection:tracks`); `curates` says whether the track is already there.
