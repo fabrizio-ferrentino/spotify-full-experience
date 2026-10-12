@@ -99,12 +99,13 @@ function main(): void {
   // Our own queries use the unwrapped fetch: they are never mistaken for the player's traffic.
   const client = nativeFetch ? new PathfinderClient(nativeFetch, session, registry) : null;
   player = nativeFetch ? new PlayerCommands(nativeFetch, session) : null;
-  const services = client ? { session, registry, client, player } : null;
+  const spclient = nativeFetch ? new SpclientRequests(nativeFetch, session) : null;
+  const services = client ? { session, registry, client, player, spclient } : null;
   library = new LikedLibrary({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
   const playback = new Playback(player);
   const likedLibrary = library;
   const trackActions = new TrackActions({
-    spclient: nativeFetch ? new SpclientRequests(nativeFetch, session) : null,
+    spclient,
     client,
     profileUri: () => likedLibrary.profileUri,
   });

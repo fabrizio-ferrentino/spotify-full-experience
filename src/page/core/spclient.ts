@@ -26,16 +26,23 @@ export class SpclientRequests {
     return this.send(url, { method: 'POST', body: JSON.stringify(body) });
   }
 
-  private send(url: string, init: RequestInit): Promise<unknown> {
+  /** Protobuf response of a POST with a JSON body (like the player's extended metadata), or null. */
+  postForProtobuf(url: string, body: unknown): Promise<Uint8Array | null> {
+    return this.send(url, { method: 'POST', body: JSON.stringify(body) }, 'application/protobuf') as Promise<Uint8Array | null>;
+  }
+
+  private send(url: string, init: RequestInit, accept?: string): Promise<unknown> {
     const run = this.queue.then(async () => {
-      const headers = this.session.requestHeaders();
-      if (!headers) return null;
+      const session = this.session.requestHeaders();
+      if (!session) return null;
+      const headers = accept ? { ...session, accept } : session;
       const wait = this.lastSentAt + MIN_INTERVAL_MS - this.now();
       if (wait > 0) await this.sleep(wait);
       this.lastSentAt = this.now();
       try {
         const response = await this.fetchFn(url, { ...init, headers });
         if (!response.ok) return null;
+        if (accept) return new Uint8Array(await response.arrayBuffer());
         const text = await response.text();
         return text ? (JSON.parse(text) as unknown) : {};
       } catch {
