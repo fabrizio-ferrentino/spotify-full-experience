@@ -35,7 +35,9 @@ export class SpclientRequests {
     const run = this.queue.then(async () => {
       const session = this.session.requestHeaders();
       if (!session) return null;
-      const headers = accept ? { ...session, accept } : session;
+      // Exactly the player's content type: the collection service answers 400 to
+      // `application/json;charset=UTF-8` (checked live on 2026-10-12).
+      const headers = { ...session, 'content-type': 'application/json', ...(accept ? { accept } : {}) };
       const wait = this.lastSentAt + MIN_INTERVAL_MS - this.now();
       if (wait > 0) await this.sleep(wait);
       this.lastSentAt = this.now();

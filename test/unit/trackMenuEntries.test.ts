@@ -85,7 +85,8 @@ describe('SpclientRequests', () => {
     const requests = new SpclientRequests(fetchFn as unknown as typeof fetch, session(), sleep, () => 1000);
     expect(await requests.get('https://x/get')).toEqual({ a: 1 });
     expect(await requests.post('https://x/post', { b: 2 })).toEqual({});
-    expect(fetchFn).toHaveBeenNthCalledWith(2, 'https://x/post', { method: 'POST', body: '{"b":2}', headers: { authorization: 'x' } });
+    // The player's exact content type (the collection service refuses the charset variant).
+    expect(fetchFn).toHaveBeenNthCalledWith(2, 'https://x/post', { method: 'POST', body: '{"b":2}', headers: { authorization: 'x', 'content-type': 'application/json' } });
     expect(sleep).toHaveBeenCalledTimes(1);
     fetchFn.mockImplementationOnce(async () => new Response('', { status: 500 }));
     expect(await requests.get('https://x/fail')).toBeNull();
