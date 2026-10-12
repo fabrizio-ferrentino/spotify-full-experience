@@ -19,13 +19,13 @@ export type ProtoField =
   | { field: number; varint: number }
   | { field: number; text: string }
   | { field: number; message: ProtoField[] }
-  | { field: number; bytes: number }
+  | { field: number; bytes: number; hex?: string }
   | { field: number; fixed: number };
 
 /**
  * Generic protobuf reader for debug mode: field numbers with values; length-delimited fields
  * read as a nested message when they parse as one, else as text when printable, else as a
- * byte count. Throws on malformed input.
+ * byte count (with the bytes in hex when short, e.g. packed enums). Throws on malformed input.
  */
 export function readProto(bytes: Uint8Array, depth = 0): ProtoField[] {
   const out: ProtoField[] = [];
@@ -76,5 +76,7 @@ function readChunk(field: number, chunk: Uint8Array, depth: number): ProtoField 
       // Not a message.
     }
   }
-  return printable ? { field, text } : { field, bytes: chunk.length };
+  if (printable) return { field, text };
+  const hex = chunk.length <= 16 ? [...chunk].map((b) => b.toString(16).padStart(2, '0')).join(' ') : undefined;
+  return hex === undefined ? { field, bytes: chunk.length } : { field, bytes: chunk.length, hex };
 }
