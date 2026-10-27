@@ -1,5 +1,6 @@
 {
   "minimum_chrome_version": "120",
+  "permissions": ["storage", "unlimitedStorage"],
   "content_scripts": [
     {
       "matches": ["https://open.spotify.com/*"],

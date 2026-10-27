@@ -73,6 +73,12 @@ Adds features of the Spotify desktop app to the Spotify web player (open.spotify
 Saves the user's settings and a local index of their liked songs, used to show how many of an artist's songs they liked. Nothing leaves the browser.
 ```
 
+**Permission justification, unlimitedStorage:**
+
+```
+The local index of liked songs and their genres can exceed the default 10 MB of extension storage for large libraries (tens of thousands of songs). Without it the index would be rebuilt from Spotify on every visit. The data stays in the browser.
+```
+
 **Host permission justification (content script on https://open.spotify.com/*):**
 
 ```
