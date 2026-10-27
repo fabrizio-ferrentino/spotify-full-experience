@@ -40,6 +40,23 @@ describe('Session', () => {
     vi.useRealTimers();
   });
 
+  it('trusts a rejected token again once the player uses it successfully', async () => {
+    const session = new Session();
+    session.observe(headers('t1'));
+    session.markRejected();
+    const waiting = session.waitUntilReady(10_000);
+    // A failed request of the player with the same token changes nothing.
+    session.observe(headers('t1'), Promise.resolve(401));
+    await Promise.resolve();
+    expect(session.ready).toBe(false);
+    session.observe(headers('t1'), Promise.resolve(null));
+    await Promise.resolve();
+    expect(session.ready).toBe(false);
+    session.observe(headers('t1'), Promise.resolve(200));
+    await expect(waiting).resolves.toBe(true);
+    expect(session.requestHeaders()!['authorization']).toBe('Bearer t1');
+  });
+
   it('gives up waiting after the timeout', async () => {
     vi.useFakeTimers();
     const session = new Session();

@@ -73,8 +73,8 @@ function main(): void {
   const registry = new HashRegistry();
   const hooks: InterceptorHooks = {
     onSpclientRequest: (url, body) => player?.observe(url, body),
-    onPathfinderRequest: ({ operationName, hash, headers }) => {
-      session.observe(headers);
+    onPathfinderRequest: ({ operationName, hash, headers, status }) => {
+      session.observe(headers, status);
       registry.observe(operationName, hash);
     },
     shouldCapture: (kind) =>

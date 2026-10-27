@@ -83,6 +83,17 @@ describe('PathfinderClient', () => {
     expect(calls[1]!.auth).toBe('Bearer t2');
   });
 
+  it('on 403 retries with the same token once the player uses it successfully', async () => {
+    const { client, session, calls } = setup([new Response('', { status: 403 }), ok('fine')]);
+    const pending = client.query('op', {});
+    await vi.waitFor(() => expect(calls).toHaveLength(1));
+    await Promise.resolve();
+    expect(session.ready).toBe(false);
+    session.observe(new Headers({ authorization: 'Bearer t1' }), Promise.resolve(200));
+    await expect(pending).resolves.toMatchObject({ data: 'fine' });
+    expect(calls[1]!.auth).toBe('Bearer t1');
+  });
+
   it('retries once with another hash source when the persisted query is unknown', async () => {
     const { client, calls, registry } = setup([ok(null, [{ message: 'PersistedQueryNotFound' }]), ok('ok')]);
     await expect(client.query('op', {})).resolves.toMatchObject({ data: 'ok' });

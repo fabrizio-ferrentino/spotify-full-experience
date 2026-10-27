@@ -1,7 +1,8 @@
 // Our own Pathfinder queries: only a fallback when the player's responses are not enough
 // (CLAUDE.md §2.5). One query at a time with a minimum interval, identical queries shared,
-// exponential backoff on 429, wait for the player's next token on 401/403, and one retry
-// with another hash source when the persisted query is unknown.
+// exponential backoff on 429, on 401/403 wait for the player's next token (or for a success of
+// the player with the same one), and one retry with another hash source when the persisted query
+// is unknown.
 import { PATHFINDER_V2_URL } from '../adapters/endpoints';
 import type { HashRegistry } from './hashRegistry';
 import type { Session } from './session';

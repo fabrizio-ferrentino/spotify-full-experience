@@ -5,24 +5,31 @@ import { APP_VERSION_HEADER, AUTHORIZATION_HEADER, SESSION_HEADER_NAMES } from '
 
 export class Session {
   private values = new Map<string, string>();
-  /** Token our own query got a 401/403 for: unusable until the player sends a new one. */
+  /** Token our own query got a 401/403 for: unusable until the player shows it is still valid. */
   private rejectedToken: string | null = null;
   private waiters = new Set<() => void>();
 
-  /** Called for every Pathfinder request of the player. */
-  observe(headers: Headers): void {
+  /**
+   * Called for every Pathfinder request of the player, with the status of its response.
+   * A success with the token we had rejected means the refusal was about our query, not the
+   * token (a 403 can be), so the token is usable again.
+   */
+  observe(headers: Headers, status?: Promise<number | null>): void {
     const previous = this.values.get(AUTHORIZATION_HEADER);
     const next = new Map<string, string>();
     for (const name of SESSION_HEADER_NAMES) {
       const value = headers.get(name);
       if (value) next.set(name, value);
     }
-    if (!next.has(AUTHORIZATION_HEADER)) return;
+    const token = next.get(AUTHORIZATION_HEADER);
+    if (token === undefined) return;
     this.values = next;
-    if (next.get(AUTHORIZATION_HEADER) !== previous && this.ready) {
-      for (const wake of this.waiters) wake();
-      this.waiters.clear();
-    }
+    if (token !== previous) this.wakeIfReady();
+    void status?.then((code) => {
+      if (code === null || code < 200 || code >= 300 || token !== this.rejectedToken) return;
+      this.rejectedToken = null;
+      this.wakeIfReady();
+    });
   }
 
   get ready(): boolean {
@@ -49,7 +56,7 @@ export class Session {
     };
   }
 
-  /** The current token was refused: wait for the player to use a new one. */
+  /** The current token was refused: wait for the player to use a new one, or this one successfully. */
   markRejected(): void {
     this.rejectedToken = this.values.get(AUTHORIZATION_HEADER) ?? null;
   }
@@ -68,5 +75,11 @@ export class Session {
       }, timeoutMs);
       this.waiters.add(wake);
     });
+  }
+
+  private wakeIfReady(): void {
+    if (!this.ready) return;
+    for (const wake of this.waiters) wake();
+    this.waiters.clear();
   }
 }

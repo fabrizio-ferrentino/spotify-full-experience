@@ -136,6 +136,21 @@ describe('onPathfinderRequest', () => {
     expect(events).toEqual([{ operationName: 'op', hash: 'h', auth: 'Bearer abc' }]);
   });
 
+  it('reports the status of the response, or null on a network error', async () => {
+    const statuses: Promise<number | null>[] = [];
+    const responses = [() => Promise.resolve(jsonResponse({}, 403)), () => Promise.reject(new TypeError('offline'))];
+    const original = vi.fn(() => responses.shift()!());
+    const target = { fetch: original as unknown as typeof fetch };
+    installFetchInterceptor(target, {
+      shouldCapture: () => true,
+      onCapture: () => {},
+      onPathfinderRequest: ({ status }) => statuses.push(status),
+    });
+    expect((await target.fetch(PATHFINDER, { method: 'POST', body: '{}' })).status).toBe(403);
+    await expect(target.fetch(PATHFINDER, { method: 'POST', body: '{}' })).rejects.toThrow('offline');
+    await expect(Promise.all(statuses)).resolves.toEqual([403, null]);
+  });
+
   it('returns the original fetch for our own requests', () => {
     const original = vi.fn(async () => jsonResponse({}));
     const target = { fetch: original as unknown as typeof fetch };

@@ -32,6 +32,8 @@ export interface PathfinderRequestEvent {
   hash: string | null;
   /** Request headers WITH values (token included): memory-only consumers. */
   headers: Headers;
+  /** HTTP status of the response, or null on a network error. */
+  status: Promise<number | null>;
 }
 
 export interface InterceptorHooks {
@@ -141,19 +143,23 @@ function collectHeaderNames(target: Set<string>, init: HeadersInit | undefined):
   for (const name of new Headers(init).keys()) target.add(name);
 }
 
-function notifyPathfinder(args: FetchArgs, rawUrl: string, hooks: InterceptorHooks): void {
+/** Reports the request to the session hooks; returns the callback that reports its status, if any. */
+function notifyPathfinder(args: FetchArgs, rawUrl: string, hooks: InterceptorHooks): ((status: number | null) => void) | null {
   const kind = matchEndpoint(rawUrl, baseUrl())?.kind;
   const [input, init] = args;
   if (kind === 'spclient' && hooks.onSpclientRequest) {
     hooks.onSpclientRequest(new URL(rawUrl, baseUrl()).href, typeof init?.body === 'string' ? init.body : null);
-    return;
+    return null;
   }
-  if (!hooks.onPathfinderRequest || kind !== 'pathfinder') return;
+  if (!hooks.onPathfinderRequest || kind !== 'pathfinder') return null;
   const headers = new Headers(typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined);
   if (init?.headers) new Headers(init.headers).forEach((value, name) => headers.set(name, value));
   const body = typeof init?.body === 'string' ? init.body : null;
   const query = parsePathfinderRequest(new URL(rawUrl, baseUrl()), body);
-  hooks.onPathfinderRequest({ operationName: query.operationName, hash: query.hash, headers });
+  let settle: (status: number | null) => void = () => {};
+  const status = new Promise<number | null>((resolve) => (settle = resolve));
+  hooks.onPathfinderRequest({ operationName: query.operationName, hash: query.hash, headers, status });
+  return settle;
 }
 
 function startFetchObservation(args: FetchArgs, hooks: InterceptorHooks) {
@@ -162,15 +168,26 @@ function startFetchObservation(args: FetchArgs, hooks: InterceptorHooks) {
   const rawUrl = typeof input === 'string' ? input : input instanceof URL ? input.href : isRequest ? input.url : null;
   if (rawUrl === null) return null;
 
+  let settle: ((status: number | null) => void) | null = null;
   try {
-    notifyPathfinder(args, rawUrl, hooks);
+    settle = notifyPathfinder(args, rawUrl, hooks);
   } catch {
     // Consumers must never affect the player.
   }
+  const reportStatus = settle
+    ? {
+        attach(promise: Promise<Response>): void {
+          promise.then(
+            (response) => settle!(response.status),
+            () => settle!(null),
+          );
+        },
+      }
+    : null;
 
   const method = init?.method ?? (isRequest ? input.method : 'GET');
   const req = beginRequest('fetch', method, rawUrl, hooks);
-  if (!req) return null;
+  if (!req) return reportStatus;
 
   if (isRequest) collectHeaderNames(req.requestHeaderNames, input.headers);
   collectHeaderNames(req.requestHeaderNames, init?.headers);
@@ -188,6 +205,7 @@ function startFetchObservation(args: FetchArgs, hooks: InterceptorHooks) {
 
   return {
     attach(promise: Promise<Response>): void {
+      reportStatus?.attach(promise);
       promise.then(
         (response) => {
           // Clone synchronously: this callback was registered before the caller's,
