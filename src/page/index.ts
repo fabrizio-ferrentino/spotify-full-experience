@@ -103,7 +103,12 @@ function main(): void {
   player = nativeFetch ? new PlayerCommands(nativeFetch, session) : null;
   const spclient = nativeFetch ? new SpclientRequests(nativeFetch, session) : null;
   const services = client ? { session, registry, client, player, spclient } : null;
-  library = new LikedLibrary({ client, loadIndex: loadLikedIndex, saveIndex: saveLikedIndex });
+  library = new LikedLibrary({
+    client,
+    loadIndex: loadLikedIndex,
+    saveIndex: saveLikedIndex,
+    wanted: () => likedSongs?.isEnabled === true || playlistTools?.isEnabled === true,
+  });
   const playback = new Playback(player);
   const likedLibrary = library;
   const trackActions = new TrackActions({

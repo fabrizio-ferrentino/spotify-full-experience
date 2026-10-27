@@ -13,6 +13,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildIndex, CHECK_PAGE_SIZE, isStale, refreshIndex, removeTracks, tracksByArtist, REFRESH_AFTER_MS, type FetchPage } from '../../src/page/library/indexSync';
 import { parseLikedIndex, type LikedIndex, type LikedTrack } from '../../src/shared/likedIndex';
+import { LikedLibrary } from '../../src/page/library/likedLibrary';
+import type { PathfinderClient } from '../../src/page/core/pathfinderClient';
+import type { CapturedRequest } from '../../src/page/core/interceptor';
 import { BRIDGE_NAMESPACE, parseContentToPage, parsePageToContent } from '../../src/shared/protocol';
 
 // Synthetic IDs (22 base62 chars) and data shaped like the live responses (docs/phase2-findings.md).
@@ -225,5 +228,42 @@ describe('library writes', () => {
       ],
     });
     expect(parseEditablePlaylists({ me: {} })).toBeNull();
+  });
+});
+
+describe('liked library sync', () => {
+  function setup(wanted: () => boolean) {
+    const { items } = fakeLibrary(3);
+    const query = vi.fn(async (_operation: string, variables: Record<string, unknown>) => {
+      const offset = variables['offset'] as number;
+      return { status: 200, errors: [], data: libraryData(items.slice(offset, offset + (variables['limit'] as number)), items.length) };
+    });
+    const client = { waitForSession: async () => true, query, sent: 0 } as unknown as PathfinderClient;
+    const saveIndex = vi.fn();
+    const library = new LikedLibrary({ client, loadIndex: async () => null, saveIndex, wanted });
+    // The player's own profile request, so the library never asks for it.
+    library.onCapture({
+      kind: 'pathfinder',
+      operationName: 'profileAttributes',
+      status: 200,
+      json: { data: { me: { profile: { uri: 'spotify:user:someone' } } } },
+    } as unknown as CapturedRequest);
+    return { library, query, saveIndex };
+  }
+
+  it('sends nothing once the features that need the index are off', async () => {
+    const { library, query, saveIndex } = setup(() => false);
+    await library.ensureFresh();
+    expect(query).not.toHaveBeenCalled();
+    expect(saveIndex).not.toHaveBeenCalled();
+    expect(library.index).toBeNull();
+  });
+
+  it('builds the index while a feature needs it', async () => {
+    const { library, query, saveIndex } = setup(() => true);
+    await library.ensureFresh();
+    expect(query).toHaveBeenCalledTimes(1);
+    expect(saveIndex).toHaveBeenCalledTimes(1);
+    expect(library.index?.tracks).toHaveLength(3);
   });
 });

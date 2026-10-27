@@ -25,6 +25,11 @@ export interface LikedLibraryDeps {
   client: PathfinderClient | null;
   loadIndex(key: string): Promise<LikedIndex | null>;
   saveIndex(key: string, index: LikedIndex | null): void;
+  /**
+   * Whether a feature still needs the index. Checked before every request of a sync: the
+   * features start with their defaults and the user's settings may turn them off meanwhile.
+   */
+  wanted?: () => boolean;
   now?: () => number;
 }
 
@@ -190,10 +195,11 @@ export class LikedLibrary {
 
   private async sync(): Promise<void> {
     const client = this.deps.client;
+    const wanted = this.deps.wanted ?? (() => true);
     if (!client || this.now() - this.failedAt < RETRY_AFTER_MS) return;
     try {
       // Nothing can be done before the player's first requests (session headers, hashes).
-      if (!(await client.waitForSession())) return;
+      if (!(await client.waitForSession()) || !wanted()) return;
       const key = await this.ensureUserKey();
       if (!key) return;
       if (!this.loaded) {
@@ -201,7 +207,7 @@ export class LikedLibrary {
         this.loaded = true;
       }
       const now = this.now();
-      if (this.current && !this.dirty && !isStale(this.current, now)) return;
+      if ((this.current && !this.dirty && !isStale(this.current, now)) || !wanted()) return;
 
       const fetchPage: FetchPage = async (offset, limit) => {
         const result = await client.query(OPERATIONS.libraryTracks, { offset, limit });
