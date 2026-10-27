@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildIndex, CHECK_PAGE_SIZE, isStale, refreshIndex, removeTracks, tracksByArtist, REFRESH_AFTER_MS, type FetchPage } from '../../src/page/library/indexSync';
-import { parseLikedIndex, type LikedIndex, type LikedTrack } from '../../src/shared/likedIndex';
+import { MAX_INDEX_TRACKS, parseLikedIndex, type LikedIndex, type LikedTrack } from '../../src/shared/likedIndex';
 import { LikedLibrary } from '../../src/page/library/likedLibrary';
 import type { PathfinderClient } from '../../src/page/core/pathfinderClient';
 import type { CapturedRequest } from '../../src/page/core/interceptor';
@@ -138,6 +138,18 @@ describe('index sync', () => {
     expect(after.total).toBe(8);
     expect(tracksByArtist(after, ARTIST(0)).map((t) => t.t)).toEqual([TRACK(0), TRACK(6)]);
     expect(removeTracks(index, ['unknown'])).toBe(index);
+  });
+
+  it('keeps an incrementally refreshed index within the stored limit', async () => {
+    const tracks = Array.from({ length: MAX_INDEX_TRACKS }, (_, n) => ({ ...parseLibraryPage(libraryData([libraryItem(n + 2, [1], 1000 - n)], 1))!.tracks[0]! }));
+    const full: LikedIndex = { v: 3, checkedAt: 0, total: MAX_INDEX_TRACKS, tracks };
+    const head: FetchPage = async () => parseLibraryPage(libraryData([libraryItem(0, [1], 5000), libraryItem(1, [1], 4000), libraryItem(2, [1], 1000)], MAX_INDEX_TRACKS + 2))!;
+    const { index, mode } = await refreshIndex(full, head, 1);
+    expect(mode).toBe('incremental');
+    expect(index.total).toBe(MAX_INDEX_TRACKS + 2);
+    expect(index.tracks).toHaveLength(MAX_INDEX_TRACKS);
+    expect(index.tracks[0]!.t).toBe(TRACK(0));
+    expect(parseLikedIndex(index)).not.toBeNull();
   });
 
   it('considers an index stale after 10 minutes', () => {

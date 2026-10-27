@@ -1,7 +1,7 @@
 // Builds and refreshes the liked songs index (CLAUDE.md §6): full paging on first build, then a
 // cheap check of the first page that only prepends what is new; anything inconsistent triggers
 // a full rebuild.
-import type { LikedIndex, LikedTrack } from '../../shared/likedIndex';
+import { MAX_INDEX_TRACKS, type LikedIndex, type LikedTrack } from '../../shared/likedIndex';
 import { LIBRARY_PAGE_MAX, type LibraryPage } from '../adapters/libraryShapes';
 
 export type FetchPage = (offset: number, limit: number) => Promise<LibraryPage>;
@@ -48,7 +48,13 @@ export async function refreshIndex(index: LikedIndex, fetchPage: FetchPage, now:
   // Consistent only if the newest known like is still there and nothing else changed below it.
   if (known >= 0 && head.total === index.total + known) {
     return {
-      index: { ...index, checkedAt: now, total: head.total, tracks: [...head.tracks.slice(0, known), ...index.tracks] },
+      // Capped like a full build: a longer index would be refused by the storage bridge.
+      index: {
+        ...index,
+        checkedAt: now,
+        total: head.total,
+        tracks: [...head.tracks.slice(0, known), ...index.tracks].slice(0, MAX_INDEX_TRACKS),
+      },
       mode: 'incremental',
     };
   }
