@@ -43,3 +43,13 @@ describe('total duration', () => {
     expect(totalDurationText((52 * 60 + 30) * 1000, 'en')).toBe('52 min 30 sec');
   });
 });
+
+describe('date added', () => {
+  it('is relative for the last month, a date before, and empty when unknown', async () => {
+    const { addedDate } = await import('../../src/page/ui/format');
+    const now = Date.UTC(2026, 9, 29);
+    expect(addedDate(now - 3 * 24 * 3600_000, now, 'en')).toBe('3 days ago');
+    expect(addedDate(Date.UTC(2025, 0, 15), now, 'en')).toBe('Jan 15, 2025');
+    expect(addedDate(0, now, 'en')).toBe('');
+  });
+});

@@ -359,6 +359,8 @@ const MONTH_MS = 30 * 24 * 3600_000;
 
 /** Like the desktop "Date added" column: relative for the last month, then a short date. */
 export function addedDate(timestamp: number, now: number, lang = pageLanguage()): string {
+  // Rows without a date (0) would read as 1 January 1970.
+  if (!(timestamp > 0)) return '';
   if (now - timestamp < MONTH_MS) return relativeTime(timestamp, now, lang);
   try {
     return new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', year: 'numeric' }).format(timestamp);
