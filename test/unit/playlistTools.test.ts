@@ -130,16 +130,23 @@ describe('PlaylistStore', () => {
     const { client, query } = clientFor(10);
     const store = new PlaylistStore(client);
     await store.load(PLAYLIST);
+    // Reads the player sends right after fetchPlaylist (seen live): the cache stays.
     store.observeRequest('fetchPlaylistContents', { uri: PLAYLIST });
+    store.observeRequest('playlistPermissions', { uri: PLAYLIST });
+    store.observeRequest('centralisedStatePlayerOptions', { context: { uri: PLAYLIST } });
+    store.observeRequest(null, { uri: PLAYLIST });
     await store.load(PLAYLIST);
     expect(query).toHaveBeenCalledTimes(1);
-    store.observeRequest('addToPlaylist', { playlistUri: PLAYLIST, uris: [] });
+    store.observeRequest('applyCurations', { input: { curations: [{ contextUri: PLAYLIST }] } });
     await store.load(PLAYLIST);
     expect(query).toHaveBeenCalledTimes(2);
+    store.observeRequest('addToPlaylist', { playlistUri: PLAYLIST, uris: [] });
+    await store.load(PLAYLIST);
+    expect(query).toHaveBeenCalledTimes(3);
     store.observePage({ uri: PLAYLIST, offset: 0, limit: 25 }, page(0, 10, 10, 'r1'));
     store.observePage({ uri: PLAYLIST, offset: 0, limit: 5 }, page(0, 10, 5, 'r2'));
     await store.load(PLAYLIST);
-    expect(query).toHaveBeenCalledTimes(3);
+    expect(query).toHaveBeenCalledTimes(4);
   });
 
   it('stops at MAX_ITEMS on huge playlists', async () => {

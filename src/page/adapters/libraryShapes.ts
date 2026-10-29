@@ -14,6 +14,18 @@ export const OPERATIONS = {
   albumTracks: 'queryAlbumTracks',
 } as const;
 
+/**
+ * Operations that change the library or a playlist, by the verb their name starts with, as the
+ * ones seen live (addToLibrary, applyCurations). Reads that mention a playlist, such as
+ * playlistPermissions or centralisedStatePlayerOptions right after fetchPlaylist (checked live on
+ * 2026-10-29), do not match.
+ */
+const WRITE_OPERATION = /^(add|remove|move|apply|edit|update|delete|create|set)[A-Z]/;
+
+export function isWriteOperation(operationName: string | null): boolean {
+  return operationName !== null && WRITE_OPERATION.test(operationName);
+}
+
 /** Largest page accepted by fetchPlaylistContents (checked live: 1000). */
 export const PLAYLIST_PAGE_MAX = 1000;
 const PLAYLIST_URI = /^spotify:playlist:[A-Za-z0-9]{22}$/;

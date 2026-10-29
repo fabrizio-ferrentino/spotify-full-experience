@@ -2,7 +2,7 @@
 // the missing ones are fetched only when the user searches or sorts, with fetchPlaylistContents
 // at the largest page size through the rate-limited client. Writes to a playlist seen in the
 // player's traffic (or made by us) drop its cache, and so does a new revision.
-import { OPERATIONS, PLAYLIST_PAGE_MAX, parsePlaylistPage, type PlaylistPage, type PlaylistTrack } from '../../adapters/libraryShapes';
+import { isWriteOperation, OPERATIONS, PLAYLIST_PAGE_MAX, parsePlaylistPage, type PlaylistPage, type PlaylistTrack } from '../../adapters/libraryShapes';
 import type { PathfinderClient } from '../../core/pathfinderClient';
 
 /** Larger playlists are searched and sorted on their first MAX_ITEMS rows only. */
@@ -10,7 +10,6 @@ export const MAX_ITEMS = 10_000;
 /** Cached contents older than this are fetched again. */
 const TTL_MS = 5 * 60_000;
 const PLAYLIST_URI = /spotify:playlist:[A-Za-z0-9]{22}/g;
-const READ_OPERATIONS: ReadonlySet<string> = new Set([OPERATIONS.playlist, OPERATIONS.playlistContents]);
 
 interface Entry {
   total: number;
@@ -45,9 +44,12 @@ export class PlaylistStore {
     if (page) this.merge(page);
   }
 
-  /** Any other Pathfinder request of the player mentioning a playlist may change it. */
+  /**
+   * A write of the player mentioning a playlist may change it. Its reads must not drop the cache:
+   * some run right after fetchPlaylist, which would throw away the pages the player just loaded.
+   */
   observeRequest(operationName: string | null, variables: unknown): void {
-    if (operationName && READ_OPERATIONS.has(operationName)) return;
+    if (!isWriteOperation(operationName)) return;
     let text: string;
     try {
       text = JSON.stringify(variables) ?? '';
