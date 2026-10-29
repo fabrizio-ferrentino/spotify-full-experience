@@ -198,6 +198,20 @@ describe('row menu entries', () => {
     expect(entries().some((e) => e?.includes('taste profile'))).toBe(false);
   });
 
+  it('drops a menu still waiting for the taste profile when another opens or the view closes', async () => {
+    let answer: (excluded: boolean) => void = () => {};
+    const slow = { ...actions(false), isExcluded: vi.fn(() => new Promise<boolean>((resolve) => (answer = resolve))) };
+    document.documentElement.lang = 'en';
+    document.body.innerHTML = '<main></main>';
+    const view = new LikedSongsView(document.querySelector('main')!, { heading: '', title: '', subdued: '' }, () => {}, slow);
+    view.open({ artistId: ARTIST, artistName: 'Angels & Airwaves', imageUrl: null, tracks: [track], now: 0 });
+    view.root.querySelector('li')!.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
+    view.close();
+    answer(false);
+    await flush();
+    expect(document.querySelector('[data-sfe-liked-menu]')).toBeNull();
+  });
+
   it('shows the credits in a dialog, grouped like the player', async () => {
     const a = actions(false);
     open(a).dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));

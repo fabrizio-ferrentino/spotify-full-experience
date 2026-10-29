@@ -164,6 +164,8 @@ export class TrackList {
   private readonly creditsDialog: CreditsDialog;
   private readonly headerCells: HTMLElement[] = [];
   private renderedKey = '';
+  /** Latest menu opening: an older one still waiting for the taste profile state is dropped. */
+  private menuRequest = 0;
   private highlight = '';
   private readonly layout: ListLayout;
   private readonly columns: string;
@@ -249,6 +251,7 @@ export class TrackList {
   }
 
   closePopups(): void {
+    this.menuRequest += 1;
     this.menu.close();
     this.saveDialog.close();
     this.creditsDialog.close();
@@ -260,11 +263,14 @@ export class TrackList {
    */
   private async openMenu(track: ListTrack, x: number, y: number): Promise<void> {
     const { isExcluded } = this.options.actions;
+    const request = ++this.menuRequest;
     let excluded: boolean | null = null;
     if (isExcluded) {
       const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), STATE_TIMEOUT_MS));
       excluded = await Promise.race([isExcluded(track).catch(() => null), timeout]);
     }
+    // Meanwhile the user may have opened another menu, or left the list (page change).
+    if (request !== this.menuRequest || !this.list.isConnected) return;
     this.menu.open(this.menuItems(track, excluded), x, y);
   }
 
