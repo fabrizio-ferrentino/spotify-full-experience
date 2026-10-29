@@ -260,7 +260,7 @@ describe('liked library sync', () => {
       status: 200,
       json: { data: { me: { profile: { uri: 'spotify:user:someone' } } } },
     } as unknown as CapturedRequest);
-    return { library, query, saveIndex };
+    return { library, query, saveIndex, items };
   }
 
   it('sends nothing once the features that need the index are off', async () => {
@@ -269,6 +269,33 @@ describe('liked library sync', () => {
     expect(query).not.toHaveBeenCalled();
     expect(saveIndex).not.toHaveBeenCalled();
     expect(library.index).toBeNull();
+  });
+
+  it('checks again for a like seen while a sync was reading the library', async () => {
+    const { library, query, items } = setup(() => true);
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const read = query.getMockImplementation()!;
+    // The first read is answered with the library as it was, after the like below.
+    query.mockImplementationOnce(async (operation, variables) => {
+      const answer = await read(operation, variables);
+      await gate;
+      return answer;
+    });
+    const first = library.ensureFresh();
+    await vi.waitFor(() => expect(query).toHaveBeenCalledTimes(1));
+    items.unshift(libraryItem(7, [1], 99_000_000));
+    library.onCapture({
+      kind: 'pathfinder',
+      operationName: 'addToLibrary',
+      status: 200,
+      variables: { libraryItemUris: [`spotify:track:${TRACK(7)}`] },
+    } as unknown as CapturedRequest);
+    release();
+    await first;
+    await vi.waitFor(() => expect(library.index?.tracks[0]?.t).toBe(TRACK(7)));
+    expect(query).toHaveBeenCalledTimes(2);
+    expect(library.index?.tracks).toHaveLength(4);
   });
 
   it('builds the index while a feature needs it', async () => {

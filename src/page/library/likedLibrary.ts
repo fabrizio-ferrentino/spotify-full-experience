@@ -53,6 +53,8 @@ export class LikedLibrary {
   private loaded = false;
   /** A like was seen: check the server even if the index is recent. */
   private dirty = false;
+  /** Number of likes seen, so a sync knows whether one arrived while it was running. */
+  private likesSeen = 0;
   private syncing: Promise<void> | null = null;
   private failedAt = Number.NEGATIVE_INFINITY;
   private profileWaiters: (() => void)[] = [];
@@ -144,9 +146,12 @@ export class LikedLibrary {
 
   private applyChange(kind: 'added' | 'removed', trackIds: string[]): void {
     if (kind === 'added') {
-      // Details (artist, title) come with the next check of the first page.
+      // Details (artist, title) come with the next check of the first page. A sync already
+      // running may have read that page before this like: check again once it ends.
       this.dirty = true;
-      void this.ensureFresh();
+      this.likesSeen += 1;
+      const running = this.syncing;
+      void (running ? running.then(() => this.ensureFresh()) : this.ensureFresh());
       return;
     }
     if (!this.current || !this.userKey) return;
@@ -196,6 +201,7 @@ export class LikedLibrary {
   private async sync(): Promise<void> {
     const client = this.deps.client;
     const wanted = this.deps.wanted ?? (() => true);
+    const likesBefore = this.likesSeen;
     if (!client || this.now() - this.failedAt < RETRY_AFTER_MS) return;
     try {
       // Nothing can be done before the player's first requests (session headers, hashes).
@@ -224,7 +230,8 @@ export class LikedLibrary {
         debugLog(`liked songs: index built (${index.tracks.length} tracks, ${client.sent} requests so far)`);
         this.setIndex(index);
       }
-      this.dirty = false;
+      // A like seen meanwhile may be missing from what was read: keep it pending.
+      if (this.likesSeen === likesBefore) this.dirty = false;
       this.deps.saveIndex(key, this.current);
     } catch (error) {
       // Fail silently: the features show nothing. Tried again later, after a pause.
