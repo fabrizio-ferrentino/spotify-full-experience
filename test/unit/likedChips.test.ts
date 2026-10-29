@@ -187,6 +187,7 @@ describe('chips over Liked Songs', () => {
     expect([...bar.querySelectorAll('button[aria-pressed]')].map((b) => b.textContent)).toEqual(['Rock', 'Chill']);
     expect(wrapper.style.display).toBe('');
 
+    const playerCount = section.querySelector<HTMLElement>('[data-testid="entity-header"] span')!;
     bar.querySelector<HTMLButtonElement>('button[aria-pressed]')!.click();
     await frame();
     await frame();
@@ -194,7 +195,17 @@ describe('chips over Liked Songs', () => {
     const names = () => [...section.querySelectorAll('[data-sfe-playlist-list] li a[href^="/track/"]')].map((a) => a.textContent);
     expect(names()).toEqual(['One', 'Two', 'Three']);
     // The header counts the chip's songs, like the desktop app ("77 brani, 5 ore 1 min").
-    const header = () => section.querySelector('[data-testid="entity-header"]')!.textContent;
+    // Visible text only: the player's own spans are hidden, never written to.
+    const header = () =>
+      [...section.querySelectorAll<HTMLElement>('[data-testid="entity-header"] span')]
+        .filter((span) => span.style.display !== 'none')
+        .map((span) => span.textContent)
+        .join('');
+    expect(header()).toBe('3 songs, 0 min 3 sec');
+    expect(playerCount.textContent).toBe('5 songs');
+    // The player updates its count meanwhile (a like elsewhere).
+    playerCount.textContent = '6 songs';
+    await frame();
     expect(header()).toBe('3 songs, 0 min 3 sec');
     expect([...bar.querySelectorAll('button[aria-pressed]')].map((b) => [b.textContent, b.getAttribute('aria-pressed')])).toEqual([['Rock', 'true']]);
 
@@ -203,7 +214,8 @@ describe('chips over Liked Songs', () => {
     expect(wrapper.style.display).toBe('');
     expect(section.querySelector('[data-sfe-playlist-list]')).toBeNull();
     expect(bar.querySelectorAll('button[aria-pressed]')).toHaveLength(2);
-    expect(header()).toBe('5 songs, about 1 hr');
+    expect(header()).toBe('6 songs, about 1 hr');
+    expect(section.querySelector('[data-sfe-header]')).toBeNull();
 
     feature.setChipsEnabled(false);
     await frame();

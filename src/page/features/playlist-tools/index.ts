@@ -6,7 +6,7 @@
 import { likedSongsContext } from '../../adapters/connectShapes';
 import type { PageInfo } from '../../adapters/routes';
 import { entityHeaderStatsOf, pageTrackListOf, SELECTORS } from '../../adapters/spotifyDom';
-import { frameScheduler, whenAvailable } from '../../core/dom';
+import { frameScheduler, setText, whenAvailable } from '../../core/dom';
 import type { CapturedRequest } from '../../core/interceptor';
 import { OPERATIONS } from '../../adapters/libraryShapes';
 import type { AlbumStore } from './albumStore';
@@ -26,6 +26,7 @@ import { PlaylistStore } from './playlistStore';
 
 const OWN_LIST = 'data-sfe-playlist-list';
 const HIDDEN = 'data-sfe-hidden';
+const OWN_HEADER = 'data-sfe-header';
 const CUSTOM: SortState = { key: 'custom', descending: false };
 /** Liked Songs come newest first: that is their own order, "Recently added". */
 const RECENTLY_ADDED: SortState = { key: 'added', descending: true };
@@ -34,6 +35,24 @@ const PLAYLIST_KEYS: readonly SortKey[] = ['custom', 'title', 'artist', 'album',
 const LIKED_KEYS: readonly SortKey[] = ['title', 'added', 'artist', 'album'];
 /** Albums: their own order, then by plays (not in the desktop app), title and duration. */
 const ALBUM_KEYS: readonly SortKey[] = ['custom', 'plays', 'title', 'duration'];
+
+/** An empty copy of a header text node (same look), to show our text in its place. */
+function standIn(original: HTMLElement): HTMLElement {
+  const own = original.cloneNode(false) as HTMLElement;
+  own.removeAttribute('id');
+  own.setAttribute(OWN_HEADER, '');
+  return own;
+}
+
+function hideNode(node: HTMLElement): void {
+  if (node.style.getPropertyValue('display') !== 'none') node.style.setProperty('display', 'none', 'important');
+  node.setAttribute(HIDDEN, '');
+}
+
+function showNode(node: HTMLElement): void {
+  node.style.removeProperty('display');
+  node.removeAttribute(HIDDEN);
+}
 
 function sameSort(a: SortState, b: SortState): boolean {
   return a.key === b.key && (a.key === 'custom' || a.descending === b.descending);
@@ -83,8 +102,11 @@ export class PlaylistToolsFeature {
   private chipBar: ChipBar | null = null;
   private chipsLoading = false;
   private chipsToken = 0;
-  /** The header's own count and length texts, while a chip shows ours. */
-  private header: { count: HTMLElement; countText: string; duration: HTMLElement | null; durationText: string } | null = null;
+  /**
+   * While a chip is chosen: the header's count and length (hidden, never written to: React owns
+   * them) and our texts shown in their place.
+   */
+  private header: { count: HTMLElement; duration: HTMLElement | null; ownCount: HTMLElement; ownDuration: HTMLElement | null } | null = null;
   /** The page content root, observed for the whole visit (the page section inside it is replaced when moving between playlists). */
   private main: HTMLElement | null = null;
   private observer: MutationObserver | null = null;
@@ -251,23 +273,37 @@ export class PlaylistToolsFeature {
     }
     const stats = entityHeaderStatsOf(section);
     if (!stats) return;
-    if (this.header?.count !== stats.count) {
+    if (this.header?.count !== stats.count || this.header.duration !== stats.duration) {
       this.restoreHeader();
-      this.header = { count: stats.count, countText: stats.count.textContent ?? '', duration: stats.duration, durationText: stats.duration?.textContent ?? '' };
+      this.header = {
+        count: stats.count,
+        duration: stats.duration,
+        ownCount: standIn(stats.count),
+        ownDuration: stats.duration ? standIn(stats.duration) : null,
+      };
     }
+    const header = this.header;
+    // Ours go before the count and after the length, so the adapter still finds the player's.
+    if (header.count.previousElementSibling !== header.ownCount) header.count.before(header.ownCount);
+    if (header.duration && header.ownDuration && header.duration.nextElementSibling !== header.ownDuration) {
+      header.duration.after(header.ownDuration);
+    }
+    hideNode(header.count);
+    if (header.duration) hideNode(header.duration);
     const shown = tracks.filter((track) => chip.trackIds.has(track.t));
-    const count = likedCountText(shown.length);
-    const length = totalDurationText(shown.reduce((sum, track) => sum + track.ms, 0));
-    if (stats.count.textContent !== count) stats.count.textContent = count;
-    if (stats.duration && stats.duration.textContent !== length) stats.duration.textContent = length;
+    setText(header.ownCount, likedCountText(shown.length));
+    if (header.ownDuration) setText(header.ownDuration, totalDurationText(shown.reduce((sum, track) => sum + track.ms, 0)));
   }
 
+  /** Removes our texts; the player's, hidden meanwhile but kept up to date by it, show again. */
   private restoreHeader(): void {
     const header = this.header;
     if (!header) return;
     this.header = null;
-    if (header.count.isConnected) header.count.textContent = header.countText;
-    if (header.duration?.isConnected) header.duration.textContent = header.durationText;
+    header.ownCount.remove();
+    header.ownDuration?.remove();
+    showNode(header.count);
+    if (header.duration) showNode(header.duration);
   }
 
   private dropChips(): void {
