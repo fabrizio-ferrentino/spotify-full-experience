@@ -33,6 +33,8 @@ export interface ClientOptions {
 }
 
 const PERSISTED_QUERY_NOT_FOUND = /PersistedQueryNotFound/i;
+/** A longer Retry-After is not waited for: it would hold every other query of the queue. */
+const MAX_RETRY_AFTER_MS = 60_000;
 
 export class PathfinderClient {
   private queue: Promise<unknown> = Promise.resolve();
@@ -96,6 +98,8 @@ export class PathfinderClient {
       if (response.status === 429 && rateLimited < this.maxRateLimitRetries) {
         const retryAfter = Number(response.headers.get('retry-after'));
         const backoff = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : this.minIntervalMs * 2 ** (rateLimited + 1);
+        // Never sooner than asked: give up instead, the feature tries again later.
+        if (backoff > MAX_RETRY_AFTER_MS) throw new PathfinderError(`${operationName} rate limited`, 429);
         rateLimited += 1;
         await this.sleep(backoff);
         continue;

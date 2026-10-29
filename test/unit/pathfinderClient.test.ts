@@ -67,6 +67,12 @@ describe('PathfinderClient', () => {
     expect(sleeps).toEqual([2000, 7000]);
   });
 
+  it('gives up at once when Retry-After asks for more than a minute', async () => {
+    const { client, calls } = setup([new Response('', { status: 429, headers: { 'retry-after': '3600' } })]);
+    await expect(client.query('op', {})).rejects.toMatchObject({ status: 429 });
+    expect(calls).toHaveLength(1);
+  });
+
   it('gives up after too many 429', async () => {
     const { client } = setup(Array.from({ length: 5 }, () => () => new Response('', { status: 429 })));
     await expect(client.query('op', {})).rejects.toMatchObject({ status: 429 });
