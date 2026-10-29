@@ -127,14 +127,27 @@ const RELATIVE_STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['minute', 60_000],
 ];
 
+// Formatters are costly to create and lists format a date per row: one per language.
+const relativeFormats = new Map<string, Intl.RelativeTimeFormat>();
+const dateFormats = new Map<string, Intl.DateTimeFormat>();
+
+/** The formatter of `lang` (English when the tag is invalid), created once. */
+function cached<T>(cache: Map<string, T>, lang: string, create: (tag: string) => T): T {
+  let format = cache.get(lang);
+  if (!format) {
+    try {
+      format = create(lang);
+    } catch {
+      format = create('en');
+    }
+    cache.set(lang, format);
+  }
+  return format;
+}
+
 /** "3 days ago" in the page locale. */
 export function relativeTime(timestamp: number, now: number, lang = pageLanguage()): string {
-  let format: Intl.RelativeTimeFormat;
-  try {
-    format = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
-  } catch {
-    format = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-  }
+  const format = cached(relativeFormats, lang, (tag) => new Intl.RelativeTimeFormat(tag, { numeric: 'auto' }));
   const elapsed = now - timestamp;
   for (const [unit, size] of RELATIVE_STEPS) {
     if (Math.abs(elapsed) >= size) return format.format(-Math.round(elapsed / size), unit);
@@ -362,11 +375,7 @@ export function addedDate(timestamp: number, now: number, lang = pageLanguage())
   // Rows without a date (0) would read as 1 January 1970.
   if (!(timestamp > 0)) return '';
   if (now - timestamp < MONTH_MS) return relativeTime(timestamp, now, lang);
-  try {
-    return new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short', year: 'numeric' }).format(timestamp);
-  } catch {
-    return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(timestamp);
-  }
+  return cached(dateFormats, lang, (tag) => new Intl.DateTimeFormat(tag, { day: 'numeric', month: 'short', year: 'numeric' })).format(timestamp);
 }
 
 /** 394653 → "6:34". */

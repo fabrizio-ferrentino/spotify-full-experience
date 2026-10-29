@@ -164,6 +164,9 @@ export class TrackList {
   private readonly creditsDialog: CreditsDialog;
   private readonly headerCells: HTMLElement[] = [];
   private renderedKey = '';
+  private renderedTracks: ListTrack[] | null = null;
+  /** One per row shown: brings its liked tick up to date. */
+  private likedUpdates: (() => void)[] = [];
   /** Latest menu opening: an older one still waiting for the taste profile state is dropped. */
   private menuRequest = 0;
   private highlight = '';
@@ -233,10 +236,14 @@ export class TrackList {
 
   /** Shows `tracks`; `highlight` is the search text to mark in titles, artists and albums. */
   render(tracks: ListTrack[], now: number, highlight = ''): void {
+    // The same array again (hosts reuse their last result): nothing to compare.
+    if (tracks === this.renderedTracks && highlight === this.highlight) return;
+    this.renderedTracks = tracks;
     const key = `${highlight}\n${tracks.map((track) => track.u ?? track.t).join(',')}`;
     if (key === this.renderedKey) return;
     this.renderedKey = key;
     this.highlight = highlight;
+    this.likedUpdates = [];
     this.list.replaceChildren(...tracks.map((track, i) => this.row(track, i + 1, now)));
   }
 
@@ -245,9 +252,9 @@ export class TrackList {
     this.options.currentArtistId = id;
   }
 
-  /** Forces the next render to rebuild the rows (e.g. the liked state changed). */
-  invalidate(): void {
-    this.renderedKey = '';
+  /** Updates the liked tick of the rows shown, without rebuilding them. */
+  refreshLiked(): void {
+    for (const update of this.likedUpdates) update();
   }
 
   closePopups(): void {
@@ -463,7 +470,7 @@ export class TrackList {
     const duration = el('span', `${subdued}; justify-self: end; display: flex; align-items: center; gap: 16px; font-variant-numeric: tabular-nums`);
     const time = el('span');
     time.textContent = formatDuration(track.ms);
-    const liked = this.isLiked(track);
+    let liked = this.isLiked(track);
     const saved = el('button', `${ROUND_BUTTON}; width: 24px; height: 24px; opacity: ${liked ? 1 : 0}`);
     saved.type = 'button';
     saved.setAttribute('aria-label', labels.saveIn);
@@ -497,6 +504,13 @@ export class TrackList {
       number.style.display = active ? 'none' : '';
       play.style.display = active ? 'flex' : 'none';
     };
+    this.likedUpdates.push(() => {
+      const current = this.isLiked(track);
+      if (current === liked) return;
+      liked = current;
+      saved.replaceChildren(liked ? checkIcon(16) : addIcon(16));
+      paint();
+    });
     row.addEventListener('mouseenter', paint);
     row.addEventListener('mouseleave', paint);
     row.addEventListener('focusin', paint);

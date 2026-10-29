@@ -11,7 +11,7 @@ import { matches, nextSort, normalize, queryTracks } from '../../src/page/featur
 import { MAX_ITEMS, PlaylistStore } from '../../src/page/features/playlist-tools/playlistStore';
 import type { LikedLibrary } from '../../src/page/library/likedLibrary';
 import type { Playback } from '../../src/page/library/playback';
-import { highlighted, type ListTrack } from '../../src/page/ui/trackList';
+import { highlighted, TrackList, type ListTrack } from '../../src/page/ui/trackList';
 
 const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../fixtures/pathfinder');
 const fixture = (name: string) => JSON.parse(readFileSync(path.join(dir, name), 'utf8')) as { request: { variables: unknown }; response: { json: { data: unknown } } };
@@ -292,5 +292,35 @@ describe('desktop look', () => {
     expect(store.load).not.toHaveBeenCalled();
     feature.disable();
     expect(section.querySelector<HTMLElement>('#view')!.style.display).toBe('');
+  });
+});
+
+describe('track list liked ticks', () => {
+  it('updates the ticks in place when the liked songs change, without rebuilding the rows', () => {
+    const liked = new Set([id(1)]);
+    const list = new TrackList({
+      typography: { heading: '', title: '', subdued: '' },
+      actions: { playlists: async () => [], curate: async () => true },
+      isLiked: (t) => liked.has(t.t),
+      stickyTop: 0,
+      padding: 0,
+    });
+    const tracks = [track(1, 'One', 'A', 'X', 1, 1000), track(2, 'Two', 'B', 'Y', 2, 1000)];
+    list.render(tracks, 10);
+    const rows = [...list.list.children];
+    const tick = (i: number) => list.list.children[i]!.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
+    const before = [tick(0).innerHTML, tick(1).innerHTML];
+    expect(before[0]).not.toBe(before[1]);
+    expect(tick(1).style.opacity).toBe('0');
+
+    liked.add(id(2));
+    list.refreshLiked();
+    rows.forEach((row, i) => expect(list.list.children[i]).toBe(row));
+    expect(tick(1).innerHTML).toBe(before[0]);
+    expect(tick(1).style.opacity).toBe('1');
+
+    // The same array again renders nothing.
+    list.render(tracks, 10);
+    rows.forEach((row, i) => expect(list.list.children[i]).toBe(row));
   });
 });

@@ -94,6 +94,9 @@ export class PlaylistToolsFeature {
   private tracks: ListTrack[] | null = null;
   private loadError = false;
   private partial: { shown: number; total: number } | null = null;
+  /** Last result of chip, search and order, with what it was computed from. */
+  private lastShown: { tracks: ListTrack[]; chip: Chip | null; query: string; sort: SortState; lang: string; result: ListTrack[] } | null =
+    null;
   private loadToken = 0;
   private chipsEnabled = true;
   /** Chips of Liked Songs, once their descriptors are known (null: not computed yet). */
@@ -231,6 +234,7 @@ export class PlaylistToolsFeature {
     this.main = null;
     this.query = '';
     this.tracks = null;
+    this.lastShown = null;
     this.partial = null;
     this.loadError = false;
     this.loadToken += 1;
@@ -363,8 +367,9 @@ export class PlaylistToolsFeature {
       this.chips = null;
       if (this.chip) this.chip = null;
     }
+    // Liked Songs: the rows themselves change. Elsewhere only the ticks do, updated in place.
     if (this.target.kind === 'liked' && this.tracks) this.tracks = this.likedTracks();
-    this.trackList?.invalidate();
+    this.trackList?.refreshLiked();
     this.scheduler.schedule();
   }
 
@@ -494,14 +499,38 @@ export class PlaylistToolsFeature {
     if (this.loadError) text = labels.failed;
     else if (!this.tracks) text = labels.loading;
     else {
-      const chip = this.chip;
-      const tracks = chip ? this.tracks.filter((track) => chip.trackIds.has(track.t)) : this.tracks;
-      shown = queryTracks(tracks, this.query, this.sort, pageLanguage());
+      shown = this.shownTracks(this.tracks);
       if (!shown.length && this.query) text = labels.noResults(this.query);
       else if (this.partial) text = labels.partial(this.partial.shown, this.partial.total);
     }
     if (message.textContent !== text) message.textContent = text;
     message.style.display = text ? '' : 'none';
     trackList.render(shown, this.now(), this.query);
+  }
+
+  /**
+   * The rows to show: chip, search and order applied. Computed again only when one of them or
+   * the tracks change, not on every page mutation (the list can have thousands of rows).
+   */
+  private shownTracks(tracks: ListTrack[]): ListTrack[] {
+    const sort = this.sort;
+    const lang = pageLanguage();
+    const last = this.lastShown;
+    if (
+      last &&
+      last.tracks === tracks &&
+      last.chip === this.chip &&
+      last.query === this.query &&
+      last.sort.key === sort.key &&
+      last.sort.descending === sort.descending &&
+      last.lang === lang
+    ) {
+      return last.result;
+    }
+    const chip = this.chip;
+    const filtered = chip ? tracks.filter((track) => chip.trackIds.has(track.t)) : tracks;
+    const result = queryTracks(filtered, this.query, sort, lang);
+    this.lastShown = { tracks, chip, query: this.query, sort, lang, result };
+    return result;
   }
 }
