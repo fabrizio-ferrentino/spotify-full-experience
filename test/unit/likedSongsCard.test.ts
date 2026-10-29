@@ -104,6 +104,13 @@ describe('LikedSongsView', () => {
     expect(rows[1]!.textContent).toContain('Angels & Airwaves, Guest');
     expect(rows[1]!.querySelector('[title="Esplicito"]')?.textContent).toBe('E');
 
+    // Escape in the player's own search box is left to it.
+    const search = document.createElement('input');
+    document.body.append(search);
+    search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(view.isOpen).toBe(true);
+    search.remove();
+
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(view.isOpen).toBe(false);

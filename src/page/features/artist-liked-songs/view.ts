@@ -31,7 +31,11 @@ export class LikedSongsView {
   private tracks: ListTrack[] = [];
   private readonly resizeObserver: ResizeObserver | null;
   private readonly onKey = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') this.close();
+    if (event.key !== 'Escape') return;
+    // Escape in a text field of the player (e.g. its search box) belongs to that field.
+    const target = event.target;
+    if (target instanceof Element && !this.root.contains(target) && target.closest('input, textarea, [contenteditable]')) return;
+    this.close();
   };
   private readonly onResize = () => this.place();
   private artistId = '';
