@@ -3,7 +3,7 @@
 // exponential backoff on 429, on 401/403 wait for the player's next token (or for a success of
 // the player with the same one), and one retry with another hash source when the persisted query
 // is unknown.
-import { PATHFINDER_V2_URL } from '../adapters/endpoints';
+import { INVALID_HASH_STATUS, PATHFINDER_V2_URL } from '../adapters/endpoints';
 import type { HashRegistry } from './hashRegistry';
 import type { Session } from './session';
 
@@ -109,11 +109,14 @@ export class PathfinderClient {
         this.session.markRejected();
         continue; // waits for the player's next token at the top of the loop
       }
-      if (!response.ok) throw new PathfinderError(`${operationName} failed`, response.status);
+      const invalidHash = response.status === INVALID_HASH_STATUS;
+      if (!response.ok && !invalidHash) throw new PathfinderError(`${operationName} failed`, response.status);
 
-      const body = (await response.json().catch(() => null)) as { data?: unknown; errors?: { message?: unknown }[] } | null;
+      const body = response.ok
+        ? ((await response.json().catch(() => null)) as { data?: unknown; errors?: { message?: unknown }[] } | null)
+        : null;
       const errors = (body?.errors ?? []).map((error) => String(error?.message ?? 'unknown error'));
-      if (errors.some((message) => PERSISTED_QUERY_NOT_FOUND.test(message)) && !hashRetried) {
+      if ((invalidHash || errors.some((message) => PERSISTED_QUERY_NOT_FOUND.test(message))) && !hashRetried) {
         hashRetried = true;
         this.registry.refuse(operationName, entry.hash);
         await this.registry.scanBundles([operationName]);
@@ -122,6 +125,7 @@ export class PathfinderClient {
         entry = next;
         continue;
       }
+      if (invalidHash) throw new PathfinderError(`${operationName}: persisted query not found`, response.status);
       return { status: response.status, data: body?.data ?? null, errors };
     }
   }

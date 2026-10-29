@@ -107,6 +107,19 @@ describe('PathfinderClient', () => {
     expect(registry.get('op')?.source).toBe('bundle');
   });
 
+  it('retries once with another hash source on HTTP 412 "Invalid query hash", as Spotify answers', async () => {
+    const invalid = () => new Response('"Invalid query hash"', { status: 412, headers: { 'content-type': 'application/json' } });
+    const { client, calls, registry } = setup([invalid(), ok('ok')]);
+    await expect(client.query('op', {})).resolves.toMatchObject({ data: 'ok' });
+    expect(calls.map((c) => c.body.extensions.persistedQuery.sha256Hash)).toEqual([H('1'), H('2')]);
+    expect(registry.get('op')?.source).toBe('bundle');
+
+    // No other hash, or the other one refused too: the query fails.
+    const twice = setup([invalid(), invalid()]);
+    await expect(twice.client.query('op', {})).rejects.toMatchObject({ status: 412 });
+    expect(twice.calls).toHaveLength(2);
+  });
+
   it('fails cleanly without a hash, a token or on other HTTP errors', async () => {
     const noHash = setup([]);
     await expect(noHash.client.query('unknownOp', {})).rejects.toBeInstanceOf(PathfinderError);

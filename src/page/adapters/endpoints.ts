@@ -4,6 +4,11 @@
 const PATHFINDER_HOST = 'api-partner.spotify.com';
 /** Endpoint used for our own (fallback) queries, the same the player uses. */
 export const PATHFINDER_V2_URL = 'https://api-partner.spotify.com/pathfinder/v2/query';
+/**
+ * Status of a query with an unknown persisted query hash: HTTP 412, body `"Invalid query hash"`
+ * (checked live on 2026-10-29), not a GraphQL `PersistedQueryNotFound` error.
+ */
+export const INVALID_HASH_STATUS = 412;
 const PATHFINDER_PATH = /^\/pathfinder\/v(\d+)\/query$/;
 const SPCLIENT_HOST = /(^|[.-])spclient\.(wg\.)?spotify\.com$/;
 
