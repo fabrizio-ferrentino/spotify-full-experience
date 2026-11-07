@@ -10,6 +10,12 @@ export interface CurationChange {
   curationType: CurationType;
 }
 
+/**
+ * Outcome of a library write: false if it failed, 'unsynced' if it was done with our own request
+ * because the player's could not be used, so the player's own ticks stay stale until a reload.
+ */
+export type CurationResult = boolean | 'unsynced';
+
 const OWN = 'data-sfe-liked-save';
 const WIDTH = 320;
 /** Space kept between the dialog and the window edges. */

@@ -9,7 +9,7 @@ import { albumPath, artistPath, navigateTo, trackPath, trackShareUrl } from '../
 import { addedDate, formatCount, formatDuration, label, viewLabels } from './format';
 import { CreditsDialog } from './creditsDialog';
 import { ContextMenu, type MenuItem } from './menu';
-import { SaveDialog, type CurationChange } from './saveDialog';
+import { SaveDialog, type CurationChange, type CurationResult } from './saveDialog';
 import { showToast } from './toast';
 import { ACCENT, addIcon, checkIcon, el, ELLIPSIS, HOVER, icon, ICONS, type Typography } from './typography';
 
@@ -37,7 +37,7 @@ export interface RowActions {
   /** The liked songs and the editable playlists, with `curates` for this track. */
   playlists(track: ListTrack): Promise<EditablePlaylist[]>;
   /** Saves or removes the track in the given contexts; false on failure. */
-  curate(track: ListTrack, changes: CurationChange[]): Promise<boolean>;
+  curate(track: ListTrack, changes: CurationChange[]): Promise<CurationResult>;
   /** Opens the song radio; false on failure. */
   radio(track: ListTrack): Promise<boolean>;
   /** The song's credits, for the credits dialog; throws on failure. */
@@ -291,8 +291,14 @@ export class TrackList {
   }
 
   /** Runs a library or player action and reports the outcome in a toast. */
-  private report(action: Promise<boolean>, success: string): void {
-    void action.catch(() => false).then((ok) => showToast(ok ? success : viewLabels().failed, this.options.typography.title));
+  private report(action: Promise<CurationResult>, success: string): void {
+    void action
+      .catch(() => false)
+      .then((result) => {
+        const labels = viewLabels();
+        const text = !result ? labels.failed : result === 'unsynced' ? `${success}. ${labels.reloadToUpdate}` : success;
+        showToast(text, this.options.typography.title);
+      });
   }
 
   private openSaveDialog(track: ListTrack, anchor: HTMLElement): void {

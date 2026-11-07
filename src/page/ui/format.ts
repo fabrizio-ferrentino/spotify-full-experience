@@ -180,6 +180,8 @@ type ViewLabels = {
   removedFromLiked: string;
   addedTo: (playlist: string) => string;
   saved: string;
+  /** Added to a library write done without the player's own API: its ticks stay stale. */
+  reloadToUpdate: string;
   linkCopied: string;
   failed: string;
   saveToLiked: string;
@@ -216,7 +218,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     play: (t) => `Riproduci ${t}`, more: (t) => `Altre opzioni per ${t}`, goToArtist: "Vai all'artista", goToAlbum: "Vai all'album", copyLink: 'Copia link del brano',
     addToPlaylist: 'Aggiungi alla playlist', removeFromLiked: 'Rimuovi dai brani che ti piacciono', addToQueue: 'Aggiungi in coda', share: 'Condividi',
     saveIn: 'Salva in', findPlaylist: 'Trova una playlist', likedSongs: 'Brani che ti piacciono', noPlaylists: 'Nessuna playlist', cancel: 'Annulla', done: 'Fatto',
-    addedToQueue: 'Aggiunto in coda', removedFromLiked: 'Rimosso dai brani che ti piacciono', addedTo: (p) => `Aggiunto a ${p}`, saved: 'Modifiche salvate',
+    addedToQueue: 'Aggiunto in coda', removedFromLiked: 'Rimosso dai brani che ti piacciono', addedTo: (p) => `Aggiunto a ${p}`, saved: 'Modifiche salvate', reloadToUpdate: 'Ricarica la pagina per aggiornare il resto di Spotify',
     linkCopied: 'Link copiato negli appunti', failed: "Non è stato possibile completare l'operazione",
     saveToLiked: 'Salva nei brani che ti piacciono', savedToLiked: 'Aggiunto ai brani che ti piacciono', searchInPlaylist: 'Cerca nella playlist', clearSearch: 'Cancella ricerca',
     sortBy: 'Ordina per', sortKeys: { custom: 'Ordine personalizzato', title: 'Titolo', artist: 'Artista', album: 'Album', added: 'Data di aggiunta', duration: 'Durata' },
@@ -241,7 +243,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     play: (t) => `Play ${t}`, more: (t) => `More options for ${t}`, goToArtist: 'Go to artist', goToAlbum: 'Go to album', copyLink: 'Copy song link',
     addToPlaylist: 'Add to playlist', removeFromLiked: 'Remove from your Liked Songs', addToQueue: 'Add to queue', share: 'Share',
     saveIn: 'Save in', findPlaylist: 'Find a playlist', likedSongs: 'Liked Songs', noPlaylists: 'No playlists', cancel: 'Cancel', done: 'Done',
-    addedToQueue: 'Added to queue', removedFromLiked: 'Removed from Liked Songs', addedTo: (p) => `Added to ${p}`, saved: 'Changes saved',
+    addedToQueue: 'Added to queue', removedFromLiked: 'Removed from Liked Songs', addedTo: (p) => `Added to ${p}`, saved: 'Changes saved', reloadToUpdate: 'Reload the page to update the rest of Spotify',
     linkCopied: 'Link copied to clipboard', failed: 'Something went wrong',
     saveToLiked: 'Save to your Liked Songs', savedToLiked: 'Added to Liked Songs', searchInPlaylist: 'Search in playlist', clearSearch: 'Clear search',
     sortBy: 'Sort by', sortKeys: { custom: 'Custom order', title: 'Title', artist: 'Artist', album: 'Album', added: 'Date added', duration: 'Duration' },
@@ -266,7 +268,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     play: (t) => `Reproducir ${t}`, more: (t) => `Más opciones para ${t}`, goToArtist: 'Ir al artista', goToAlbum: 'Ir al álbum', copyLink: 'Copiar enlace de la canción',
     addToPlaylist: 'Añadir a la playlist', removeFromLiked: 'Quitar de tus canciones que te gustan', addToQueue: 'Añadir a la cola', share: 'Compartir',
     saveIn: 'Guardar en', findPlaylist: 'Buscar una playlist', likedSongs: 'Canciones que te gustan', noPlaylists: 'No hay playlists', cancel: 'Cancelar', done: 'Listo',
-    addedToQueue: 'Añadida a la cola', removedFromLiked: 'Quitada de Canciones que te gustan', addedTo: (p) => `Añadida a ${p}`, saved: 'Cambios guardados',
+    addedToQueue: 'Añadida a la cola', removedFromLiked: 'Quitada de Canciones que te gustan', addedTo: (p) => `Añadida a ${p}`, saved: 'Cambios guardados', reloadToUpdate: 'Recarga la página para actualizar el resto de Spotify',
     linkCopied: 'Enlace copiado al portapapeles', failed: 'Se ha producido un error',
     saveToLiked: 'Guardar en tus canciones que te gustan', savedToLiked: 'Añadida a Canciones que te gustan', searchInPlaylist: 'Buscar en la playlist', clearSearch: 'Borrar búsqueda',
     sortBy: 'Ordenar por', sortKeys: { custom: 'Orden personalizado', title: 'Título', artist: 'Artista', album: 'Álbum', added: 'Fecha en que se añadió', duration: 'Duración' },
@@ -291,7 +293,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     play: (t) => `Lire ${t}`, more: (t) => `Plus d’options pour ${t}`, goToArtist: 'Accéder à l’artiste', goToAlbum: 'Accéder à l’album', copyLink: 'Copier le lien du titre',
     addToPlaylist: 'Ajouter à la playlist', removeFromLiked: 'Retirer des Titres likés', addToQueue: 'Ajouter à la file d’attente', share: 'Partager',
     saveIn: 'Enregistrer dans', findPlaylist: 'Rechercher une playlist', likedSongs: 'Titres likés', noPlaylists: 'Aucune playlist', cancel: 'Annuler', done: 'OK',
-    addedToQueue: 'Ajouté à la file d’attente', removedFromLiked: 'Retiré des Titres likés', addedTo: (p) => `Ajouté à ${p}`, saved: 'Modifications enregistrées',
+    addedToQueue: 'Ajouté à la file d’attente', removedFromLiked: 'Retiré des Titres likés', addedTo: (p) => `Ajouté à ${p}`, saved: 'Modifications enregistrées', reloadToUpdate: 'Rechargez la page pour mettre à jour le reste de Spotify',
     linkCopied: 'Lien copié dans le presse-papiers', failed: 'Une erreur s’est produite',
     saveToLiked: 'Enregistrer dans les Titres likés', savedToLiked: 'Ajouté aux Titres likés', searchInPlaylist: 'Rechercher dans la playlist', clearSearch: 'Effacer la recherche',
     sortBy: 'Trier par', sortKeys: { custom: 'Ordre personnalisé', title: 'Titre', artist: 'Artiste', album: 'Album', added: 'Date d’ajout', duration: 'Durée' },
@@ -316,7 +318,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     play: (t) => `${t} abspielen`, more: (t) => `Weitere Optionen für ${t}`, goToArtist: 'Zum Künstler', goToAlbum: 'Zum Album', copyLink: 'Songlink kopieren',
     addToPlaylist: 'Zur Playlist hinzufügen', removeFromLiked: 'Aus Lieblingssongs entfernen', addToQueue: 'Zur Warteschlange hinzufügen', share: 'Teilen',
     saveIn: 'Speichern in', findPlaylist: 'Playlist suchen', likedSongs: 'Lieblingssongs', noPlaylists: 'Keine Playlists', cancel: 'Abbrechen', done: 'Fertig',
-    addedToQueue: 'Zur Warteschlange hinzugefügt', removedFromLiked: 'Aus Lieblingssongs entfernt', addedTo: (p) => `Zu ${p} hinzugefügt`, saved: 'Änderungen gespeichert',
+    addedToQueue: 'Zur Warteschlange hinzugefügt', removedFromLiked: 'Aus Lieblingssongs entfernt', addedTo: (p) => `Zu ${p} hinzugefügt`, saved: 'Änderungen gespeichert', reloadToUpdate: 'Lade die Seite neu, um den Rest von Spotify zu aktualisieren',
     linkCopied: 'Link in die Zwischenablage kopiert', failed: 'Etwas ist schiefgelaufen',
     saveToLiked: 'In Lieblingssongs speichern', savedToLiked: 'Zu Lieblingssongs hinzugefügt', searchInPlaylist: 'In Playlist suchen', clearSearch: 'Suche löschen',
     sortBy: 'Sortieren nach', sortKeys: { custom: 'Benutzerdefinierte Reihenfolge', title: 'Titel', artist: 'Künstler', album: 'Album', added: 'Hinzugefügt am', duration: 'Dauer' },
@@ -341,7 +343,7 @@ const VIEW_LABELS: Record<string, ViewLabels> = {
     play: (t) => `Tocar ${t}`, more: (t) => `Mais opções para ${t}`, goToArtist: 'Ir para o artista', goToAlbum: 'Ir para o álbum', copyLink: 'Copiar link da música',
     addToPlaylist: 'Adicionar à playlist', removeFromLiked: 'Remover das Músicas Curtidas', addToQueue: 'Adicionar à fila', share: 'Compartilhar',
     saveIn: 'Salvar em', findPlaylist: 'Encontrar uma playlist', likedSongs: 'Músicas Curtidas', noPlaylists: 'Nenhuma playlist', cancel: 'Cancelar', done: 'Concluir',
-    addedToQueue: 'Adicionada à fila', removedFromLiked: 'Removida das Músicas Curtidas', addedTo: (p) => `Adicionada a ${p}`, saved: 'Alterações salvas',
+    addedToQueue: 'Adicionada à fila', removedFromLiked: 'Removida das Músicas Curtidas', addedTo: (p) => `Adicionada a ${p}`, saved: 'Alterações salvas', reloadToUpdate: 'Recarregue a página para atualizar o resto do Spotify',
     linkCopied: 'Link copiado para a área de transferência', failed: 'Algo deu errado',
     saveToLiked: 'Salvar nas Músicas Curtidas', savedToLiked: 'Adicionada às Músicas Curtidas', searchInPlaylist: 'Buscar na playlist', clearSearch: 'Limpar busca',
     sortBy: 'Ordenar por', sortKeys: { custom: 'Ordem personalizada', title: 'Título', artist: 'Artista', album: 'Álbum', added: 'Data de adição', duration: 'Duração' },

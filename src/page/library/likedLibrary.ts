@@ -1,7 +1,8 @@
 // The user's liked songs, shared by the features: a local index (built with fetchLibraryTracks,
 // checked with one small page at most every 10 minutes), the player's own likes and unlikes
-// applied from its requests, and the library writes our rows can make (applyCurations, only on
-// an explicit user action, CLAUDE.md §2.10).
+// applied from its requests, and the library writes our rows can make (only on an explicit user
+// action, CLAUDE.md §2.10): through the player's own CurationAPI, so its ticks follow, else with
+// our own applyCurations.
 import type { LikedIndex } from '../../shared/likedIndex';
 import {
   curationVariables,
@@ -15,10 +16,11 @@ import {
   parseProfileUri,
   type EditablePlaylist,
 } from '../adapters/libraryShapes';
+import type { PlayerCuration } from '../adapters/playerInternals';
 import type { CapturedRequest } from '../core/interceptor';
 import type { PathfinderClient } from '../core/pathfinderClient';
 import { debugLog, debugWarn } from '../debug/log';
-import type { CurationChange } from '../ui/saveDialog';
+import type { CurationChange, CurationResult } from '../ui/saveDialog';
 import { buildIndex, isStale, refreshIndex, removeTracks, type FetchPage } from './indexSync';
 
 export interface LikedLibraryDeps {
@@ -30,6 +32,8 @@ export interface LikedLibraryDeps {
    * features start with their defaults and the user's settings may turn them off meanwhile.
    */
   wanted?: () => boolean;
+  /** The player's own CurationAPI, looked up at each write (null when unreachable). */
+  playerCuration?: () => PlayerCuration | null;
   now?: () => number;
 }
 
@@ -131,16 +135,44 @@ export class LikedLibrary {
    * Saves or removes a track like the player's "saved in" dialog (applyCurations). Our own
    * requests are not observed by the interceptor, so liked songs changes are applied here.
    */
-  async curate(trackId: string, changes: CurationChange[]): Promise<boolean> {
+  async curate(trackId: string, changes: CurationChange[]): Promise<CurationResult> {
+    if (!changes.length) return false;
+    const uri = `spotify:track:${trackId}`;
+    const result: CurationResult = (await this.curateWithPlayer(uri, changes)) || ((await this.curateWithClient(uri, changes)) && 'unsynced');
+    if (!result) return false;
+    const liked = changes.find((change) => change.contextUri === LIKED_SONGS_CONTEXT);
+    if (liked) this.applyChange(liked.curationType === 'UNCURATE' ? 'removed' : 'added', [trackId]);
+    return result;
+  }
+
+  /** Through the player's own CurationAPI, which also updates its ticks. */
+  private async curateWithPlayer(uri: string, changes: CurationChange[]): Promise<boolean> {
+    const api = this.deps.playerCuration?.() ?? null;
+    if (!api) {
+      debugWarn('liked songs: player CurationAPI not found, using our own request');
+      return false;
+    }
+    const contexts = (type: CurationChange['curationType']) =>
+      changes.filter((change) => change.curationType === type).map((change) => change.contextUri);
+    try {
+      await api.curateItems(uri, contexts('CURATE'), contexts('UNCURATE'));
+      return true;
+    } catch (error) {
+      // Applying the same curations again is harmless: the fallback simply redoes them.
+      debugWarn('liked songs: player curation failed, using our own request', error instanceof Error ? error.message : error);
+      return false;
+    }
+  }
+
+  /** Our own applyCurations, the same request the player sends. */
+  private async curateWithClient(uri: string, changes: CurationChange[]): Promise<boolean> {
     const client = this.deps.client;
-    if (!client || !changes.length) return false;
-    const result = await client.query(OPERATIONS.applyCurations, curationVariables([`spotify:track:${trackId}`], changes));
+    if (!client) return false;
+    const result = await client.query(OPERATIONS.applyCurations, curationVariables([uri], changes));
     if (result.errors.length || !parseCurationResult(result.data)) {
       debugWarn('liked songs: applyCurations failed', result.errors);
       return false;
     }
-    const liked = changes.find((change) => change.contextUri === LIKED_SONGS_CONTEXT);
-    if (liked) this.applyChange(liked.curationType === 'UNCURATE' ? 'removed' : 'added', [trackId]);
     return true;
   }
 

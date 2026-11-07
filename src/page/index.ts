@@ -1,6 +1,8 @@
 // Entry point of the code running in the page's JS context (injected by bootstrap).
 // Passive capture of the player's internal requests, feeding the features and debug mode.
 import { DEFAULT_SETTINGS } from '../shared/settings';
+import { findPlayerCuration } from './adapters/playerInternals';
+import { SELECTORS } from './adapters/spotifyDom';
 import { loadDescriptors, loadLikedIndex, saveDescriptors, saveLikedIndex, sendToContent, startBridge } from './core/bridge';
 import { HashRegistry } from './core/hashRegistry';
 import { installFetchInterceptor, installXhrInterceptor, type InterceptorHooks } from './core/interceptor';
@@ -108,6 +110,7 @@ function main(): void {
     loadIndex: loadLikedIndex,
     saveIndex: saveLikedIndex,
     wanted: () => likedSongs?.isEnabled === true || playlistTools?.isEnabled === true,
+    playerCuration: () => findPlayerCuration(document.querySelector(SELECTORS.main)),
   });
   const playback = new Playback(player);
   const likedLibrary = library;
